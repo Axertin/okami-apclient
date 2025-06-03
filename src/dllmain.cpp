@@ -2,7 +2,7 @@
 #include "pch.h"
 #include <okami_apclient-GitVersion.h>
 
-const DWORD BaseAddress = (DWORD)GetModuleHandle("okami.exe");
+const HMODULE BaseAddress = GetModuleHandleW(L"main.dll");
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -14,6 +14,7 @@ BOOL APIENTRY DllMain( HMODULE hModule,
     {
     case DLL_PROCESS_ATTACH:
         std::cout << "Loaded okami-apclient v" << okami_apclient::version_string() << " (" << okami_apclient::version_shorthash() << ")" << std::endl;
+        std::cout << "main.dll is at 0x" << BaseAddress << std::endl;
         // TODO: Spawn a thread to do my own thing
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:

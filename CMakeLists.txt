@@ -21,7 +21,7 @@ file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
 add_library(okami-apclient SHARED ${sources})
 target_include_directories(okami-apclient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-target_compile_options(okami-apclient PUBLIC -Wall)
+target_compile_options(okami-apclient PUBLIC -WX)
 add_version_info(TARGET okami-apclient)
 set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
 
