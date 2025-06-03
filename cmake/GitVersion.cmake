@@ -374,7 +374,7 @@ function(add_version_info)
   set(VERSION_STRING "0.0-unknown.0")
   set(VERSION_ISDIRTY 0)
   set(VERSION_BRANCH unknown)
-  set(output_dir "${CMAKE_CURRENT_BINARY_DIR}/version/${targetid}")
+  set(output_dir "${CMAKE_CURRENT_SOURCE_DIR}/out/version/${targetid}")
 
   get_target_property(TARGET_VMAJOR ${VI_TARGET} VERSION_MAJOR)
   if(TARGET_VMAJOR)

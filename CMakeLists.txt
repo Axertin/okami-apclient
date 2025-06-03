@@ -16,20 +16,27 @@ endif()
 project("okami-apclient" LANGUAGES CXX)
 
 # Glob tree for sources and includes, and put them in lists
-file(GLOB_RECURSE sources src/*.cpp)
-file(GLOB_RECURSE tests test/*.cpp)
-file(GLOB_RECURSE include inc/*.h)
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
-add_library (okami-apclient SHARED ${sources} ${include})
+add_library(okami-apclient SHARED ${sources})
+include_directories(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_compile_options(okami-apclient PUBLIC -Wall)
 add_version_info(TARGET okami-apclient)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET okami-apclient PROPERTY CXX_STANDARD 20)
 endif()
 
-# TODO: Add tests and install targets if needed.
+# TODO: Add tests
 
+# TODO: Add installs
 
-set(CPACK_MONOLITHIC_INSTALL 1)
-
+# CPack configuration
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A randomizer and Archipelago client for OkamiHD")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_VERSION_MAJOR ${okami-apclient_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${okami-apclient_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${okami-apclient_VERSION_PATCH})
 include(CPack)
