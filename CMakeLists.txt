@@ -20,9 +20,10 @@ file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
 add_library(okami-apclient SHARED ${sources})
-include_directories(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
+target_include_directories(okami-apclient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 target_compile_options(okami-apclient PUBLIC -Wall)
 add_version_info(TARGET okami-apclient)
+set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET okami-apclient PROPERTY CXX_STANDARD 20)
@@ -30,13 +31,6 @@ endif()
 
 # TODO: Add tests
 
-# TODO: Add installs
-
-# CPack configuration
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A randomizer and Archipelago client for OkamiHD")
-set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
-set(CPACK_PACKAGE_VERSION_MAJOR ${okami-apclient_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${okami-apclient_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${okami-apclient_VERSION_PATCH})
-include(CPack)
+# TODO: Allow override of install_prefix
+set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
+install(TARGETS okami-apclient DESTINATION mods)
