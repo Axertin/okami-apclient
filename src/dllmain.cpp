@@ -5,13 +5,18 @@
 #include <okami_apclient-GitVersion.h>
 
 const uint32_t RETRIES = 5;
+static HMODULE MinHook;
+static std::atomic<bool> SetupCalled = false;
 
 DWORD WINAPI deferredInit(LPVOID)
 {
     std::cout << "Loading MinHook...";
+
+    // Make sure MinHook is loaded before we try and call things from it
+    // We don't know when this will happen, so give it a few tries over a couple seconds
     for (uint32_t i = 0; i < RETRIES; i++)
     {
-        auto MinHook = GetModuleHandle("minhook.x64.dll");
+        MinHook = GetModuleHandle("minhook.x64.dll");
         if (!MinHook)
         {
             std::cout << ".";
@@ -21,6 +26,7 @@ DWORD WINAPI deferredInit(LPVOID)
         {
             std::cout << "Done!" << std::endl;
             GameHandler::setup();
+            SetupCalled = true;
             return 0;
         }
     }
@@ -44,11 +50,25 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             return FALSE;
         }
 
+        // Defer initialization until after DllMain() returns, to somewhat mitigate risk of deadlock
         CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&deferredInit, NULL, NULL, NULL);
 
+        break;
+
     case DLL_THREAD_ATTACH:
+        break;
     case DLL_THREAD_DETACH:
+        break;
     case DLL_PROCESS_DETACH:
+        // Only perform heavy cleanup if early in process teardown
+        if ((lpReserved == nullptr) && SetupCalled)
+        {
+            if (MinHook)
+            {
+                GameHandler::cleanup();
+            }
+        }
+        // Otherwise, it is in the OS's hands to actually release our resources.
         break;
     }
 

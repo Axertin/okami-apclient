@@ -12,6 +12,7 @@ uint8_t *Main_FlowerTick;
 void __cdecl GameHandler::onGameTick()
 {
     printMemTable(getMemTable());
+    Main_FlowerTickOrigin();
 }
 
 void GameHandler::setup()
@@ -30,4 +31,10 @@ void GameHandler::setup()
 
     std::cout << "Hooks Initialized!" << std::endl;
     MH_EnableHook(MH_ALL_HOOKS);
+}
+
+void GameHandler::cleanup()
+{
+    MH_DisableHook(MH_ALL_HOOKS);
+    MH_Uninitialize();
 }
