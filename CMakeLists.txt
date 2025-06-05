@@ -8,7 +8,8 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GitVersion)
 
 # find vcpkg
-set(vcpkg "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+set(VCPKG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg)
+set(vcpkg "${VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
 if(NOT CMAKE_TOOLCHAIN_FILE AND EXISTS "${vcpkg}")
   set(CMAKE_TOOLCHAIN_FILE "${vcpkg}"
     CACHE FILEPATH "CMake toolchain file")
