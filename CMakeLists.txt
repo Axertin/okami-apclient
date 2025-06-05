@@ -47,3 +47,4 @@ endif()
 # TODO: Allow override of install_prefix
 set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
 install(TARGETS okami-apclient DESTINATION mods)
+install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods)

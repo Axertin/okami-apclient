@@ -1,7 +1,6 @@
 
 #include "memtable.h"
-
-const auto BaseAddress = (uintptr_t)(GetModuleHandleW(L"main.dll"));
+#include "core.h"
 
 memtable MemoryTable;
 
@@ -9,56 +8,51 @@ uint32_t readIngameTime(void) { return 0; }
 
 float readAmmyPosX(void)
 {
-    float *ptr = (float *)(BaseAddress + 0xB6B2D0 + 0x000000A8 + 0);
+    float *ptr = (float *)(core::MainBase + 0xB6B2D0 + 0x000000A8 + 0);
     return *ptr;
 }
 
 float readAmmyPosY(void)
 {
-    float *ptr = (float *)(BaseAddress + 0xB6B2D0 + 0x000000A8 + 4);
+    float *ptr = (float *)(core::MainBase + 0xB6B2D0 + 0x000000A8 + 4);
     return *ptr;
 }
 
 float readAmmyPosZ(void)
 {
-    float *ptr = (float *)(BaseAddress + 0xB6B2D0 + 0x000000A8 + 8);
+    float *ptr = (float *)(core::MainBase + 0xB6B2D0 + 0x000000A8 + 8);
     return *ptr;
 }
 
 int32_t readAmmyYen(void)
 {
-    return *(int32_t *)(BaseAddress + 0xB205E0);
-}
-
-uintptr_t getBaseAddress(void)
-{
-    return BaseAddress;
+    return *(int32_t *)(core::MainBase + 0xB205E0);
 }
 
 memtable getMemTable(void)
 {
     memtable mem;
 
-    mem.IngameTimeFrames = *(uint32_t *)(BaseAddress + 0xB217FC);
-    mem.AmmyPosX = *(float *)(BaseAddress + 0xB6B2D0 + 0x0000A8 + 0);
-    mem.AmmyPosY = *(float *)(BaseAddress + 0xB6B2D0 + 0x0000A8 + 4);
-    mem.AmmyPosZ = *(float *)(BaseAddress + 0xB6B2D0 + 0x0000A8 + 8);
-    mem.AmmyCurrentHealth = *(int16_t *)(BaseAddress + 0xB4DF90);
-    mem.AmmyMaxHealth = *(int16_t *)(BaseAddress + 0xB4DF92);
-    mem.HealthUpgradeCount = *(uint8_t *)(BaseAddress + 0xB205E5);
-    mem.AmmyCurrentInk = *(int32_t *)(BaseAddress + 0xB205D8);
-    mem.AmmyMaxInk = *(int32_t *)(BaseAddress + 0xB205DC);
-    mem.BrushTargetInk = *(int32_t *)(BaseAddress + 0x8928A4);
-    mem.BrushCurrentInk = *(int32_t *)(BaseAddress + 0x8928A8);
-    mem.InkUpgradeCount = *(uint8_t *)(BaseAddress + 0xB1F208);
-    mem.CanvasBrushStrokes = *(uint8_t *)(BaseAddress + 0x888C58);
-    mem.AmmyCurrentFood = *(int16_t *)(BaseAddress + 0xB4DF94);
-    mem.AmmyMaxFood = *(int16_t *)(BaseAddress + 0xB4DF94);
-    mem.FoodUpgradeCount = *(uint8_t *)(BaseAddress + 0xB4DF96);
-    mem.AmmyGodhood = *(int16_t *)(BaseAddress + 0xB4DFAC);
-    mem.AmmyCurrentMoney = *(uint32_t *)(BaseAddress + 0xB205E0);
-    mem.AmmyDisplayedMoney = *(uint32_t *)(BaseAddress + 0xB1CFE4);
-    mem.AmmyMaxMoney[4] = ((uint32_t *)(BaseAddress + 0x6B22A8))[4];
+    mem.IngameTimeFrames = *(uint32_t *)(core::MainBase + 0xB217FC);
+    mem.AmmyPosX = *(float *)(core::MainBase + 0xB6B2D0 + 0x0000A8 + 0);
+    mem.AmmyPosY = *(float *)(core::MainBase + 0xB6B2D0 + 0x0000A8 + 4);
+    mem.AmmyPosZ = *(float *)(core::MainBase + 0xB6B2D0 + 0x0000A8 + 8);
+    mem.AmmyCurrentHealth = *(int16_t *)(core::MainBase + 0xB4DF90);
+    mem.AmmyMaxHealth = *(int16_t *)(core::MainBase + 0xB4DF92);
+    mem.HealthUpgradeCount = *(uint8_t *)(core::MainBase + 0xB205E5);
+    mem.AmmyCurrentInk = *(int32_t *)(core::MainBase + 0xB205D8);
+    mem.AmmyMaxInk = *(int32_t *)(core::MainBase + 0xB205DC);
+    mem.BrushTargetInk = *(int32_t *)(core::MainBase + 0x8928A4);
+    mem.BrushCurrentInk = *(int32_t *)(core::MainBase + 0x8928A8);
+    mem.InkUpgradeCount = *(uint8_t *)(core::MainBase + 0xB1F208);
+    mem.CanvasBrushStrokes = *(uint8_t *)(core::MainBase + 0x888C58);
+    mem.AmmyCurrentFood = *(int16_t *)(core::MainBase + 0xB4DF94);
+    mem.AmmyMaxFood = *(int16_t *)(core::MainBase + 0xB4DF94);
+    mem.FoodUpgradeCount = *(uint8_t *)(core::MainBase + 0xB4DF96);
+    mem.AmmyGodhood = *(int16_t *)(core::MainBase + 0xB4DFAC);
+    mem.AmmyCurrentMoney = *(uint32_t *)(core::MainBase + 0xB205E0);
+    mem.AmmyDisplayedMoney = *(uint32_t *)(core::MainBase + 0xB1CFE4);
+    mem.AmmyMaxMoney[4] = ((uint32_t *)(core::MainBase + 0x6B22A8))[4];
     // uint32_t AmmyTotalMoney;
     // uint8_t MoneyUpgradeCount;
     // int16_t AmmyCurrentPraise;
@@ -81,10 +75,10 @@ memtable getMemTable(void)
     // uint8_t AmmyObtainedBrushTechniques[4];
     // uint8_t AmmyPowerSlashUpgradeCount;
     // int32_t AmmyMaxCherryBombCount;
-    mem.ExeriorMapID = *(uint16_t *)(BaseAddress + 0xB6B240);
-    mem.CurrentMapID = *(uint16_t *)(BaseAddress + 0xB65E74);
-    mem.VestigialMapID1 = *(uint16_t *)(BaseAddress + 0xB4F0B4);
-    mem.VsstigialMapID2 = *(uint16_t *)(BaseAddress + 0xB6B246);
+    mem.ExeriorMapID = *(uint16_t *)(core::MainBase + 0xB6B240);
+    mem.CurrentMapID = *(uint16_t *)(core::MainBase + 0xB65E74);
+    mem.VestigialMapID1 = *(uint16_t *)(core::MainBase + 0xB4F0B4);
+    mem.VsstigialMapID2 = *(uint16_t *)(core::MainBase + 0xB6B246);
     // uint8_t AmmyUsableDojoTechniques[4];
     // uint8_t CollectionStrayBeads[16];
     // uint8_t CollectionTravelGuides[4];

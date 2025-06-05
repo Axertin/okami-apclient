@@ -72,7 +72,6 @@ float readAmmyPosY(void);
 float readAmmyPosZ(void);
 
 int32_t readAmmyYen(void);
-uintptr_t getBaseAddress(void);
 memtable getMemTable(void);
 
 void printMemTable(memtable mem);

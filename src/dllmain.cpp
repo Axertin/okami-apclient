@@ -1,21 +1,51 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
-#include "memtable.h"
+#include "core.h"
+#include "gamehandler.h"
 #include <okami_apclient-GitVersion.h>
+
+const uint32_t RETRIES = 5;
+
+DWORD WINAPI deferredInit(LPVOID)
+{
+    std::cout << "Loading MinHook...";
+    for (uint32_t i = 0; i < RETRIES; i++)
+    {
+        auto MinHook = GetModuleHandle("minhook.x64.dll");
+        if (!MinHook)
+        {
+            std::cout << ".";
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+        else
+        {
+            std::cout << "Done!" << std::endl;
+            GameHandler::setup();
+            return 0;
+        }
+    }
+
+    std::cout << std::endl
+              << "MinHook not loaded after " << RETRIES << "retries!" << std::endl;
+    return 1;
+}
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD ul_reason_for_call,
                       LPVOID lpReserved)
 {
 
-    // This gets called by the game very inconsistently, and often many times in quick succession
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-    {
         std::cout << "Loaded okami-apclient v" << okami_apclient::version_string() << " (" << okami_apclient::version_shorthash() << ")" << std::endl;
-        std::cout << "BaseAddress: 0x" << std::hex << std::uppercase << getBaseAddress() << std::dec << std::endl;
-    }
+        if (!core::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+        {
+            return FALSE;
+        }
+
+        CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&deferredInit, NULL, NULL, NULL);
+
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:
