@@ -1,17 +1,36 @@
-#include "pch.h"
 #include "gamehandler.h"
-#include "core.h"
-#include "memtable.h"
+#include "okami.h"
 
 #pragma comment(lib, "vcpkg_installed/x64-windows/lib/minhook.x64.lib")
 
 typedef void(__cdecl *FunctionType)();
 
+// Startup Hook
+FunctionType Main_FlowerStartupOrigin = nullptr;
+uint8_t *Main_FlowerStartup;
+void __cdecl GameHandler::onGameStart()
+{
+    std::cout << "Startup!" << std::endl;
+    Main_FlowerStartupOrigin();
+}
+
+// Shutdown Hook
+FunctionType Main_FlowerStopOrigin = nullptr;
+uint8_t *Main_FlowerStop;
+void __cdecl GameHandler::onGameStop()
+{
+    std::cout << "Cleaning Up...";
+    GameHandler::cleanup();
+    std::cout << "Done!" << std::endl;
+    Main_FlowerStopOrigin();
+}
+
+// MainTick Hook
 FunctionType Main_FlowerTickOrigin = nullptr;
 uint8_t *Main_FlowerTick;
 void __cdecl GameHandler::onGameTick()
 {
-    printMemTable(getMemTable());
+    okami::printMonitors();
     Main_FlowerTickOrigin();
 }
 
@@ -26,8 +45,10 @@ void GameHandler::setup()
     {
         std::cout << "Done!" << std::endl;
     }
-    Main_FlowerTick = (uint8_t *)(core::MainBase + 0x4B63B0);
-    MH_CreateHook((LPVOID)Main_FlowerTick, &onGameTick, (LPVOID *)(&Main_FlowerTickOrigin));
+
+    MH_CreateHook(okami::MainFlowerStartupFunctionPtr, &onGameStart, (LPVOID *)(&Main_FlowerStartupOrigin));
+    MH_CreateHook(okami::MainFlowerStopFunctionPtr, &onGameStop, (LPVOID *)(&Main_FlowerStopOrigin));
+    MH_CreateHook(okami::MainFlowerTickFunctionPtr, &onGameTick, (LPVOID *)(&Main_FlowerTickOrigin));
 
     std::cout << "Hooks Initialized!" << std::endl;
     MH_EnableHook(MH_ALL_HOOKS);

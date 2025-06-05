@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
-#include "core.h"
+#include "okami.h"
 #include "gamehandler.h"
 #include <okami_apclient-GitVersion.h>
 
@@ -45,7 +45,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
     case DLL_PROCESS_ATTACH:
         std::cout << "Loaded okami-apclient v" << okami_apclient::version_string() << " (" << okami_apclient::version_shorthash() << ")" << std::endl;
-        if (!core::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+        if (!okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
         {
             return FALSE;
         }
