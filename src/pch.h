@@ -8,10 +8,15 @@
 #define PCH_H
 
 // add headers that you want to pre-compile here
-#include <MinHook.h>
+#pragma warning(push, 0)
+
+// #include <apclient.hpp>
 #include "framework.h"
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <MinHook.h>
+
+#pragma warning(pop)
 
 #endif // PCH_H

@@ -1,5 +1,9 @@
 {
   "dependencies": [
-    "minhook"
+    "minhook",
+    "nlohmann-json",
+    "asio",
+    "openssl",
+    "zlib"
   ]
 }

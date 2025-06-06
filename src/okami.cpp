@@ -95,6 +95,9 @@ bool okami::initialize(HMODULE MainDllModuleHandle, HMODULE FlowerDllModuleHandl
     initFunctions();
 
     std::cout << "Done!" << std::endl;
+
+    std::cout << std::hex << "Module Addresses: main.dll->0x" << okami::MainBase << " flower_kernel.dll->0x" << okami::FlowerBase << std::dec << std::endl;
+
     return true;
 }
 

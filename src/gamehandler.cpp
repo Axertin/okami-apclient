@@ -7,7 +7,6 @@ typedef void(__cdecl *FunctionType)();
 
 // Startup Hook
 FunctionType Main_FlowerStartupOrigin = nullptr;
-uint8_t *Main_FlowerStartup;
 void __cdecl GameHandler::onGameStart()
 {
     std::cout << "Startup!" << std::endl;
@@ -16,7 +15,6 @@ void __cdecl GameHandler::onGameStart()
 
 // Shutdown Hook
 FunctionType Main_FlowerStopOrigin = nullptr;
-uint8_t *Main_FlowerStop;
 void __cdecl GameHandler::onGameStop()
 {
     std::cout << "Cleaning Up...";
@@ -27,7 +25,6 @@ void __cdecl GameHandler::onGameStop()
 
 // MainTick Hook
 FunctionType Main_FlowerTickOrigin = nullptr;
-uint8_t *Main_FlowerTick;
 void __cdecl GameHandler::onGameTick()
 {
     okami::printMonitors();

@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "okami.h"
 #include "gamehandler.h"
+#include "archipelago.h"
 #include <okami_apclient-GitVersion.h>
 
 const uint32_t RETRIES = 5;
@@ -25,8 +26,17 @@ DWORD WINAPI deferredInit(LPVOID)
         else
         {
             std::cout << "Done!" << std::endl;
+
+            if (!okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+            {
+                return 0;
+            }
+
             GameHandler::setup();
             SetupCalled = true;
+
+            // CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&archipelagoClientThread, NULL, NULL, NULL);
+
             return 0;
         }
     }
@@ -45,10 +55,6 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     {
     case DLL_PROCESS_ATTACH:
         std::cout << "Loaded okami-apclient v" << okami_apclient::version_string() << " (" << okami_apclient::version_shorthash() << ")" << std::endl;
-        if (!okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
-        {
-            return FALSE;
-        }
 
         // Defer initialization until after DllMain() returns, to somewhat mitigate risk of deadlock
         CreateThread(NULL, NULL, (LPTHREAD_START_ROUTINE)&deferredInit, NULL, NULL, NULL);
@@ -69,6 +75,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
             }
         }
         // Otherwise, it is in the OS's hands to actually release our resources.
+        FreeLibrary(hModule);
+
         break;
     }
 

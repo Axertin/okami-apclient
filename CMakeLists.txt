@@ -27,20 +27,31 @@ project("okami-apclient" LANGUAGES CXX)
 
 # dependencies
 find_package(minhook CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
+find_package(ZLIB REQUIRED)
+
+add_compile_definitions(ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
 add_library(okami-apclient SHARED ${sources})
-target_include_directories(okami-apclient PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-target_link_libraries(okami-apclient PRIVATE minhook::minhook)
-target_compile_options(okami-apclient PUBLIC -WX)
+target_include_directories(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
+  ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include)
+target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
+if(${CMAKE_CXX_COMPILER_ID} EQUAL MSVC)
+  target_compile_options(okami-apclient PUBLIC /WX /Zc:__cplusplus)
+endif()
 add_version_info(TARGET okami-apclient)
 set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
 
 if(CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET okami-apclient PROPERTY CXX_STANDARD 20)
+  set_property(TARGET okami-apclient PROPERTY CXX_STANDARD 17)
 endif()
 
 # TODO: Add tests
@@ -48,4 +59,8 @@ endif()
 # TODO: Allow override of install_prefix
 set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
 install(TARGETS okami-apclient DESTINATION mods)
-install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods)
+if(EXISTS ${CMAKE_BINARY_DIR}/minhook.x64.dll)
+  install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods)
+elseif(EXISTS ${CMAKE_BINARY_DIR}/minhook.x64d.dll)
+  install(FILES ${CMAKE_BINARY_DIR}/minhook.x64d.dll DESTINATION mods)
+endif()

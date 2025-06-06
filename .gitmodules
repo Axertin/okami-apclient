@@ -1,3 +1,12 @@
 [submodule "external/vcpkg"]
 	path = external/vcpkg
 	url = git@github.com:microsoft/vcpkg.git
+[submodule "external/apclientpp"]
+	path = external/apclientpp
+	url = git@github.com:black-sliver/apclientpp.git
+[submodule "external/wswrap"]
+	path = external/wswrap
+	url = git@github.com:black-sliver/wswrap.git
+[submodule "external/websocketpp"]
+	path = external/websocketpp
+	url = git@github.com:zaphoyd/websocketpp.git
