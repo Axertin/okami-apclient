@@ -30,7 +30,7 @@ namespace okami
     extern int16_t *AmmyGodhoodPtr;
     extern uint32_t *AmmyCurrentMoneyPtr;
     extern uint32_t *AmmyDisplayedMoneyPtr;
-    extern uint32_t *AmmyMaxMoney[4];
+    extern uint32_t *AmmyMaxMoney; // Array of length 4
     extern uint32_t *AmmyTotalMoneyPtr;
     extern uint8_t *MoneyUpgradeCountPtr;
     extern int16_t *AmmyCurrentPraisePtr;

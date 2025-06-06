@@ -24,7 +24,7 @@ namespace okami
     int16_t *AmmyGodhoodPtr;
     uint32_t *AmmyCurrentMoneyPtr;
     uint32_t *AmmyDisplayedMoneyPtr;
-    uint32_t *AmmyMaxMoney[4];
+    uint32_t *AmmyMaxMoney;
     uint32_t *AmmyTotalMoneyPtr;
     uint8_t *MoneyUpgradeCountPtr;
     int16_t *AmmyCurrentPraisePtr;
@@ -144,7 +144,7 @@ void initVariables()
     okami::AmmyGodhoodPtr = (int16_t *)(okami::MainBase + 0xB4DFAC);
     okami::AmmyCurrentMoneyPtr = (uint32_t *)(okami::MainBase + 0xB205E0);
     okami::AmmyDisplayedMoneyPtr = (uint32_t *)(okami::MainBase + 0xB1CFE4);
-    okami::AmmyMaxMoney[4] = (uint32_t *)(okami::MainBase + 0x6B22A8);
+    okami::AmmyMaxMoney = (uint32_t *)(okami::MainBase + 0x6B22A8);
     // uint32_t AmmyTotalMoney;
     // uint8_t MoneyUpgradeCount;
     // int16_t AmmyCurrentPraise;
@@ -188,7 +188,7 @@ void initVariables()
 
 void initFunctions()
 {
-    okami::MainFlowerStartupFunctionPtr = (LPVOID)(okami::MainBase + 0x4B6240);
-    okami::MainFlowerStopFunctionPtr = (LPVOID)(okami::MainBase + 0x4B6230);
-    okami::MainFlowerTickFunctionPtr = (LPVOID)(okami::MainBase + 0x4B63B0);
+    okami::MainFlowerStartupFunctionPtr = (LPVOID)(uintptr_t)(okami::MainBase + 0x4B6240);
+    okami::MainFlowerStopFunctionPtr = (LPVOID)(uintptr_t)(okami::MainBase + 0x4B6230);
+    okami::MainFlowerTickFunctionPtr = (LPVOID)(uintptr_t)(okami::MainBase + 0x4B63B0);
 }

@@ -1,4 +1,5 @@
 {
+  "name": "okami-apclient",
   "dependencies": [
     "minhook",
     "nlohmann-json",

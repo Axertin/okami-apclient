@@ -1,7 +1,7 @@
 #include "gamehandler.h"
 #include "okami.h"
 
-#pragma comment(lib, "vcpkg_installed/x64-windows/lib/minhook.x64.lib")
+// #pragma comment(lib, "vcpkg_installed/x64-windows/lib/minhook.x64.lib")
 
 typedef void(__cdecl *FunctionType)();
 
