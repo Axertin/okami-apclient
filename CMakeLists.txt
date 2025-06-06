@@ -35,9 +35,10 @@ find_package(ZLIB REQUIRED)
 add_compile_definitions(ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 
 # Glob tree for sources and includes, and put them in lists
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/client/*.cpp")
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
+# Primary program
 add_library(okami-apclient SHARED ${sources})
 target_include_directories(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
@@ -50,6 +51,11 @@ endif()
 add_version_info(TARGET okami-apclient)
 set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
 
+# Bootstrap loader DLL
+add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
+target_link_libraries(apclient-loader PRIVATE SHlwapi)
+target_include_directories(apclient-loader PRIVATE)
+
 if(CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET okami-apclient PROPERTY CXX_STANDARD 17)
 endif()
@@ -58,9 +64,8 @@ endif()
 
 # TODO: Allow override of install_prefix
 set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
-install(TARGETS okami-apclient DESTINATION mods)
-if(EXISTS ${CMAKE_BINARY_DIR}/minhook.x64.dll)
-  install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods)
-elseif(EXISTS ${CMAKE_BINARY_DIR}/minhook.x64d.dll)
-  install(FILES ${CMAKE_BINARY_DIR}/minhook.x64d.dll DESTINATION mods)
-endif()
+install(TARGETS apclient-loader DESTINATION mods)
+install(TARGETS okami-apclient DESTINATION mods/apclient)
+install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods/apclient)
+install(FILES ${CMAKE_BINARY_DIR}/libcrypto-3-x64.dll DESTINATION mods/apclient)
+

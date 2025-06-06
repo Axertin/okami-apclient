@@ -10,12 +10,8 @@
 // add headers that you want to pre-compile here
 #pragma warning(push, 0)
 
-// #include <apclient.hpp>
 #include "framework.h"
 #include <iostream>
-#include <thread>
-#include <chrono>
-#include <MinHook.h>
 
 #pragma warning(pop)
 

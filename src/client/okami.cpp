@@ -75,19 +75,19 @@ void initFunctions();
 
 bool okami::initialize(HMODULE MainDllModuleHandle, HMODULE FlowerDllModuleHandle)
 {
-    std::cout << "Initializing Modules...";
+    std::cout << "[apclient] Initializing Modules...";
     okami::MainBase = (uintptr_t)(MainDllModuleHandle);
     if (okami::MainBase == 0)
     {
         std::cout << std::endl
-                  << "Main.dll BaseAddress not found!" << std::endl;
+                  << "[apclient] Main.dll BaseAddress not found!" << std::endl;
         return false;
     }
     okami::FlowerBase = (uintptr_t)(FlowerDllModuleHandle);
     if (okami::FlowerBase == 0)
     {
         std::cout << std::endl
-                  << "flower_kernel.dll BaseAddress not found!" << std::endl;
+                  << "[apclient] flower_kernel.dll BaseAddress not found!" << std::endl;
         return false;
     }
 
@@ -96,7 +96,7 @@ bool okami::initialize(HMODULE MainDllModuleHandle, HMODULE FlowerDllModuleHandl
 
     std::cout << "Done!" << std::endl;
 
-    std::cout << std::hex << "Module Addresses: main.dll->0x" << okami::MainBase << " flower_kernel.dll->0x" << okami::FlowerBase << std::dec << std::endl;
+    std::cout << std::hex << "[apclient] Module Addresses: main.dll->0x" << okami::MainBase << " flower_kernel.dll->0x" << okami::FlowerBase << std::dec << std::endl;
 
     return true;
 }

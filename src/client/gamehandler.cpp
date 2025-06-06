@@ -33,22 +33,19 @@ void __cdecl GameHandler::onGameTick()
 
 void GameHandler::setup()
 {
-    std::cout << "Initializing MinHook...";
+    std::cout << "[apclient] Initializing MinHook...";
     if (MH_Initialize() != MH_OK)
     {
         std::cout << "Failed!" << std::endl;
-    }
-    else
-    {
-        std::cout << "Done!" << std::endl;
+        return;
     }
 
     MH_CreateHook(okami::MainFlowerStartupFunctionPtr, &onGameStart, (LPVOID *)(&Main_FlowerStartupOrigin));
     MH_CreateHook(okami::MainFlowerStopFunctionPtr, &onGameStop, (LPVOID *)(&Main_FlowerStopOrigin));
     MH_CreateHook(okami::MainFlowerTickFunctionPtr, &onGameTick, (LPVOID *)(&Main_FlowerTickOrigin));
 
-    std::cout << "Hooks Initialized!" << std::endl;
     MH_EnableHook(MH_ALL_HOOKS);
+    std::cout << "Done!" << std::endl;
 }
 
 void GameHandler::cleanup()
