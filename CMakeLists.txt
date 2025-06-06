@@ -80,7 +80,11 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 endif()
 
 add_version_info(TARGET okami-apclient)
-set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
+get_target_property(_version okami-apclient VERSION_STRING)
+
+# Write out version to file (for CI use)
+file(WRITE ${CMAKE_BINARY_DIR}/version.txt
+  "${_version}")
 
 # Bootstrap loader DLL
 add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
@@ -88,6 +92,8 @@ target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)
 
 set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
+
 
 # TODO: Add tests
 
