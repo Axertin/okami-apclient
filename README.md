@@ -34,6 +34,6 @@ If Ninja is already in your `PATH`, no setup is required. If you're using Visual
 To build:
 
 ```bash
-cmake --preset x64-debug
-cmake --build --preset x64-debug
+cmake --preset x64-clang-debug
+cmake --build --preset x64-clang-debug
 ```

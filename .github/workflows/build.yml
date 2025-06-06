@@ -31,12 +31,12 @@ jobs:
         run: cmake --preset x64-release
 
       - name: Build
-        run: cmake --build --preset x64-release
+        run: cmake --build --preset x64-clang-release
 
       - name: Read Version
         id: get_version
         run: |
-          $version = Get-Content out/build/x64-release/version.txt
+          $version = Get-Content out/build/x64-clang-release/version.txt
           echo "version=$version" >> $env:GITHUB_OUTPUT
       
       - name: Create staging layout
