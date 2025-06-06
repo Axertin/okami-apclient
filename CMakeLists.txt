@@ -1,11 +1,15 @@
 ﻿# CMakeList.txt : CMake project for okami-apclient, include source and define
 # project specific logic here.
 #
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 # Add GitVersion to cmake module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GitVersion)
+
+if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/cacert.pem)
+  file(DOWNLOAD https://curl.se/ca/cacert.pem ${CMAKE_CURRENT_BINARY_DIR}/cacert.pem SHOW_PROGRESS)
+endif()
 
 # find vcpkg
 set(VCPKG_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external/vcpkg)
@@ -21,6 +25,10 @@ include(${vcpkg})
 if(POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
+endif()
+
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
 endif()
 
 project("okami-apclient" LANGUAGES CXX)
@@ -46,7 +54,9 @@ target_include_directories(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ex
   ${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include)
 target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB)
 if(${CMAKE_CXX_COMPILER_ID} EQUAL MSVC)
+  target_link_libraries(okami-apclient PRIVATE Crypt32 ws2_32)
   target_compile_options(okami-apclient PUBLIC /WX /Zc:__cplusplus)
+  set_property(TARGET okami-apclient PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 add_version_info(TARGET okami-apclient)
 set_target_properties(okami-apclient PROPERTIES VERSION ${okami-apclient_VERSION_MAJOR}.${okami-apclient_VERSION_MINOR}.${okami-apclient_VERSION_PATCH})
@@ -68,4 +78,5 @@ install(TARGETS apclient-loader DESTINATION mods)
 install(TARGETS okami-apclient DESTINATION mods/apclient)
 install(FILES ${CMAKE_BINARY_DIR}/minhook.x64.dll DESTINATION mods/apclient)
 install(FILES ${CMAKE_BINARY_DIR}/libcrypto-3-x64.dll DESTINATION mods/apclient)
+install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
 
