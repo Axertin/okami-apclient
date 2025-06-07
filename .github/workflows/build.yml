@@ -36,7 +36,7 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@v3
 
       - name: Configure CMake
-        run: cmake --preset x64-release
+        run: cmake --preset x64-clang-release
 
       - name: Build
         run: cmake --build --preset x64-clang-release
