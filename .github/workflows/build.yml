@@ -12,7 +12,7 @@ on:
 
 jobs:
   build-windows-release:
-    name: Build on ${{ github.ref_name }}
+    name: Build Release
     runs-on: windows-latest
     if: github.ref_name == 'master' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master')
 
@@ -63,7 +63,7 @@ jobs:
           path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
 
   build-windows-debug:
-    name: Build on ${{ github.ref_name }}
+    name: Build Debug
     runs-on: windows-latest
 
     defaults:
@@ -109,5 +109,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: okami-apclient-debug-${{ steps.get_version.outputs.version }}.zip
-          path: okami-apclient-debug-${{ steps.get_version.outputs.version }}.zip
+          name: okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
