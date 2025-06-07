@@ -123,6 +123,14 @@ void okami::printMonitors()
     SetConsoleCursorPosition(h, bufferInfo.dwCursorPosition);
 }
 
+std::string decodeMapName(uint16_t ID)
+{
+    if (auto it = MapNames.find(ID); it != MapNames.end())
+    {
+        return it->second;
+    }
+}
+
 void initVariables()
 {
     okami::IngameTimeFramesPtr = (uint32_t *)(okami::MainBase + 0xB217FC);
@@ -145,28 +153,28 @@ void initVariables()
     okami::AmmyCurrentMoneyPtr = (uint32_t *)(okami::MainBase + 0xB205E0);
     okami::AmmyDisplayedMoneyPtr = (uint32_t *)(okami::MainBase + 0xB1CFE4);
     okami::AmmyMaxMoney = (uint32_t *)(okami::MainBase + 0x6B22A8);
-    // uint32_t AmmyTotalMoney;
-    // uint8_t MoneyUpgradeCount;
-    // int16_t AmmyCurrentPraise;
-    // int16_t PraiseUpgradeBar;
-    // int16_t HealthUpgradeBar;
-    // int16_t FoodUpgradeBar;
-    // int16_t MoneyUpgradeBar;
-    // int16_t InkUpgradeBar;
-    // int16_t AmmyTotalPraise;
-    // int16_t AmmyCurrentDemonFangs;
-    // uint16_t AmmyTotalDemonFangs;
-    // uint16_t InventoryItemID;
-    // uint16_t InventoryStringID;
-    // uint8_t InventoryFirstItemOffset;
-    // uint8_t InventoryColumn;
-    // uint8_t InventorySelectedItemRow;
-    // int16_t AmmyCurrentSunFragments;
-    // int16_t InventoryItemQualities[256];
-    // uint8_t AmmyUsableBrushTechniques[4];
-    // uint8_t AmmyObtainedBrushTechniques[4];
-    // uint8_t AmmyPowerSlashUpgradeCount;
-    // int32_t AmmyMaxCherryBombCount;
+    okami::AmmyTotalMoneyPtr = (uint32_t *)(okami::MainBase + 0xB21758);
+    okami::MoneyUpgradeCountPtr = (uint8_t *)(okami::MainBase + 0xB205E4);
+    okami::AmmyCurrentPraisePtr = (int16_t *)(okami::MainBase + 0xB4DF9A);
+    okami::PraiseUpgradeBarPtr = (int16_t *)(okami::MainBase + 0xB1F1F4);
+    okami::HealthUpgradeBarPtr = (int16_t *)(okami::MainBase + 0xB1F1F6);
+    okami::FoodUpgradeBarPtr = (int16_t *)(okami::MainBase + 0xB1F1F8);
+    okami::MoneyUpgradeBarPtr = (int16_t *)(okami::MainBase + 0xB1F1FA);
+    okami::InkUpgradeBarPtr = (int16_t *)(okami::MainBase + 0xB1F1FC);
+    okami::AmmyTotalPraisePtr = (int16_t *)(okami::MainBase + 0xB4DF9C);
+    okami::AmmyCurrentDemonFangsPtr = (int16_t *)(okami::MainBase + 0xB2066E);
+    okami::AmmyTotalDemonFangsPtr = (uint16_t *)(okami::MainBase + 0xB2175C);
+    okami::InventoryItemIDPtr = (uint16_t *)(okami::MainBase + 0x7A9814);
+    okami::InventoryStringIDPtr = (uint16_t *)(okami::MainBase + 0x9C148E);
+    okami::InventoryFirstItemOffsetPtr = (uint8_t *)(okami::MainBase + 0xB1F401);
+    okami::InventoryColumnPtr = (uint8_t *)(okami::MainBase + 0xB1F402);
+    okami::InventorySelectedItemRowPtr = (uint8_t *)(okami::MainBase + 0xB1F403);
+    okami::AmmyCurrentSunFragmentsPtr = (int16_t *)(okami::MainBase + 0xB2063A);
+    okami::InventoryItemQualities[256];
+    okami::AmmyUsableBrushTechniques[4];
+    okami::AmmyObtainedBrushTechniques[4];
+    okami::AmmyPowerSlashUpgradeCountPtr = (uint8_t *)(okami::MainBase + 0x890A4C);
+    okami::AmmyMaxCherryBombCountPtr = (int32_t *)(okami::MainBase + 0x892B88);
     okami::ExeriorMapIDPtr = (uint16_t *)(okami::MainBase + 0xB6B240);
     okami::CurrentMapIDPtr = (uint16_t *)(okami::MainBase + 0xB65E74);
     okami::VestigialMapID1Ptr = (uint16_t *)(okami::MainBase + 0xB4F0B4);

@@ -100,4 +100,3 @@ set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
 install(TARGETS apclient-loader DESTINATION mods)
 install(TARGETS okami-apclient DESTINATION mods/apclient)
 install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
-
