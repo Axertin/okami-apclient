@@ -93,8 +93,6 @@ target_include_directories(apclient-loader PRIVATE)
 
 set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
-
-
 # TODO: Add tests
 
 # TODO: Allow override of install_prefix
