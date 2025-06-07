@@ -59,7 +59,7 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          name: okami-apclient-${{ steps.get_version.outputs.version }}
           path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
 
   build-windows-debug:
@@ -109,5 +109,5 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          name: okami-apclient-${{ steps.get_version.outputs.version }}
           path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
