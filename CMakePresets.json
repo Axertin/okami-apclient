@@ -76,6 +76,17 @@
             }
         }
     ],
+    "buildPresets": [
+        {
+            "name": "x64-clang-release",
+            "configurePreset": "x64-clang-release",
+            "description": "Build using Clang Release",
+            "targets": [
+                "all"
+            ],
+            "configuration": "Release"
+        }
+    ],
     "vendor": {
         "microsoft.com/VisualStudioSettings/1.0": {
             "buildRoot": "${sourceDir}/out/build/${presetName}",
