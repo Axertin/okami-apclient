@@ -35,11 +35,21 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
 
-      - name: Configure CMake
+      - name: Configure CMake Release
+        if: github.ref_name == 'master' || github.event.pull_request.base.ref == 'master'
         run: cmake --preset x64-clang-release
 
-      - name: Build
+      - name: Build Release
+        if: github.ref_name == 'master' || github.event.pull_request.base.ref == 'master'
         run: cmake --build --preset x64-clang-release
+
+      - name: Configure CMake Debug
+        if: github.ref_name == 'develop' || github.event.pull_request.base.ref == 'develop'
+        run: cmake --preset x64-clang-debug
+
+      - name: Build Debug
+        if: github.ref_name == 'develop' || github.event.pull_request.base.ref == 'develop'
+        run: cmake --build --preset x64-clang-debug
 
       - name: Read Version
         id: get_version
@@ -59,7 +69,7 @@ jobs:
           Compress-Archive -Path release/* -DestinationPath okami-apclient-${{ steps.get_version.outputs.version }}.zip
 
       - name: Conditionally Upload Artifacts
-        if: github.ref_name == 'master'
+        if: github.ref_name == 'master' || github.event.pull_request.base.ref == 'master'
         uses: actions/upload-artifact@v4
         with:
           name: okami-apclient-${{ steps.get_version.outputs.version }}-package
