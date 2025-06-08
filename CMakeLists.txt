@@ -67,6 +67,7 @@ file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 # Primary program
 add_library(okami-apclient SHARED ${sources})
 target_include_directories(okami-apclient SYSTEM PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp)
