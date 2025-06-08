@@ -17,9 +17,9 @@ namespace okami
 
     inline uint32_t *IngameTimeFramesPtr;
 
-    inline void *MainFlowerStartupFunctionPtr;
-    inline void *MainFlowerStopFunctionPtr;
-    inline void *MainFlowerTickFunctionPtr;
+    inline void *MainFlowerStartupFnPtr;
+    inline void *MainFlowerStopFnPtr;
+    inline void *MainFlowerTickFnPtr;
 
     inline void *MainFlowerLoadPtr;         // ?
     inline void *MainFlowerItemPickedUpPtr; // ?
@@ -91,42 +91,10 @@ namespace okami
     /// @brief Initialize game function pointers
     inline void initFunctions()
     {
-        okami::MainFlowerStartupFunctionPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B6240);
-        okami::MainFlowerStopFunctionPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B6230);
-        okami::MainFlowerTickFunctionPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B63B0);
+        okami::MainFlowerStartupFnPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B6240);
+        okami::MainFlowerStopFnPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B6230);
+        okami::MainFlowerTickFnPtr = (void *)(uintptr_t)(okami::MainBase + 0x4B63B0);
         okami::MainFlowerLoadPtr = (void *)(uintptr_t)(okami::MainBase + 0x4390A0);
         okami::MainFlowerItemPickedUpPtr = (void *)(uintptr_t)(okami::MainBase + 0x436AE0);
-    }
-
-    /// @brief Find Base Addresses of both vanilla DLLs
-    /// @param MainDllModuleHandle Handle of main.dll
-    /// @param FlowerDllModuleHandle Handle of flower_kernel.dll
-    /// @return success boolean
-    inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
-    {
-        std::cout << "[okamigame] Initializing Modules...";
-        okami::MainBase = (uintptr_t)(MainDllModuleHandle);
-        if (okami::MainBase == 0)
-        {
-            std::cout << std::endl
-                      << "[okamigame] Main.dll BaseAddress not found!" << std::endl;
-            return false;
-        }
-        okami::FlowerBase = (uintptr_t)(FlowerDllModuleHandle);
-        if (okami::FlowerBase == 0)
-        {
-            std::cout << std::endl
-                      << "[okamigame] flower_kernel.dll BaseAddress not found!" << std::endl;
-            return false;
-        }
-
-        initVariables();
-        initFunctions();
-
-        std::cout << "Done!" << std::endl;
-
-        std::cout << std::hex << "[okamigame] Module Addresses: main.dll->0x" << okami::MainBase << " flower_kernel.dll->0x" << okami::FlowerBase << std::dec << std::endl;
-
-        return true;
     }
 }

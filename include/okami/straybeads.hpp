@@ -166,10 +166,10 @@ namespace okami
     enum class BeadByte16 : uint8_t
     {
         // Bits 4–7 only used
-        ark_yamato = 1 << 5,
-        wawku_3 = 1 << 6,
-        wawku_2 = 1 << 7,
-        wawku_1 = 1 << 8
+        ark_yamato = 1 << 4,
+        wawku_3 = 1 << 5,
+        wawku_2 = 1 << 6,
+        wawku_1 = 1 << 7
     };
 
 #pragma pack(push, 1)

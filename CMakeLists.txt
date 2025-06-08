@@ -64,6 +64,18 @@ add_compile_definitions(ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/client/*.cpp")
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
+# imgui
+add_library(imgui STATIC
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx11.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32.cpp
+)
+
+target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+
 # Primary program
 add_library(okami-apclient SHARED ${sources})
 target_include_directories(okami-apclient SYSTEM PRIVATE
@@ -73,7 +85,7 @@ target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
-target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB ws2_32)
+target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
 enable_strict_warnings(okami-apclient)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -84,6 +96,7 @@ endif()
 
 add_version_info(TARGET okami-apclient)
 get_target_property(_version okami-apclient VERSION_STRING)
+
 
 # Write out version to file (for CI use)
 file(WRITE ${CMAKE_BINARY_DIR}/version.txt

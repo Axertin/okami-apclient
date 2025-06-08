@@ -81,18 +81,18 @@ void GameHooks::setup()
         std::cout << "Failed!" << std::endl;
         return;
     }
+    std::cout << "Done!" << std::endl;
 
-    MH_CreateHook(okami::MainFlowerStartupFunctionPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), (LPVOID *)(&Flower_ReturnToMenu));
-    MH_CreateHook(okami::MainFlowerStopFunctionPtr, reinterpret_cast<LPVOID>(&onGameStop), (LPVOID *)(&Main_FlowerStopOrigin));
-    MH_CreateHook(okami::MainFlowerTickFunctionPtr, reinterpret_cast<LPVOID>(&onGameTick), (LPVOID *)(&Main_FlowerTickOrigin));
+    MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), (LPVOID *)(&Flower_ReturnToMenu));
+    MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), (LPVOID *)(&Main_FlowerStopOrigin));
+    MH_CreateHook(okami::MainFlowerTickFnPtr, reinterpret_cast<LPVOID>(&onGameTick), (LPVOID *)(&Main_FlowerTickOrigin));
     MH_CreateHook(okami::MainFlowerItemPickedUpPtr, reinterpret_cast<LPVOID>(&onTreasurePickup), (LPVOID *)(&TreasurePickupOrigin));
 
     MH_EnableHook(MH_ALL_HOOKS);
-    std::cout << "Done!" << std::endl;
+
+    std::cout << "[apclient] Game hooks initialized." << std::endl;
 }
 
 void GameHooks::cleanup()
 {
-    MH_DisableHook(MH_ALL_HOOKS);
-    MH_Uninitialize();
 }
