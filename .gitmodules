@@ -10,3 +10,6 @@
 [submodule "external/websocketpp"]
 	path = external/websocketpp
 	url = git@github.com:zaphoyd/websocketpp.git
+[submodule "external/imgui"]
+	path = external/imgui
+	url = git@github.com:ocornut/imgui.git

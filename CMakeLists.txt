@@ -70,7 +70,9 @@ target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
 target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB ws2_32)
 enable_strict_warnings(okami-apclient)
 
