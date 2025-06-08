@@ -8,8 +8,20 @@
 #define PCH_H
 
 // add headers that you want to pre-compile here
+#pragma warning(push, 0)
+
+#include <apclient.hpp>
 #include "framework.h"
 #include <iostream>
 #include <thread>
+#include <chrono>
+#include <MinHook.h>
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include <imgui_impl_win32.h>
 
-#endif //PCH_H
+#pragma warning(pop)
+
+#include "okami/okami.hpp"
+
+#endif // PCH_H

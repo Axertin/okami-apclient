@@ -1,4 +1,4 @@
-﻿{
+{
     "version": 3,
     "configurePresets": [
         {
@@ -8,23 +8,23 @@
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
-                "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
             },
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
             }
         },
         {
             "name": "x64-debug",
             "displayName": "x64 Debug",
             "inherits": "windows-base",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
@@ -32,30 +32,82 @@
         {
             "name": "x64-release",
             "displayName": "x64 Release",
-            "inherits": "x64-debug",
+            "inherits": "windows-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "x86-debug",
-            "displayName": "x86 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x86",
-                "strategy": "external"
+            "name": "windows-clang-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static"
             },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "x64-clang-debug",
+            "displayName": "x64 Debug (Clang)",
+            "inherits": "windows-clang-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "x86-release",
-            "displayName": "x86 Release",
-            "inherits": "x86-debug",
+            "name": "x64-clang-release",
+            "displayName": "x64 Release (Clang)",
+            "inherits": "windows-clang-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
         }
-    ]
+    ],
+    "buildPresets": [
+        {
+            "name": "x64-clang-release",
+            "configurePreset": "x64-clang-release",
+            "description": "Build using Clang Release",
+            "targets": [
+                "all"
+            ],
+            "configuration": "Release"
+        },
+        {
+            "name": "x64-clang-debug",
+            "configurePreset": "x64-clang-debug",
+            "description": "Build using Clang Debug",
+            "targets": [
+                "all"
+            ],
+            "configuration": "Debug"
+        }
+    ],
+    "vendor": {
+        "microsoft.com/VisualStudioSettings/1.0": {
+            "buildRoot": "${sourceDir}/out/build/${presetName}",
+            "intelliSenseMode": "windows-clang-x64",
+            "toolset": "ClangCL",
+            "hostOS": [
+                "Windows"
+            ]
+        },
+        "microsoft.com/CMakeTools/1.0": {
+            "intelliSenseMode": "clang-x64",
+            "cppStandard": "c++17"
+        }
+    }
 }
