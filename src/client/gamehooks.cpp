@@ -73,22 +73,6 @@ void __fastcall GameHooks::onTreasurePickup(void *rcx, int edx, void *r8, void *
     TreasurePickupOrigin(rcx, edx, r8, r9);
 }
 
-// using SetBitFieldEntry = void(__fastcall *)(void *rcx, int edx, void *r8, void *r9);
-// SetBitFieldEntry TreasurePickupOrigin = nullptr;
-// /// @brief Hook for the function that sets the collection bit for treasures
-// /// @param rcx Pointer to byte to set
-// /// @param edx ID of picked up item (see Item Table)
-// /// @param r8 Unused but needed by ABI calling convention
-// /// @param r9 Unused but needed by ABI calling convention
-// /// @return Void
-// void __fastcall GameHooks::onTreasurePickup(void *rcx, int edx, void *r8, void *r9)
-{
-    auto ID = (uint16_t)edx;
-    std::cout << "[apclient] Treasure Picked Up: 0x" << std::hex << ID << std::dec << std::endl;
-
-    TreasurePickupOrigin(rcx, edx, r8, r9);
-}
-
 void GameHooks::setup()
 {
     std::cout << "[apclient] Initializing MinHook...";
