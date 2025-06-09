@@ -13,7 +13,7 @@ const std::string uuid_file = std::string(std::getenv("APPDATA")).append("\\uuid
 
 const std::string CertStore = "cacert.pem";
 
-const std::string GameName = "Ōkami HD";
+const std::string GameName = "Okami HD";
 const int ItemHandlingVector = 0b111;
 
 static APClient *ap = nullptr;

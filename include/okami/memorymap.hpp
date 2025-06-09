@@ -37,7 +37,7 @@ namespace okami
     inline MemoryAccessor<int16_t> AmmyGodhood;
     inline MemoryAccessor<uint32_t> AmmyCurrentMoney;
     inline MemoryAccessor<uint32_t> AmmyDisplayedMoney;
-    inline MemoryAccessor<uint32_t> AmmyMaxMoney; // Array of length 4
+    inline MemoryAccessor<uint32_t> AmmyMaxMoney; // TODO: Make Array of length 4
     inline MemoryAccessor<uint32_t> AmmyTotalMoney;
     inline MemoryAccessor<uint8_t> MoneyUpgradeCount;
     inline MemoryAccessor<int16_t> AmmyCurrentPraise;
@@ -88,8 +88,8 @@ namespace okami
         CanvasBrushStrokes.bind(okami::MainBase + 0x888C58);
 
         AmmyCurrentFood.bind(okami::MainBase + 0xB4DF94);
-        AmmyMaxFood.bind(okami::MainBase + 0xB4DF94); // TODO: I forgor
-        FoodUpgradeCount.bind(okami::MainBase + 0xB4DF96);
+        AmmyMaxFood.bind(okami::MainBase + 0xB4DF96);
+        FoodUpgradeCount.bind(okami::MainBase + 0xB1F207);
 
         AmmyGodhood.bind(okami::MainBase + 0xB4DFAC);
 

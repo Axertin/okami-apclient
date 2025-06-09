@@ -61,12 +61,15 @@ void __cdecl GameHooks::onGameTick()
 
 using SetBitFieldEntry = void(__fastcall *)(void *rcx, int edx, void *r8, void *r9);
 static SetBitFieldEntry TreasurePickupOrigin = nullptr;
-/// @brief Hook for the function that sets the collection bit for treasures
-/// @param rcx Pointer to byte to set
-/// @param edx ID of picked up item (see Item Table)
-/// @param r8 Unused but needed by ABI calling convention
-/// @param r9 Unused but needed by ABI calling convention
-/// @return Void
+/**
+ * @brief Hook for the function that sets the collection bit for treasures
+ * @param rcx Pointer to byte to set
+ * @param edx ID of picked up item (see Item Table)
+ * @param r8 Unused but needed by ABI calling convention
+ * @param r9 Unused but needed by ABI calling convention
+ * @return Void
+ *
+ */
 void __fastcall GameHooks::onTreasurePickup(void *rcx, int edx, void *r8, void *r9)
 {
     auto ID = static_cast<uint16_t>(edx);
@@ -75,6 +78,10 @@ void __fastcall GameHooks::onTreasurePickup(void *rcx, int edx, void *r8, void *
     TreasurePickupOrigin(rcx, edx, r8, r9);
 }
 
+/**
+ * @brief Setup game-related hooks
+ *
+ */
 void GameHooks::setup()
 {
     std::cout << "[apclient] Initializing MinHook...";
