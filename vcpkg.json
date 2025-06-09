@@ -5,6 +5,7 @@
     "nlohmann-json",
     "asio",
     "openssl",
-    "zlib"
+    "zlib",
+    "catch2"
   ]
 }

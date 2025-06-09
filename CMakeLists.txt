@@ -5,15 +5,22 @@ cmake_minimum_required(VERSION 3.15)
 
 function(enable_strict_warnings target)
   set_property(GLOBAL PROPERTY ENABLE_STRICT_WARNINGS_DEFINED TRUE)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(${target} PRIVATE -Wall)
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
       target_compile_options(${target} PRIVATE -Werror)
     endif()
 
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(${target} PRIVATE /W4)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(${target} PRIVATE /W4 /permissive-)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      target_compile_options(${target} PRIVATE
+        /clang:-Wno-c++98-compat
+        /clang:-Wno-c++98-compat-pedantic
+      )
+    endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
       target_compile_options(${target} PRIVATE /WX)
@@ -23,6 +30,7 @@ function(enable_strict_warnings target)
     if(POLICY CMP0141)
       set_property(TARGET ${target} PROPERTY MSVC_DEBUG_INFORMATION_FORMAT ProgramDatabase)
     endif()
+
   endif()
 endfunction()
 
@@ -37,10 +45,7 @@ endif()
 # Enable Hot Reload for MSVC compilers if supported.
 if(POLICY CMP0141)
   cmake_policy(SET CMP0141 NEW)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
-    # Handles clang-cl
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>")
   endif()
 endif()
@@ -91,12 +96,10 @@ enable_strict_warnings(okami-apclient)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   target_link_libraries(okami-apclient PRIVATE Crypt32)
   target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
-  set_property(TARGET okami-apclient PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
 add_version_info(TARGET okami-apclient)
 get_target_property(_version okami-apclient VERSION_STRING)
-
 
 # Write out version to file (for CI use)
 file(WRITE ${CMAKE_BINARY_DIR}/version.txt
@@ -106,11 +109,26 @@ file(WRITE ${CMAKE_BINARY_DIR}/version.txt
 add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
 target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)
+enable_strict_warnings(apclient-loader)
 
 set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
-# TODO: Add tests
+# Tests
+find_package(Catch2 CONFIG REQUIRED)
 
+add_executable(okami-tests ${tests})
+target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain)
+target_include_directories(okami-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(okami-tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+
+enable_strict_warnings(okami-tests)
+
+include(CTest)
+include(Catch)
+catch_discover_tests(okami-tests)
+
+
+# Install
 # TODO: Allow override of install_prefix
 set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
 install(TARGETS apclient-loader DESTINATION mods)
