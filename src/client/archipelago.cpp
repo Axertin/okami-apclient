@@ -17,14 +17,14 @@ const std::string GameName = "Ōkami HD";
 const int ItemHandlingVector = 0b111;
 
 static APClient *ap = nullptr;
-std::string uuid = "";
-std::string Seed = "";
-std::string ConnectionStatus = "";
-bool IsHTTPS = false;
-bool IsWSS = false;
-bool IsWS = false;
-bool APConnected = false;
-bool APSyncQeued = false;
+static std::string uuid = "";
+static std::string Seed = "";
+static std::string ConnectionStatus = "";
+static bool IsHTTPS = false;
+static bool IsWSS = false;
+static bool IsWS = false;
+static bool APConnected = false;
+static bool APSyncQeued = false;
 
 void clientInit()
 {

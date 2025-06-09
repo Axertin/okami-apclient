@@ -25,7 +25,7 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
         return false;
     }
 
-    if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), (void **)&device)))
+    if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void **>(&device))))
     {
         std::cout << std::endl
                   << "[gui] Failed to get render device!" << std::endl;
@@ -65,7 +65,7 @@ void guiRenderFrame(IDXGISwapChain *pSwapChain)
         if (!rtv)
         {
             ID3D11Texture2D *backBuffer = nullptr;
-            pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void **)&backBuffer);
+            pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
             device->CreateRenderTargetView(backBuffer, nullptr, &rtv);
             backBuffer->Release();
         }
@@ -76,7 +76,7 @@ void guiRenderFrame(IDXGISwapChain *pSwapChain)
 }
 
 typedef HRESULT(__stdcall *PresentFn)(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags);
-PresentFn oPresent = nullptr;
+static PresentFn oPresent = nullptr;
 HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
 {
 
@@ -116,7 +116,7 @@ void guiInitHooks()
     std::thread([]
                 {
             std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game swapchain and window to initialize
-            MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), (LPVOID *)(&oPresent));
+            MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
             MH_EnableHook(okami::D3D11PresentFnPtr); })
         .detach();
 }

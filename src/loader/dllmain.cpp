@@ -5,7 +5,7 @@
 
 typedef void (*StartOkamiClientFn)();
 
-DWORD WINAPI bootstrapThread(void)
+DWORD WINAPI bootstrapThread(LPVOID)
 {
     std::cout << "[Loader] Bootstrap thread started\n";
 
@@ -49,7 +49,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID)
     {
         DisableThreadLibraryCalls(hModule);
         // Spin off a completely detached thread to avoid loader lock issues
-        HANDLE thread = CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)bootstrapThread, nullptr, 0, nullptr);
+        HANDLE thread = CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(bootstrapThread), nullptr, 0, nullptr);
         if (thread)
             CloseHandle(thread); // Close handle immediately — we don’t join
     }

@@ -5,8 +5,18 @@ cmake_minimum_required(VERSION 3.15)
 
 function(enable_strict_warnings target)
   set_property(GLOBAL PROPERTY ENABLE_STRICT_WARNINGS_DEFINED TRUE)
+  get_target_property(target_type ${target} TYPE)
+
+  if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
+    set(extra_warnings TRUE)
+  endif()
+
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(${target} PRIVATE -Wall)
+
+    if(extra_warnings)
+      target_compile_options(${target} PRIVATE -Wextra -Wshadow -Wconversion)
+    endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
       target_compile_options(${target} PRIVATE -Werror)
@@ -20,6 +30,21 @@ function(enable_strict_warnings target)
         /clang:-Wno-c++98-compat
         /clang:-Wno-c++98-compat-pedantic
       )
+
+      if(extra_warnings)
+        target_compile_options(${target} PRIVATE
+          /clang:-Wold-style-cast
+          /clang:-Wextra-semi
+          /clang:-Wmicrosoft-include
+          /clang:-Wshadow
+          /clang:-Wunused-parameter
+          /clang:-Wnon-virtual-dtor
+          /clang:-Wmissing-variable-declarations
+          /clang:-Wheader-hygiene
+          /clang:-Wnonportable-include-path
+          /clang:-Wpragma-pack
+        )
+      endif()
     endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
