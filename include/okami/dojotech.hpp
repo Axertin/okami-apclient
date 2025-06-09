@@ -1,52 +1,38 @@
 #pragma once
 #include <cstdint>
-#include "bitfieldflags.hpp"
-
 namespace okami
 {
-    enum class DojoByte1 : uint8_t
+    /**
+     * @brief Enum representing all dojo techniques by bit index across 4 bytes.
+     *
+     * Bit values represent contiguous bits starting from bit 0 (lowest bit of byte 0),
+     * up through bit 31 (highest bit of byte 3).
+     */
+    enum class DojoOverlay : uint8_t
     {
-        // All unknown or unused
-    };
+        // Byte 1 (unused)
 
-    enum class DojoByte2 : uint8_t
-    {
-        holy_falcon = 1 << 4,
-        hard_head = 1 << 5,
-        brown_rage = 1 << 6,
-        golden_fury = 1 << 7,
-    };
+        // Byte 2
+        holy_falcon = 12,
+        hard_head = 13,
+        brown_rage = 14,
+        golden_fury = 15,
 
-    enum class DojoByte3 : uint8_t
-    {
-        holy_eagle = 1 << 0, // Doesn't affect double jump directly (main + )
-        digging_champ = 1 << 2,
-        counter_dodge = 1 << 3,
-        fleet_foot = 1 << 4,
-        sword_dance = 1 << 5,
-        bead_string = 1 << 6,
-        wailing_mirror = 1 << 7,
-    };
+        // Byte 3
+        holy_eagle = 16, // doesn't effect double-jump directly
+        digging_champ = 18,
+        counter_dodge = 19,
+        fleet_foot = 20,
+        sword_dance = 21,
+        bead_string = 22,
+        wailing_mirror = 23,
 
-    enum class DojoByte4 : uint8_t
-    {
-        four_shears = 1 << 0,
-        three_shears = 1 << 1,
-        spirit_armageddon = 1 << 3,
-        spirit_storm = 1 << 4,
-        five_winds = 1 << 5,
-        four_winds = 1 << 6,
+        // Byte 4
+        four_shears = 24,
+        three_shears = 25,
+        spirit_armageddon = 27,
+        spirit_storm = 28,
+        five_winds = 29,
+        four_winds = 30
     };
-
-#pragma pack(push, 1)
-    struct UsableDojoOverlay
-    {
-        BitfieldFlags<DojoByte1> byte1;
-        BitfieldFlags<DojoByte2> byte2;
-        BitfieldFlags<DojoByte3> byte3;
-        BitfieldFlags<DojoByte4> byte4;
-    };
-#pragma pack(pop)
-
-    inline UsableDojoOverlay *AmmyUsableDojoTechniques;
 } // namespace okami

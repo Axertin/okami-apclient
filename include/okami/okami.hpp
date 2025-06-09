@@ -4,8 +4,7 @@
 #include <dxgi.h>
 #include <dxgi1_2.h>
 #include <imgui.h>
-#include "memory.hpp"
-#include "ammy.hpp"
+#include "memorymap.hpp"
 #include "items.hpp"
 #include "maps.hpp"
 #include "brushes.hpp"

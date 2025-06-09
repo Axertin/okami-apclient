@@ -1,5 +1,7 @@
 #include "gamehooks.h"
 
+#include "okami/okami.hpp"
+
 typedef void(__cdecl *FunctionType)();
 
 void printMonitors()
@@ -8,22 +10,22 @@ void printMonitors()
     CONSOLE_SCREEN_BUFFER_INFO bufferInfo;
     GetConsoleScreenBufferInfo(h, &bufferInfo);
 
-    std::cout << "IGT: " << *okami::IngameTimeFramesPtr << "                                                                          " << std::endl;
-    std::cout << "Pos X: " << *okami::AmmyPosXPtr << "                                                                          " << std::endl;
-    std::cout << "Pos Y: " << *okami::AmmyPosYPtr << "                                                                          " << std::endl;
-    std::cout << "Pos Z: " << *okami::AmmyPosZPtr << "                                                                          " << std::endl;
-    std::cout << "Health: " << *okami::AmmyCurrentHealthPtr << "                                                                          " << std::endl;
-    std::cout << "Ink: " << *okami::AmmyCurrentInkPtr << "                                                                          " << std::endl;
-    std::cout << "Food: " << *okami::AmmyCurrentFoodPtr << "                                                                          " << std::endl;
-    std::cout << "Money: " << *okami::AmmyCurrentMoneyPtr << "                                                                          " << std::endl;
-    std::cout << "Exterior MapID: " << *okami::ExeriorMapIDPtr << "                                                                          " << std::endl;
-    std::cout << "Current MapID: " << *okami::CurrentMapIDPtr << "                                                                          " << std::endl;
-    std::cout << "VMID1: " << *okami::VestigialMapID1Ptr << "                                                                          " << std::endl;
-    std::cout << "VMID2: " << *okami::VsstigialMapID2Ptr << "                                                                          " << std::endl;
-    std::cout << "Map Name: " << okami::decodeMapName(*okami::CurrentMapIDPtr) << "                                                                          " << std::endl;
-    std::cout << "Exterior Map Name: " << okami::decodeMapName(*okami::ExeriorMapIDPtr) << "                                                                          " << std::endl;
-    std::cout << "Inventory ItemID: 0x" << std::hex << *okami::InventoryItemIDPtr << "                                                                          " << std::dec << std::endl;
-    std::cout << "Inventory StringID: 0x" << std::hex << *okami::InventoryItemIDPtr << "                                                                          " << std::dec << std::endl;
+    std::cout << "IGT: " << okami::IngameTimeFrames.get() << "                                                                          " << std::endl;
+    std::cout << "Pos X: " << okami::AmmyPosX.get() << "                                                                          " << std::endl;
+    std::cout << "Pos Y: " << okami::AmmyPosY.get() << "                                                                          " << std::endl;
+    std::cout << "Pos Z: " << okami::AmmyPosZ.get() << "                                                                          " << std::endl;
+    std::cout << "Health: " << okami::AmmyCurrentHealth.get() << "                                                                          " << std::endl;
+    std::cout << "Ink: " << okami::AmmyCurrentInk.get() << "                                                                          " << std::endl;
+    std::cout << "Food: " << okami::AmmyCurrentFood.get() << "                                                                          " << std::endl;
+    std::cout << "Money: " << okami::AmmyCurrentMoney.get() << "                                                                          " << std::endl;
+    std::cout << "Exterior MapID: " << okami::ExeriorMapID.get() << "                                                                          " << std::endl;
+    std::cout << "Current MapID: " << okami::CurrentMapID.get() << "                                                                          " << std::endl;
+    std::cout << "VMID1: " << okami::VestigialMapID1.get() << "                                                                          " << std::endl;
+    std::cout << "VMID2: " << okami::VestigialMapID2.get() << "                                                                          " << std::endl;
+    std::cout << "Map Name: " << okami::decodeMapName(okami::CurrentMapID.get()) << "                                                                          " << std::endl;
+    std::cout << "Exterior Map Name: " << okami::decodeMapName(okami::ExeriorMapID.get()) << "                                                                          " << std::endl;
+    std::cout << "Inventory ItemID: 0x" << std::hex << okami::InventoryItemID.get() << "                                                                          " << std::dec << std::endl;
+    std::cout << "Inventory StringID: 0x" << std::hex << okami::InventoryItemID.get() << "                                                                          " << std::dec << std::endl;
 
     SetConsoleCursorPosition(h, bufferInfo.dwCursorPosition);
 }

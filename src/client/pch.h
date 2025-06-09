@@ -22,6 +22,4 @@
 
 #pragma warning(pop)
 
-#include "okami/okami.hpp"
-
 #endif // PCH_H

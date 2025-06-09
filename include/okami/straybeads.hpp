@@ -4,195 +4,141 @@
 
 namespace okami
 {
-    enum class BeadByte1 : uint8_t
+    /**
+     * @brief Enum representing all stray beads by bit index across 4 bytes.
+     *
+     * Bit values represent contiguous bits starting from bit 0 (lowest bit of byte 0),
+     * up through bit 127 (highest bit of byte 15).
+     */
+    enum class StrayBeadOverlay : uint8_t
     {
-        sasa_3 = 1 << 0,
-        sasa_2 = 1 << 1,
-        sasa_1 = 1 << 2,
-        kusa_3 = 1 << 3,
-        kusa_2 = 1 << 4,
-        kusa_1 = 1 << 5,
-        taka_6 = 1 << 6,
-        taka_5 = 1 << 7
+        // Byte 0 (offset +0)
+        sasa_3 = 0,
+        sasa_2 = 1,
+        sasa_1 = 2,
+        kusa_3 = 3,
+        kusa_2 = 4,
+        kusa_1 = 5,
+        taka_6 = 6,
+        taka_5 = 7,
+
+        // Byte 1 (offset +1)
+        taka_4 = 8,
+        taka_3 = 9,
+        taka_2 = 10,
+        taka_1 = 11,
+        tsuta_3 = 12,
+        tsuta_2 = 13,
+        tsuta_1 = 14,
+        agata_6 = 15,
+
+        // Byte 2 (offset +2)
+        agata_5 = 16,
+        agata_4 = 17,
+        agata_3 = 18,
+        agata_2 = 19,
+        agata_1 = 20,
+        hana_valley = 21,
+        shinshu_6 = 22,
+        shinshu_5 = 23,
+
+        // Byte 3 (offset +3)
+        shinshu_4 = 24,
+        shinshu_3 = 25,
+        shinshu_2 = 26,
+        shinshu_1 = 27,
+        kamiki_3 = 28,
+        kamiki_2 = 29,
+        kamiki_1 = 30,
+        cave_of_nagi = 31,
+
+        // Byte 4 (offset +4)
+        nryoshima_5 = 32,
+        nryoshima_4 = 33,
+        nryoshima_3 = 34,
+        nryoshima_2 = 35,
+        nryoshima_1 = 36,
+        imperial_palace = 37,
+        sunken_ship_2 = 38,
+        sunken_ship_1 = 39,
+
+        // Byte 5 (offset +5)
+        seian_aq_6 = 40,
+        seian_aq_5 = 41,
+        seian_aq_4 = 42,
+        seian_aq_3 = 43,
+        seian_aq_2 = 44,
+        seian_aq_1 = 45,
+        seian_cq_5 = 46,
+        seian_cq_4 = 47,
+
+        // Byte 6 (offset +6)
+        seian_cq_3 = 48,
+        seian_cq_2 = 49,
+        seian_cq_1 = 50,
+        ryoshima_5 = 51,
+        ryoshima_4 = 52,
+        ryoshima_3 = 53,
+        ryoshima_2 = 54,
+        ryoshima_1 = 55,
+
+        // Byte 7 (offset +7)
+        checkpoint_5 = 56,
+        checkpoint_4 = 57,
+        checkpoint_3 = 58,
+        checkpoint_2 = 59,
+        checkpoint_1 = 60,
+        gale_shrine_3 = 61,
+        gale_shrine_2 = 62,
+        gale_shrine_1 = 63,
+
+        // Byte 8 (offset +8)
+        inner_yoshpet_3 = 64,
+        inner_yoshpet_2 = 65,
+        inner_yoshpet_1 = 66,
+        ponctan_3 = 67,
+        ponctan_2 = 68,
+        ponctan_1 = 69,
+        yoshpet_3 = 70,
+        yoshpet_2 = 71,
+
+        // Byte 9 (offset +9)
+        yoshpet_1 = 72,
+        kamui_ezofuji_4 = 73,
+        kamui_ezofuji_3 = 74,
+        kamui_ezofuji_2 = 75,
+        kamui_ezofuji_1 = 76,
+        wepkeer_4 = 77,
+        wepkeer_3 = 78,
+        wepkeer_2 = 79,
+
+        // Byte 10 (offset +10)
+        wepkeer_1 = 80,
+        kamui_6 = 81,
+        kamui_5 = 82,
+        kamui_4 = 83,
+        kamui_3 = 84,
+        kamui_2 = 85,
+        kamui_1 = 86,
+        dragon_palace_4 = 87,
+
+        // Byte 11 (offset +11)
+        dragon_palace_3 = 88,
+        dragon_palace_2 = 89,
+        dragon_palace_1 = 90,
+        catcall_3 = 91,
+        catcall_2 = 92,
+        catcall_1 = 93,
+        nryoshima_7 = 94,
+        nryoshima_6 = 95,
+
+        // Bytes 12-15 Unused
+
+        // Byte 15
+        ark_yamato = 124,
+        wawku_3 = 125,
+        wawku_2 = 126,
+        wawku_1 = 127
     };
 
-    enum class BeadByte2 : uint8_t
-    {
-        taka_4 = 1 << 0,
-        taka_3 = 1 << 1,
-        taka_2 = 1 << 2,
-        taka_1 = 1 << 3,
-        tsuta_3 = 1 << 4,
-        tsuta_2 = 1 << 5,
-        tsuta_1 = 1 << 6,
-        agata_6 = 1 << 7
-    };
-
-    enum class BeadByte3 : uint8_t
-    {
-        agata_5 = 1 << 0,
-        agata_4 = 1 << 1,
-        agata_3 = 1 << 2,
-        agata_2 = 1 << 3,
-        agata_1 = 1 << 4,
-        hana_valley = 1 << 5,
-        shinshu_6 = 1 << 6,
-        shinshu_5 = 1 << 7
-    };
-
-    enum class BeadByte4 : uint8_t
-    {
-        shinshu_4 = 1 << 0,
-        shinshu_3 = 1 << 1,
-        shinshu_2 = 1 << 2,
-        shinshu_1 = 1 << 3,
-        kamiki_3 = 1 << 4,
-        kamiki_2 = 1 << 5,
-        kamiki_1 = 1 << 6,
-        cave_of_nagi = 1 << 7
-    };
-
-    enum class BeadByte5 : uint8_t
-    {
-        nryoshima_5 = 1 << 0,
-        nryoshima_4 = 1 << 1,
-        nryoshima_3 = 1 << 2,
-        nryoshima_2 = 1 << 3,
-        nryoshima_1 = 1 << 4,
-        imperial_palace = 1 << 5,
-        sunken_ship_2 = 1 << 6,
-        sunken_ship_1 = 1 << 7
-    };
-
-    enum class BeadByte6 : uint8_t
-    {
-        seian_aq_6 = 1 << 0,
-        seian_aq_5 = 1 << 1,
-        seian_aq_4 = 1 << 2,
-        seian_aq_3 = 1 << 3,
-        seian_aq_2 = 1 << 4,
-        seian_aq_1 = 1 << 5,
-        seian_cq_5 = 1 << 6,
-        seian_cq_4 = 1 << 7
-    };
-
-    enum class BeadByte7 : uint8_t
-    {
-        seian_cq_3 = 1 << 0,
-        seian_cq_2 = 1 << 1,
-        seian_cq_1 = 1 << 2,
-        ryoshima_5 = 1 << 3,
-        ryoshima_4 = 1 << 4,
-        ryoshima_3 = 1 << 5,
-        ryoshima_2 = 1 << 6,
-        ryoshima_1 = 1 << 7
-    };
-
-    enum class BeadByte8 : uint8_t
-    {
-        checkpoint_5 = 1 << 0,
-        checkpoint_4 = 1 << 1,
-        checkpoint_3 = 1 << 2,
-        checkpoint_2 = 1 << 3,
-        checkpoint_1 = 1 << 4,
-        gale_shrine_3 = 1 << 5,
-        gale_shrine_2 = 1 << 6,
-        gale_shrine_1 = 1 << 7
-    };
-
-    enum class BeadByte9 : uint8_t
-    {
-        inner_yoshpet_3 = 1 << 0,
-        inner_yoshpet_2 = 1 << 1,
-        inner_yoshpet_1 = 1 << 2,
-        ponctan_3 = 1 << 3,
-        ponctan_2 = 1 << 4,
-        ponctan_1 = 1 << 5,
-        yoshpet_3 = 1 << 6,
-        yoshpet_2 = 1 << 7
-    };
-
-    enum class BeadByte10 : uint8_t
-    {
-        yoshpet_1 = 1 << 0,
-        kamui_ezofuji_4 = 1 << 1,
-        kamui_ezofuji_3 = 1 << 2,
-        kamui_ezofuji_2 = 1 << 3,
-        kamui_ezofuji_1 = 1 << 4,
-        wepkeer_4 = 1 << 5,
-        wepkeer_3 = 1 << 6,
-        wepkeer_2 = 1 << 7
-    };
-
-    enum class BeadByte11 : uint8_t
-    {
-        wepkeer_1 = 1 << 0,
-        kamui_6 = 1 << 1,
-        kamui_5 = 1 << 2,
-        kamui_4 = 1 << 3,
-        kamui_3 = 1 << 4,
-        kamui_2 = 1 << 5,
-        kamui_1 = 1 << 6,
-        dragon_palace_4 = 1 << 7
-    };
-
-    enum class BeadByte12 : uint8_t
-    {
-        dragon_palace_3 = 1 << 0,
-        dragon_palace_2 = 1 << 1,
-        dragon_palace_1 = 1 << 2,
-        catcall_3 = 1 << 3,
-        catcall_2 = 1 << 4,
-        catcall_1 = 1 << 5,
-        nryoshima_7 = 1 << 6,
-        nryoshima_6 = 1 << 7
-    };
-
-    enum class BeadByte13 : uint8_t
-    {
-        // All unused (None)
-    };
-
-    enum class BeadByte14 : uint8_t
-    {
-        // All unused (None)
-    };
-
-    enum class BeadByte15 : uint8_t
-    {
-        // All unused (None)
-    };
-
-    enum class BeadByte16 : uint8_t
-    {
-        // Bits 4–7 only used
-        ark_yamato = 1 << 4,
-        wawku_3 = 1 << 5,
-        wawku_2 = 1 << 6,
-        wawku_1 = 1 << 7
-    };
-
-#pragma pack(push, 1)
-    struct StrayBeadOverlay
-    {
-        BitfieldFlags<BeadByte1> byte1;
-        BitfieldFlags<BeadByte2> byte2;
-        BitfieldFlags<BeadByte3> byte3;
-        BitfieldFlags<BeadByte4> byte4;
-        BitfieldFlags<BeadByte5> byte5;
-        BitfieldFlags<BeadByte6> byte6;
-        BitfieldFlags<BeadByte7> byte7;
-        BitfieldFlags<BeadByte8> byte8;
-        BitfieldFlags<BeadByte9> byte9;
-        BitfieldFlags<BeadByte10> byte10;
-        BitfieldFlags<BeadByte11> byte11;
-        BitfieldFlags<BeadByte12> byte12;
-        BitfieldFlags<BeadByte13> byte13;
-        BitfieldFlags<BeadByte14> byte14;
-        BitfieldFlags<BeadByte15> byte15;
-        BitfieldFlags<BeadByte16> byte16;
-    };
-#pragma pack(pop)
-
-    inline StrayBeadOverlay *CollectionStrayBeads;
 } // namespace okami

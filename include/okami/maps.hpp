@@ -4,13 +4,14 @@
 #include <string>
 #include <unordered_map>
 #include <iomanip>
+#include "memoryaccessor.hpp"
 
 namespace okami
 {
-    inline uint16_t *ExeriorMapIDPtr; // Loading zone sequence 3
-    inline uint16_t *CurrentMapIDPtr; // Loading zone sequence 1
-    inline uint16_t *VestigialMapID1Ptr;
-    inline uint16_t *VsstigialMapID2Ptr; // Loading zone sequence 2
+    inline MemoryAccessor<uint16_t> ExeriorMapID; // Loading zone sequence 3
+    inline MemoryAccessor<uint16_t> CurrentMapID; // Loading zone sequence 1
+    inline MemoryAccessor<uint16_t> VestigialMapID1;
+    inline MemoryAccessor<uint16_t> VestigialMapID2; // Loading zone sequence 2
 
     inline static const std::unordered_map<uint16_t, std::string> MapNames = {
         {0x006, "Endless loading screen"},

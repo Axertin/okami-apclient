@@ -4,6 +4,7 @@
 #include "archipelago.h"
 #include "gui.h"
 #include <okami_apclient-GitVersion.h>
+#include "okami/okami.hpp"
 
 BOOL APIENTRY DllMain(HMODULE hModule,
                       DWORD ul_reason_for_call,

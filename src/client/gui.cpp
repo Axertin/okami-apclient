@@ -1,5 +1,6 @@
 
 #include "gui.h"
+#include "okami/okami.hpp"
 
 static ID3D11Device *device = nullptr;
 static ID3D11DeviceContext *context = nullptr;
