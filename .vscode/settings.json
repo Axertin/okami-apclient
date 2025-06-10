@@ -1,8 +1,5 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "stm32-for-vscode.openOCDPath": false,
-    "stm32-for-vscode.makePath": false,
-    "stm32-for-vscode.armToolchainPath": false,
     "files.associations": {
         "thread": "cpp",
         "ios": "cpp",

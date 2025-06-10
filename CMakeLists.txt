@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : CMake project for okami-apclient, include source and define
 # project specific logic here.
 #
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 
 function(enable_strict_warnings target)
   set_property(GLOBAL PROPERTY ENABLE_STRICT_WARNINGS_DEFINED TRUE)
@@ -59,6 +59,12 @@ function(enable_strict_warnings target)
   endif()
 endfunction()
 
+# Generate client source list if needed
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_sources.cmake
+)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/client/sources.cmake)
+
 # Add GitVersion to cmake module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GitVersion)
@@ -91,7 +97,6 @@ find_package(ZLIB REQUIRED)
 add_compile_definitions(ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 
 # Glob tree for sources and includes, and put them in lists
-file(GLOB_RECURSE sources CONFIGURE_DEPENDS "src/client/*.cpp")
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
 # imgui
@@ -107,7 +112,7 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
 
 # Primary program
-add_library(okami-apclient SHARED ${sources})
+add_library(okami-apclient SHARED ${CLIENT_SOURCES})
 target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
