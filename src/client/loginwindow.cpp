@@ -52,7 +52,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             if (strlen(Server) > 0 && strlen(Slot) > 0)
             {
-                saveLoginData(Server, Slot, Password);
+                saveLoginData(JsonSavePath, Server, Slot, Password);
                 ArchipelagoSocket::clientConnect(this);
                 setMessage("Connecting to " + std::string(Server) + "...");
             }
@@ -92,7 +92,7 @@ void LoginWindow::setMessage(std::string newMessage)
  * @param oSlot The slot (player name).
  * @param oPassword The password used for authentication.
  */
-void LoginWindow::saveLoginData(const std::string &oServer, const std::string &oSlot, const std::string &oPassword)
+void LoginWindow::saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword)
 {
     nlohmann::json jsonData;
     jsonData["Server"] = oServer;
@@ -100,7 +100,7 @@ void LoginWindow::saveLoginData(const std::string &oServer, const std::string &o
     jsonData["Password"] = oPassword;
 
     // Save the JSON data to a file
-    std::ofstream file("./connection.json");
+    std::ofstream file(path);
     file << jsonData.dump(4); // Pretty print with an indentation of 4
     file.close();
 }
@@ -114,17 +114,26 @@ void LoginWindow::saveLoginData(const std::string &oServer, const std::string &o
  * @return true If data was loaded successfully.
  * @return false If the file was not found or loading failed.
  */
-bool LoginWindow::loadLoginData(std::string &oServer, std::string &oSlot, std::string &oPassword)
+bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword)
 {
-    std::ifstream file("./connection.json");
+    std::ifstream file(path);
 
     if (!file.is_open())
     {
+        std::cout << "[login] Failed to open file: " << path << std::endl;
         return false; // Return false if the file doesn't exist
     }
 
     nlohmann::json jsonData;
-    file >> jsonData;
+    try
+    {
+        file >> jsonData;
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << "[login] JSON parse failed: " << e.what() << std::endl;
+        return false; // Invalid JSON format
+    }
     file.close();
 
     // Retrieve data from the JSON object

@@ -146,12 +146,18 @@ set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQ
 # Tests
 find_package(Catch2 CONFIG REQUIRED)
 
-add_executable(okami-tests ${tests})
-target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain)
-target_include_directories(okami-tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(okami-tests ${tests} ${CLIENT_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc)
+target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
+target_include_directories(okami-tests PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends
+  ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient)
 set_target_properties(okami-tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
-
-enable_strict_warnings(okami-tests)
 
 include(CTest)
 include(Catch)

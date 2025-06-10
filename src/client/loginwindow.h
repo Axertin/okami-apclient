@@ -18,7 +18,7 @@ public:
     {
         IsVisible = true;
         std::string SavedServer, SavedSlot, SavedPassword;
-        if (loadLoginData(SavedServer, SavedSlot, SavedPassword))
+        if (loadLoginData(JsonSavePath, SavedServer, SavedSlot, SavedPassword))
         {
             // If data was loaded successfully, pre-fill the fields
             strncpy_s(Server, SavedServer.c_str(), sizeof(Server));
@@ -27,11 +27,16 @@ public:
         }
         titleChecker = std::thread(&LoginWindow::checkIfShouldBeVisible, this);
     }
+    LoginWindow(bool Check) : Window("Login"), OnTitleScreen(true)
+    {
+        CheckingVisibility = Check;
+        IsVisible = true;
+    }
     void toggleVisibility() override;
     void draw(int OuterWidth, int OuterHeight, float UIScale) override;
     void setMessage(std::string);
-    bool loadLoginData(std::string &Server, std::string &Slot, std::string &Password);
-    void saveLoginData(const std::string &Server, const std::string &Slot, const std::string &Password);
+    bool loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword);
+    void saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword);
     char Server[128] = "archipelago.gg:";
     char Password[128] = "";
     char Slot[128] = "";
@@ -40,6 +45,7 @@ public:
     char mState[128] = "";
 
 private:
+    const std::string JsonSavePath = "./connection.json";
     std::thread titleChecker;
     std::string message;
     std::string mPointer;

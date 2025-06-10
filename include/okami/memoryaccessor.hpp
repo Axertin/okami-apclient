@@ -77,20 +77,18 @@ namespace okami
     class MemoryAccessor<BitfieldFlags<Enum>>
     {
         static_assert(std::is_enum_v<Enum>, "BitfieldFlags requires an enum type");
-
         uintptr_t base = 0;
         size_t width = 0;
 
     public:
         MemoryAccessor() = default;
 
-        MemoryAccessor(uintptr_t addr, size_t bytes)
-            : base(addr), width(bytes) {}
-
-        void bind(uintptr_t addr, size_t bytes)
+        template <size_t Bytes>
+        void bind(uintptr_t addr)
         {
+            static_assert(Bytes > 0, "Bitfield must be bound to at least one byte!");
             base = addr;
-            width = bytes;
+            width = Bytes;
         }
 
         BitfieldFlags<Enum> get() const

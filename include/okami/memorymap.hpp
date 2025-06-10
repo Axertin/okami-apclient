@@ -124,11 +124,11 @@ namespace okami
         VestigialMapID2.bind(okami::MainBase + 0xB6B246);
 
         // Overlay memory helpers
-        AmmyUsableBrushTechniques.bind(okami::MainBase + 0x890A30, 4);
-        AmmyObtainedBrushTechniques.bind(okami::MainBase + 0x890A38, 4);
-        AmmyUsableDojoTechniques.bind(okami::MainBase + 0xB4DFA0, 4);
-        CollectionStrayBeads.bind(okami::MainBase + 0xB205E8, 32);
-        CollectionTravelGuides.bind(okami::MainBase + 0xB205F8, 4);
+        AmmyUsableBrushTechniques.bind<4>(okami::MainBase + 0x890A30);
+        AmmyObtainedBrushTechniques.bind<4>(okami::MainBase + 0x890A38);
+        AmmyUsableDojoTechniques.bind<4>(okami::MainBase + 0xB4DFA0);
+        CollectionStrayBeads.bind<32>(okami::MainBase + 0xB205E8);
+        CollectionTravelGuides.bind<4>(okami::MainBase + 0xB205F8);
 
         // TODO: TravelGuidesViewed, MoveList, Fish, Animals, Treasure, etc.
     }
