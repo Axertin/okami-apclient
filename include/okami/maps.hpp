@@ -26,7 +26,7 @@ namespace okami
         {0x033, "Brush Interaction Test Map #6"},
         {0x034, "Brush Interaction Test Map #7"},
         {0x0FF, "Collision and Movement Test Map"},
-        {0x100, "Kamiki Village - Dark"},
+        {0x100, "Kamiki Village - Cursed"},
         {0x101, "Cave of Nagi"},
         {0x102, "Kamiki Village"},
         {0x103, "Hana Valley"},

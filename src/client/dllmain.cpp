@@ -1,7 +1,7 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
 #include "gamehooks.h"
-#include "archipelago.h"
+#include "archipelagosocket.h"
 #include "gui.h"
 #include <okami_apclient-GitVersion.h>
 #include "okami/okami.hpp"

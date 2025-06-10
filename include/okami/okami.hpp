@@ -52,14 +52,14 @@ namespace okami
     inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     {
         std::cout << "[okamigame] Initializing Modules...";
-        okami::MainBase = (uintptr_t)(MainDllModuleHandle);
+        okami::MainBase = reinterpret_cast<uintptr_t>(MainDllModuleHandle);
         if (okami::MainBase == 0)
         {
             std::cout << std::endl
                       << "[okamigame] Main.dll BaseAddress not found!" << std::endl;
             return false;
         }
-        okami::FlowerBase = (uintptr_t)(FlowerDllModuleHandle);
+        okami::FlowerBase = reinterpret_cast<uintptr_t>(FlowerDllModuleHandle);
         if (okami::FlowerBase == 0)
         {
             std::cout << std::endl

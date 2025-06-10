@@ -1,11 +1,15 @@
 
 #include "gui.h"
 #include "okami/okami.hpp"
+#include "loginwindow.h"
 
 static ID3D11Device *device = nullptr;
 static ID3D11DeviceContext *context = nullptr;
 static HWND hwnd = nullptr;
 static ID3D11RenderTargetView *rtv = nullptr;
+static bool GuiIsVisible = true;
+
+static std::vector<std::unique_ptr<Window>> Windows;
 
 bool guiTryInit(IDXGISwapChain *pSwapChain)
 {
@@ -36,7 +40,10 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     ImGui::StyleColorsDark();
 
+    io.FontGlobalScale = 1.0f;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    Windows.push_back(std::make_unique<LoginWindow>());
 
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(device, context);
@@ -47,18 +54,33 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
 void guiRenderFrame(IDXGISwapChain *pSwapChain)
 {
+    static int WindowWidth;
+    static int WindowHeight;
+
     if (!ImGui::GetCurrentContext())
         std::cout << "[gui] ImGui context missing!" << std::endl;
     else
     {
+        RECT rect;
+        if (!GetClientRect(hwnd, &rect))
+        {
+            std::cout << "[gui] Failed to get window size!" << std::endl;
+            return;
+        }
+        const int BaseWidth = 1920;
+        const int BaseHeight = 1080;
+        float WidthScale = static_cast<float>(WindowWidth) / BaseWidth;
+        float HeightScale = static_cast<float>(WindowHeight) / BaseHeight;
+        float UIScale = (((WidthScale) < (HeightScale)) ? (WidthScale) : (HeightScale));
 
         ImGui_ImplWin32_NewFrame();
         ImGui_ImplDX11_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Okami Overlay");
-        ImGui::Text("ImGui Working!");
-        ImGui::End();
+        for (auto &Window : Windows)
+        {
+            Window.get()->draw(WindowWidth, WindowHeight, UIScale);
+        }
 
         ImGui::Render();
 
@@ -81,15 +103,14 @@ HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
 {
 
     static bool initialized = false;
-    static bool overlayEnabled = true;
 
     if (!initialized && guiTryInit(pSwapChain))
         initialized = true;
 
-    if (GetAsyncKeyState(VK_INSERT))
-        overlayEnabled = !overlayEnabled;
+    if (GetAsyncKeyState(VK_TAB))
+        GuiIsVisible = !GuiIsVisible;
 
-    if (initialized && overlayEnabled)
+    if (initialized && GuiIsVisible)
         guiRenderFrame(pSwapChain);
 
     return oPresent(pSwapChain, SyncInterval, Flags);
