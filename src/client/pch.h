@@ -3,9 +3,7 @@
 // This also affects IntelliSense performance, including code completion and many code browsing features.
 // However, files listed here are ALL re-compiled if any one of them is updated between builds.
 // Do not add files here that you will be updating frequently as this negates the performance advantage.
-
-#ifndef PCH_H
-#define PCH_H
+#pragma once
 
 // add headers that you want to pre-compile here
 #pragma warning(push, 0)
@@ -15,11 +13,10 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <deque>
 #include <MinHook.h>
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
 #include <imgui_impl_win32.h>
 
 #pragma warning(pop)
-
-#endif // PCH_H

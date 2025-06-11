@@ -94,8 +94,6 @@ find_package(asio CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
 
-add_compile_definitions(ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
@@ -113,6 +111,8 @@ target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/img
 
 # Primary program
 add_library(okami-apclient SHARED ${CLIENT_SOURCES})
+target_precompile_headers(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/client/pch.h)
+target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
@@ -137,6 +137,8 @@ file(WRITE ${CMAKE_BINARY_DIR}/version.txt
 
 # Bootstrap loader DLL
 add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
+target_precompile_headers(apclient-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/pch.h)
+target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)
 enable_strict_warnings(apclient-loader)
@@ -147,6 +149,7 @@ set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQ
 find_package(Catch2 CONFIG REQUIRED)
 
 add_executable(okami-tests ${tests} ${CLIENT_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc)
+target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
 target_include_directories(okami-tests PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
