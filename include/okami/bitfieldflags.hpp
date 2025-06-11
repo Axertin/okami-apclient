@@ -48,7 +48,8 @@ namespace okami
             size_t index = static_cast<Underlying>(flag);
             size_t byte = index / 8;
             uint8_t bit = static_cast<uint8_t>(1u << (index % 8));
-            assert(byte < _size);
+            if (byte >= _size)
+                return 0;
             return (_base[byte] & bit) != 0;
         }
 
