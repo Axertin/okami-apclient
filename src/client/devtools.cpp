@@ -1,0 +1,55 @@
+#include "devtools.h"
+#include "gui.h"
+#include "okami/okami.hpp"
+
+void DevTools::toggleVisibility()
+{
+    IsVisible = !IsVisible;
+}
+
+/**
+ * @brief Renders the Developer Tools window UI using ImGui.
+ *
+ * @param OuterWidth Width of the outer container (currently unused).
+ * @param OuterHeight Height of the outer container (currently unused).
+ * @param UIScale UI scaling factor (currently unused).
+ */
+void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
+{
+    (void)OuterWidth;
+    (void)OuterHeight;
+    (void)UIScale;
+
+    if (!IsVisible)
+        return;
+
+    Framer.update();
+
+    ImGui::Begin(name.c_str(), &IsVisible, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Text("IGT: %d", okami::IngameTimeFrames.get());
+    ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(), Framer.getFPS());
+    if (ImGui::CollapsingHeader("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        ImGui::Text("Pos: (%.2f,%.2f,%.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
+        ImGui::Text("Health: %d", okami::AmmyCurrentHealth.get());
+        ImGui::Text("Money: %d", okami::AmmyCurrentMoney.get());
+        ImGui::Text("Praise: %d", okami::AmmyCurrentPraise.get());
+        ImGui::Text("Money: %d", okami::AmmyCurrentInk.get());
+    }
+
+    if (ImGui::CollapsingHeader("Maps"))
+    {
+        static int MapID = 0;
+        ImGui::Text("External Map: %d (%s)", okami::ExeriorMapID.get(), okami::decodeMapName(okami::ExeriorMapID.get()).c_str());
+        ImGui::Text("Current Map: %d (%s)", okami::CurrentMapID.get(), okami::decodeMapName(okami::CurrentMapID.get()).c_str());
+        ImGui::InputInt("Map ID", &MapID);
+        if (ImGui::Button("Teleport"))
+        {
+            okami::ExeriorMapID.set(MapID);
+            okami::CurrentMapID.set(MapID);
+            okami::LoadingZoneTrigger.set(0x2);
+        }
+    }
+
+    ImGui::End();
+}

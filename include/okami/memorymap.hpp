@@ -16,7 +16,6 @@ namespace okami
     inline uintptr_t MainBase;
     inline uintptr_t FlowerBase;
 
-    // Raw memory pointers
     inline MemoryAccessor<uint32_t> IngameTimeFrames;
 
     inline MemoryAccessor<float> AmmyPosX;
@@ -49,6 +48,9 @@ namespace okami
     inline MemoryAccessor<int16_t> AmmyTotalPraise;
     inline MemoryAccessor<int16_t> AmmyCurrentDemonFangs;
     inline MemoryAccessor<uint16_t> AmmyTotalDemonFangs;
+
+    // Other important things
+    inline MemoryAccessor<uint8_t> LoadingZoneTrigger;
 
     // Game function pointers
     inline void *MainFlowerStartupFnPtr;
@@ -131,6 +133,8 @@ namespace okami
         CollectionTravelGuides.bind<4>(okami::MainBase + 0xB205F8);
 
         // TODO: TravelGuidesViewed, MoveList, Fish, Animals, Treasure, etc.
+
+        LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
     }
 
     /**

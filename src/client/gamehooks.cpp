@@ -55,7 +55,6 @@ static FunctionType Main_FlowerTickOrigin = nullptr;
 /// @return void
 void __cdecl GameHooks::onGameTick()
 {
-    printMonitors();
     Main_FlowerTickOrigin();
 }
 
