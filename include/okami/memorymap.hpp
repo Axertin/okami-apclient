@@ -9,6 +9,10 @@
 #include "dojotech.hpp"
 #include "straybeads.hpp"
 #include "travelguides.hpp"
+#include "animals.hpp"
+#include "treasures.hpp"
+#include "fish.hpp"
+#include "acquisition.hpp"
 
 namespace okami
 {
@@ -57,7 +61,7 @@ namespace okami
     inline void *MainFlowerStopFnPtr;
     inline void *MainFlowerTickFnPtr;
     inline void *MainFlowerLoadPtr;
-    inline void *MainFlowerItemPickedUpPtr;
+    inline void *MainFlowerTreasurePickedUpPtr;
 
     // Overlay structures
     inline MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
@@ -65,6 +69,10 @@ namespace okami
     inline MemoryAccessor<BitfieldFlags<DojoOverlay>> AmmyUsableDojoTechniques;
     inline MemoryAccessor<BitfieldFlags<StrayBeadOverlay>> CollectionStrayBeads;
     inline MemoryAccessor<BitfieldFlags<TravelGuideOverlay>> CollectionTravelGuides;
+    inline MemoryAccessor<BitfieldFlags<AnimalOverlay>> CollectionAninals;
+    inline MemoryAccessor<BitfieldFlags<FishOverlay>> CollectionFish;
+    inline MemoryAccessor<BitfieldFlags<TreasureOverlay>> CollectionTreasure;
+    inline MemoryAccessor<BitfieldFlags<TreasureOverlay>> CollectionAcquisitions;
 
     /**
      * @brief Initialize game variable pointers and overlays.
@@ -74,9 +82,12 @@ namespace okami
     {
         IngameTimeFrames.bind(okami::MainBase + 0xB217FC);
 
-        AmmyPosX.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 0);
-        AmmyPosY.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 4);
-        AmmyPosZ.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 8);
+        // AmmyPosX.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 0);
+        // AmmyPosY.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 4);
+        // AmmyPosZ.bind(okami::MainBase + 0xB6B2D0 + 0xA8 + 8);
+        AmmyPosX.bind(okami::MainBase + 0xB1EC10 + 0); // probably read-only copies
+        AmmyPosY.bind(okami::MainBase + 0xB1EC10 + 4); // probably read-only copies
+        AmmyPosZ.bind(okami::MainBase + 0xB1EC10 + 8); // probably read-only copies
 
         AmmyCurrentHealth.bind(okami::MainBase + 0xB4DF90);
         AmmyMaxHealth.bind(okami::MainBase + 0xB4DF92);
@@ -131,8 +142,12 @@ namespace okami
         AmmyUsableDojoTechniques.bind<4>(okami::MainBase + 0xB4DFA0);
         CollectionStrayBeads.bind<32>(okami::MainBase + 0xB205E8);
         CollectionTravelGuides.bind<4>(okami::MainBase + 0xB205F8);
+        CollectionAninals.bind<4>(okami::MainBase + 0xB20618);
+        CollectionFish.bind<4>(okami::MainBase + 0xB20608);
+        CollectionTreasure.bind<4>(okami::MainBase + 0xB20620);
+        CollectionAcquisitions.bind<4>(okami::MainBase + 0xB21780);
 
-        // TODO: TravelGuidesViewed, MoveList, Fish, Animals, Treasure, etc.
+        // TODO: MoveList
 
         LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
     }
@@ -146,6 +161,6 @@ namespace okami
         MainFlowerStopFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6230);
         MainFlowerTickFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B63B0);
         MainFlowerLoadPtr = reinterpret_cast<void *>(okami::MainBase + 0x4390A0);
-        MainFlowerItemPickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
+        MainFlowerTreasurePickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
     }
 } // namespace okami

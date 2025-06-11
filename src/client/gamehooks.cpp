@@ -94,7 +94,7 @@ void GameHooks::setup()
     MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
     MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));
     MH_CreateHook(okami::MainFlowerTickFnPtr, reinterpret_cast<LPVOID>(&onGameTick), reinterpret_cast<LPVOID *>(&Main_FlowerTickOrigin));
-    MH_CreateHook(okami::MainFlowerItemPickedUpPtr, reinterpret_cast<LPVOID>(&onTreasurePickup), reinterpret_cast<LPVOID *>(&TreasurePickupOrigin));
+    MH_CreateHook(okami::MainFlowerTreasurePickedUpPtr, reinterpret_cast<LPVOID>(&onTreasurePickup), reinterpret_cast<LPVOID *>(&TreasurePickupOrigin));
 
     MH_EnableHook(MH_ALL_HOOKS);
 
