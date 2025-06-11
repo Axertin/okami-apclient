@@ -34,7 +34,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("Health: %d", okami::AmmyCurrentHealth.get());
         ImGui::Text("Money: %d", okami::AmmyCurrentMoney.get());
         ImGui::Text("Praise: %d", okami::AmmyCurrentPraise.get());
-        ImGui::Text("Money: %d", okami::AmmyCurrentInk.get());
+        ImGui::Text("Ink: %d", okami::AmmyCurrentInk.get());
+        ImGui::Text("Food: %d", okami::AmmyCurrentFood.get());
+        ImGui::Text("Demon Fangs: %d", okami::AmmyCurrentDemonFangs.get());
     }
 
     if (ImGui::CollapsingHeader("Maps"))
@@ -42,7 +44,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         static int MapID = 0;
         ImGui::Text("External Map: %d (%s)", okami::ExeriorMapID.get(), okami::decodeMapName(okami::ExeriorMapID.get()).c_str());
         ImGui::Text("Current Map: %d (%s)", okami::CurrentMapID.get(), okami::decodeMapName(okami::CurrentMapID.get()).c_str());
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
         ImGui::InputInt("Map ID", &MapID);
+        ImGui::SameLine();
         if (ImGui::Button("Teleport"))
         {
             okami::ExeriorMapID.set(MapID);
