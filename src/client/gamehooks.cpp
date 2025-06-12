@@ -58,23 +58,18 @@ void __cdecl GameHooks::onGameTick()
     Main_FlowerTickOrigin();
 }
 
-using SetBitFieldEntry = void(__fastcall *)(void *rcx, int edx, void *r8, void *r9);
-static SetBitFieldEntry TreasurePickupOrigin = nullptr;
-/**
- * @brief Hook for the function that sets the collection bit for treasures
- * @param rcx Pointer to byte to set
- * @param edx ID of picked up item (see Item Table)
- * @param r8 Unused but needed by ABI calling convention
- * @param r9 Unused but needed by ABI calling convention
- * @return Void
- *
- */
-void __fastcall GameHooks::onTreasurePickup(void *rcx, int edx, void *r8, void *r9)
+typedef void(__fastcall *ItemPickupFn)(void *rcx, int edx, int r8);
+static ItemPickupFn oItemPickup = nullptr;
+void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, int NumItems)
 {
-    auto ID = static_cast<uint16_t>(edx);
-    std::cout << "[apclient] Treasure Picked Up: 0x" << std::hex << ID << std::dec << std::endl;
+    std::cout << "[apclient] onItemPickup rcx=" << std::hex << MaybeInventoryStruct << " edx=" << ItemID << " r8= " << NumItems << std::endl;
 
-    TreasurePickupOrigin(rcx, edx, r8, r9);
+    return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
+}
+
+void GameHooks::giveItem(int ItemID, int NumItems)
+{
+    oItemPickup(okami::MaybeInventoryStructPtr, ItemID, NumItems);
 }
 
 /**
@@ -94,7 +89,7 @@ void GameHooks::setup()
     MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
     MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));
     MH_CreateHook(okami::MainFlowerTickFnPtr, reinterpret_cast<LPVOID>(&onGameTick), reinterpret_cast<LPVOID *>(&Main_FlowerTickOrigin));
-    MH_CreateHook(okami::MainFlowerTreasurePickedUpPtr, reinterpret_cast<LPVOID>(&onTreasurePickup), reinterpret_cast<LPVOID *>(&TreasurePickupOrigin));
+    MH_CreateHook(okami::MainFlowerItemPickupFnPtr, reinterpret_cast<LPVOID>(&onItemPickup), reinterpret_cast<LPVOID *>(&oItemPickup));
 
     MH_EnableHook(MH_ALL_HOOKS);
 

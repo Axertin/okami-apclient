@@ -61,7 +61,7 @@ LRESULT WINAPI onWndProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
  */
 bool guiTryInit(IDXGISwapChain *pSwapChain)
 {
-    std::cout << "[gui] Initializing ImGui...";
+    std::cout << "[gui] Initializing ImGui" << std::endl;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -72,15 +72,13 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     if (!hwnd || !IsWindow(hwnd))
     {
-        std::cout << std::endl
-                  << "[gui] Invalid HWND from swapchain!" << std::endl;
+        std::cout << "[gui] Invalid HWND from swapchain!" << std::endl;
         return false;
     }
 
     if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void **>(&device))))
     {
-        std::cout << std::endl
-                  << "[gui] Failed to get render device!" << std::endl;
+        std::cout << "[gui] Failed to get render device!" << std::endl;
         return false;
     }
 
@@ -100,7 +98,6 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(device, context);
-    std::cout << "Done!" << std::endl;
 
     return true;
 }

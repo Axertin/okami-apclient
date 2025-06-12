@@ -11,7 +11,7 @@ namespace okami
      */
     enum class BrushOverlay : uint8_t
     {
-        // Byte 1
+        // Byte 0
         sunrise_default = 1, // Set by default? both it and bit 27 must be set to use Sunrise
         greensprout = 2,
         dot_trees = 3,
@@ -20,7 +20,7 @@ namespace okami
         galestorm = 6,
         whirlwind = 7,
 
-        // Byte 2
+        // Byte 1
         thunder_storm = 8,
         thunderbolt = 9,
         inferno = 10,
@@ -30,7 +30,7 @@ namespace okami
         deluge = 14,
         fountain = 15,
 
-        // Byte 3
+        // Byte 2
         veil_of_mist = 16,
         mist_warp = 17,
         crescent = 18,
@@ -39,7 +39,7 @@ namespace okami
         rejuvenation = 22,
         blizzard = 23,
 
-        // Byte 4
+        // Byte 3
         icestorm = 24,
         cherry_bomb = 25,
         sunrise = 27, // Set during story. both it and bit 1 must be set to use Sunrise

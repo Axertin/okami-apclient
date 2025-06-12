@@ -53,8 +53,12 @@ namespace okami
     inline MemoryAccessor<int16_t> AmmyCurrentDemonFangs;
     inline MemoryAccessor<uint16_t> AmmyTotalDemonFangs;
 
+    inline MemoryAccessor<uint16_t> AstralPouchAcqFlag;
+
     // Other important things
     inline MemoryAccessor<uint8_t> LoadingZoneTrigger;
+
+    inline void *MaybeInventoryStructPtr;
 
     // Game function pointers
     inline void *MainFlowerStartupFnPtr;
@@ -62,6 +66,7 @@ namespace okami
     inline void *MainFlowerTickFnPtr;
     inline void *MainFlowerLoadPtr;
     inline void *MainFlowerTreasurePickedUpPtr;
+    inline void *MainFlowerItemPickupFnPtr;
 
     // Overlay structures
     inline MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
@@ -149,7 +154,11 @@ namespace okami
 
         // TODO: MoveList
 
+        AstralPouchAcqFlag.bind(okami::MainBase + 0xB2063C);
+
         LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
+
+        MaybeInventoryStructPtr = reinterpret_cast<void *>(okami::MainBase + 0xB66670);
     }
 
     /**
@@ -162,5 +171,6 @@ namespace okami
         MainFlowerTickFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B63B0);
         MainFlowerLoadPtr = reinterpret_cast<void *>(okami::MainBase + 0x4390A0);
         MainFlowerTreasurePickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
+        MainFlowerItemPickupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4965D0);
     }
 } // namespace okami

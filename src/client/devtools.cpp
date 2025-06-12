@@ -1,6 +1,7 @@
 #include "devtools.h"
 #include "gui.h"
 #include "okami/okami.hpp"
+#include "gamehooks.h"
 
 void DevTools::toggleVisibility()
 {
@@ -37,6 +38,18 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("Ink: %d", okami::AmmyCurrentInk.get());
         ImGui::Text("Food: %d", okami::AmmyCurrentFood.get());
         ImGui::Text("Demon Fangs: %d", okami::AmmyCurrentDemonFangs.get());
+    }
+
+    if (ImGui::CollapsingHeader("Items"))
+    {
+        static int ItemID = 0;
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+        ImGui::InputInt("Item ID", &ItemID);
+        ImGui::SameLine();
+        if (ImGui::Button("Give"))
+        {
+            GameHooks::giveItem(ItemID, 1);
+        }
     }
 
     if (ImGui::CollapsingHeader("Maps"))
