@@ -169,7 +169,6 @@ include(CTest)
 include(Catch)
 catch_discover_tests(okami-tests)
 
-
 # Install
 # TODO: Allow override of install_prefix
 set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")

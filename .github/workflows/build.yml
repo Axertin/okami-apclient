@@ -89,6 +89,23 @@ jobs:
       - name: Build
         run: cmake --build --preset x64-clang-debug
 
+      - name: Run Unit Tests
+        run: out/build/x64-clang-debug/okami-tests --reporter xml --out out/build/x64-clang-debug/Test.xml
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
+
+      - name: Print test summary
+        if: always()
+        run: |
+          Get-Content out/build/x64-clang-debug/Test.xml
+
+      - name: Upload JUnit Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-test-results
+          path: '**/Test.xml'
+
       - name: Read Version
         id: get_version
         run: |
