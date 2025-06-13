@@ -46,14 +46,14 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     ImGui::InputText("Password", Password, IM_ARRAYSIZE(Password), ImGuiInputTextFlags_Password);
     ImGui::InputText("Slot Name", Slot, IM_ARRAYSIZE(Slot));
 
-    if (!ArchipelagoSocket::Connected)
+    if (!Socket.isConnected())
     {
         if (ImGui::Button("Connect"))
         {
             if (strlen(Server) > 0 && strlen(Slot) > 0)
             {
                 saveLoginData(JsonSavePath, Server, Slot, Password);
-                ArchipelagoSocket::clientConnect(this);
+                Socket.clientConnect(this);
                 setMessage("Connecting to " + std::string(Server) + "...");
             }
             else

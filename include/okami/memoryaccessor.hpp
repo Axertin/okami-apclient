@@ -4,6 +4,8 @@
 #include <cassert>
 #include "bitfieldflags.hpp"
 
+#include <iostream>
+
 namespace okami
 {
 
@@ -87,14 +89,32 @@ namespace okami
         void bind(uintptr_t addr)
         {
             static_assert(Bytes > 0, "Bitfield must be bound to at least one byte!");
+            assert(addr != 0 && "Attempted to bind to null pointer!");
             base = addr;
             width = Bytes;
         }
 
         BitfieldFlags<Enum> get() const
         {
-            assert(base != 0);
+            assert(base != 0 && "Attempted to get unbound memory!");
             return BitfieldFlags<Enum>(reinterpret_cast<volatile uint8_t *>(base), width);
+        }
+
+        bool isBound() const
+        {
+            return base != 0;
+        }
+
+        void clear(Enum flag)
+        {
+            assert(base != 0 && "Attempted to clear unbound memory!");
+            BitfieldFlags<Enum>(reinterpret_cast<volatile uint8_t *>(base), width).clear(flag);
+        }
+
+        void set(Enum flag)
+        {
+            assert(base != 0 && "Attempted to set unbound memory!");
+            BitfieldFlags<Enum>(reinterpret_cast<volatile uint8_t *>(base), width).set(flag);
         }
 
         uintptr_t raw() const { return base; }

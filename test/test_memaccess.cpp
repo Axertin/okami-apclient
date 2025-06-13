@@ -54,6 +54,24 @@ TEST_CASE("BrushOverlay flags can be read from mock memory", "[memory]")
     REQUIRE_FALSE(brush.has(okami::BrushOverlay::icestorm));
 }
 
+TEST_CASE("BrushOverlay flags can set to mock memory", "[memory]")
+{
+    uint8_t mockMemory[4] = {
+        0b00010100, // greensprout and bloom
+        0b00000010, // thunderbolt
+        0, 0};
+
+    okami::MemoryAccessor<okami::BitfieldFlags<okami::BrushOverlay>> accessor;
+    accessor.bind<4>(reinterpret_cast<uintptr_t>(mockMemory));
+
+    accessor.set(okami::BrushOverlay::power_slash);
+
+    REQUIRE(mockMemory[0] == 0b00010100); // greensprout and bloom
+    REQUIRE(mockMemory[1] == 0b00010010); // power slash and thunderbolt
+    REQUIRE(mockMemory[2] == 0);
+    REQUIRE(mockMemory[3] == 0);
+}
+
 TEST_CASE("MemoryAccessor::raw returns bound address", "[memory]")
 {
     uint32_t dummy = 0;

@@ -2,6 +2,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <iomanip>
 #include "memoryaccessor.hpp"

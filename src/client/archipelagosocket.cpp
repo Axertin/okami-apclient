@@ -1,6 +1,7 @@
 
 #include "archipelagosocket.h"
 #include "loginwindow.h"
+#include "gamehooks.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -25,6 +26,12 @@ bool ArchipelagoSocket::Connected = false;
 bool ArchipelagoSocket::APSyncQueued = false;
 
 APClient *ArchipelagoSocket::Client = nullptr;
+
+ArchipelagoSocket &ArchipelagoSocket::instance()
+{
+    static ArchipelagoSocket socket;
+    return socket;
+}
 
 void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 {
@@ -68,7 +75,16 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
     Client->set_items_received_handler([](const std::list<APClient::NetworkItem> &Items)
                                        {
                                     for (const auto& Item : Items) {
-                                        ; // TODO: Do something with the items we get
+                                        if(Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
+                                            return;
+
+                                        if (Item.item > 0xFF)
+                                        {
+                                            // TODO: Brush / Dojo logic
+                                        } else {
+                                            GameHooks::giveItem(static_cast<int>(Item.item), 1);
+                                        }
+                                        
                                     } });
 
     Client->set_location_info_handler([](const std::list<APClient::NetworkItem> &Items)
@@ -135,4 +151,13 @@ bool ArchipelagoSocket::scoutLocations(std::list<int64_t> Locations, int CreateA
         return Client->LocationScouts(Locations, CreateAsHint);
     }
     return false;
+}
+
+bool ArchipelagoSocket::isConnected() const
+{
+    return Connected;
+}
+std::string ArchipelagoSocket::getUUID() const
+{
+    return uuid;
 }

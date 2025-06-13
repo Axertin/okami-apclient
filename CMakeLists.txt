@@ -29,6 +29,7 @@ function(enable_strict_warnings target)
       target_compile_options(${target} PRIVATE
         /clang:-Wno-c++98-compat
         /clang:-Wno-c++98-compat-pedantic
+        /clang:-Wno-c++17-extensions
       )
 
       if(extra_warnings)
@@ -110,7 +111,8 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
 
 # Primary program
-add_library(okami-apclient SHARED ${CLIENT_SOURCES})
+add_library(okami-apclient SHARED ${CLIENT_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
 target_precompile_headers(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/client/pch.h)
 target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_include_directories(okami-apclient SYSTEM PRIVATE
@@ -143,12 +145,13 @@ target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)
 enable_strict_warnings(apclient-loader)
 
-set_target_properties(okami-apclient PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
 
 # Tests
 find_package(Catch2 CONFIG REQUIRED)
 
-add_executable(okami-tests ${tests} ${CLIENT_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc)
+add_executable(okami-tests ${tests} ${CLIENT_SOURCES}
+  ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
 target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
 target_include_directories(okami-tests PRIVATE

@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <type_traits>
 #include <cassert>
+#include <array>
+#include <vector>
 
 namespace okami
 {
@@ -120,6 +122,119 @@ namespace okami
          * @return volatile uint8_t* to the start.
          */
         volatile uint8_t *data() const noexcept { return _base; }
+    };
+
+    template <typename Enum, size_t NumBytes>
+    class BitfieldFlagsStorage
+    {
+        static_assert(std::is_enum_v<Enum>, "BitfieldFlagsStorage requires an enum type.");
+        using Underlying = std::underlying_type_t<Enum>;
+        static_assert(std::is_integral_v<Underlying>, "Enum must have integral underlying type.");
+
+        std::array<uint8_t, NumBytes> _buffer{};
+
+    public:
+        constexpr BitfieldFlagsStorage() noexcept = default;
+
+        /**
+         * @brief Access a mutable BitfieldFlags view of the internal buffer.
+         */
+        BitfieldFlags<Enum> view()
+        {
+            return BitfieldFlags<Enum>(_buffer.data(), NumBytes);
+        }
+
+        /**
+         * @brief Access a const BitfieldFlags view of the internal buffer.
+         */
+        BitfieldFlags<Enum> view() const
+        {
+            return BitfieldFlags<Enum>(const_cast<volatile uint8_t *>(_buffer.data()), NumBytes);
+        }
+
+        /**
+         * @brief Copy content from an external BitfieldFlags view.
+         */
+        void copyFrom(const BitfieldFlags<Enum> &other)
+        {
+            assert(other.size() == NumBytes && "Mismatched bitfield sizes in copyFrom.");
+            std::copy_n(other.data(), NumBytes, _buffer.data());
+        }
+
+        /**
+         * @brief Compare this storage to another BitfieldFlags view.
+         */
+        bool isEqual(const BitfieldFlags<Enum> &other) const
+        {
+            assert(other.size() == NumBytes && "Mismatched bitfield sizes in isEqual.");
+            return std::equal(_buffer.begin(), _buffer.end(), other.data());
+        }
+
+        /**
+         * @brief Return a list of flags that differ between this storage and another view.
+         */
+        std::vector<Enum> diffBits(const BitfieldFlags<Enum> &other) const
+        {
+            assert(other.size() == NumBytes && "Mismatched bitfield sizes in diffBits.");
+
+            std::vector<Enum> differences;
+            size_t totalBits = NumBytes * 8;
+
+            for (size_t bitIndex = 0; bitIndex < totalBits; ++bitIndex)
+            {
+                size_t byte = bitIndex / 8;
+                uint8_t mask = static_cast<uint8_t>(1u << (bitIndex % 8));
+
+                uint8_t selfByte = _buffer[byte];
+                uint8_t otherByte = other.rawByte(byte);
+
+                if ((selfByte & mask) != (otherByte & mask))
+                {
+                    differences.push_back(static_cast<Enum>(bitIndex));
+                }
+            }
+            return differences;
+        }
+
+        /**
+         * @brief Clear all bits.
+         */
+        void clearAll() noexcept
+        {
+            _buffer.fill(0);
+        }
+
+        /**
+         * @brief Set all bits.
+         */
+        void setAll() noexcept
+        {
+            _buffer.fill(0xFF);
+        }
+
+        /**
+         * @brief Get the number of bits stored.
+         */
+        static constexpr size_t bitCount() noexcept
+        {
+            return NumBytes * 8;
+        }
+
+        /**
+         * @brief Get the number of bytes used.
+         */
+        static constexpr size_t byteCount() noexcept
+        {
+            return NumBytes;
+        }
+
+        /**
+         * @brief Access the raw buffer.
+         */
+        constexpr const std::array<uint8_t, NumBytes> &data() const noexcept
+        {
+            return _buffer;
+        }
     };
 
 } // namespace okami

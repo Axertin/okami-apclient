@@ -1,6 +1,7 @@
 #include "gamehooks.h"
 
 #include "okami/okami.hpp"
+#include "checks.h"
 
 typedef void(__cdecl *FunctionType)();
 
@@ -55,6 +56,7 @@ static FunctionType Main_FlowerTickOrigin = nullptr;
 /// @return void
 void __cdecl GameHooks::onGameTick()
 {
+    checkBrushes();
     Main_FlowerTickOrigin();
 }
 

@@ -1,26 +1,33 @@
 #pragma once
 #include "pch.h"
+#include "isocket.h"
 
 class LoginWindow; // Forward Declare LoginWindow
 
-class ArchipelagoSocket
+class ArchipelagoSocket : public ISocket
 {
 public:
-    static void clientConnect(LoginWindow *LoginData);
-    static void sendLocation(int64_t LocationID);
-    static void gameFinished(void);
-    static void poll(void);
+    static ArchipelagoSocket &instance();
 
-    static std::string getItemName(int64_t ID, int Player);
-    static std::string getItemDesc(int Player);
-    static std::string getAddrInfo();
-    static bool scoutLocations(std::list<int64_t> Locations, int CreateAsHint);
+    void clientConnect(LoginWindow *LoginData) override;
+    void sendLocation(int64_t LocationID) override;
+    void gameFinished(void) override;
+    void poll(void) override;
 
-    static std::string uuid;
-    static bool Connected;
-    static std::string seed;
+    std::string getItemName(int64_t ID, int Player) override;
+    std::string getItemDesc(int Player) override;
+    std::string getAddrInfo() override;
+    bool scoutLocations(std::list<int64_t> Locations, int CreateAsHint) override;
+
+    bool isConnected() const override;
+    std::string getUUID() const override;
 
 private:
     static bool APSyncQueued;
     static APClient *Client;
+
+    static std::string uuid;
+    static bool Connected;
+
+    ArchipelagoSocket() = default;
 };

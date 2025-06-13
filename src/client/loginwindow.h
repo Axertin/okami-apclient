@@ -14,7 +14,7 @@ public:
             titleChecker.join(); // wait for thread to exit cleanly
         }
     }
-    LoginWindow() : Window("Login"), CheckingVisibility(true), OnTitleScreen(true)
+    LoginWindow() : Window("Login"), Socket(ArchipelagoSocket::instance()), CheckingVisibility(true), OnTitleScreen(true)
     {
         IsVisible = true;
         std::string SavedServer, SavedSlot, SavedPassword;
@@ -27,7 +27,7 @@ public:
         }
         titleChecker = std::thread(&LoginWindow::checkIfShouldBeVisible, this);
     }
-    LoginWindow(bool Check) : Window("Login"), OnTitleScreen(true)
+    LoginWindow(bool Check, ISocket &connsock = ArchipelagoSocket::instance()) : Window("Login"), Socket(connsock), OnTitleScreen(true)
     {
         CheckingVisibility = Check;
         IsVisible = true;
@@ -49,6 +49,7 @@ private:
     std::thread titleChecker;
     std::string message;
     std::string mPointer;
+    ISocket &Socket;
     bool CheckingVisibility;
     std::atomic<bool> OnTitleScreen;
     void checkIfShouldBeVisible();
