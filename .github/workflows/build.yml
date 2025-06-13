@@ -96,10 +96,13 @@ jobs:
         env:
           CTEST_OUTPUT_ON_FAILURE: 1
 
-      - name: Print test summary
+      - name: Publish Test Results
         if: always()
-        run: |
-          Get-Content out/build/x64-clang-debug/Test.xml
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Tests
+          path: 'out/build/x64-clang-debug/Test.xml'
+          reporter: java-junit
 
       - name: Upload JUnit Test Results
         if: always()
