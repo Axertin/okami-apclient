@@ -162,12 +162,57 @@ namespace okami
         }
 
         /**
+         * @brief Copy content from an external BitfieldFlagsStorage.
+         */
+        void copyFrom(const BitfieldFlagsStorage<Enum, NumBytes> &other)
+        {
+            assert(other.size() == NumBytes && "Mismatched bitfield sizes in copyFrom.");
+            _buffer = other.data();
+        }
+
+        /**
          * @brief Compare this storage to another BitfieldFlags view.
          */
         bool isEqual(const BitfieldFlags<Enum> &other) const
         {
             assert(other.size() == NumBytes && "Mismatched bitfield sizes in isEqual.");
             return std::equal(_buffer.begin(), _buffer.end(), other.data());
+        }
+
+        /**
+         * @brief Compare this storage to another BitfieldFlagsStorage
+         */
+        bool isEqual(const BitfieldFlagsStorage<Enum, NumBytes> &other) const
+        {
+            assert(other.size() == NumBytes && "Mismatched bitfield sizes in isEqual.");
+            return _buffer == other.data();
+        }
+
+        /**
+         * @brief Return a list of flags that differ between this storage and another view.
+         */
+        std::vector<Enum> diffBits(const BitfieldFlagsStorage<Enum, NumBytes> &other) const
+        {
+            std::vector<Enum> differences;
+            const auto &otherBuffer = other.data();
+
+            for (size_t byteIndex = 0; byteIndex < NumBytes; ++byteIndex)
+            {
+                uint8_t xorResult = _buffer[byteIndex] ^ otherBuffer[byteIndex];
+                if (xorResult == 0)
+                    continue;
+
+                for (uint8_t bit = 0; bit < 8; ++bit)
+                {
+                    if (xorResult & (1u << bit))
+                    {
+                        size_t bitIndex = byteIndex * 8 + bit;
+                        differences.push_back(static_cast<Enum>(bitIndex));
+                    }
+                }
+            }
+
+            return differences;
         }
 
         /**
@@ -213,6 +258,55 @@ namespace okami
         }
 
         /**
+         * @brief Set a specific flag bit.
+         */
+        void set(Enum flag)
+        {
+            size_t index = static_cast<Underlying>(flag);
+            size_t byte = index / 8;
+            uint8_t bit = static_cast<uint8_t>(1u << (index % 8));
+            assert(byte < NumBytes);
+            _buffer[byte] |= bit;
+        }
+
+        /**
+         * @brief Clear a specific flag bit.
+         */
+        void clear(Enum flag)
+        {
+            size_t index = static_cast<Underlying>(flag);
+            size_t byte = index / 8;
+            uint8_t bit = static_cast<uint8_t>(1u << (index % 8));
+            assert(byte < NumBytes);
+            _buffer[byte] &= ~bit;
+        }
+
+        /**
+         * @brief Toggle a specific flag bit.
+         */
+        void toggle(Enum flag)
+        {
+            size_t index = static_cast<Underlying>(flag);
+            size_t byte = index / 8;
+            uint8_t bit = static_cast<uint8_t>(1u << (index % 8));
+            assert(byte < NumBytes);
+            _buffer[byte] ^= bit;
+        }
+
+        /**
+         * @brief Check if a specific flag bit is set.
+         */
+        bool has(Enum flag) const
+        {
+            size_t index = static_cast<Underlying>(flag);
+            size_t byte = index / 8;
+            uint8_t bit = static_cast<uint8_t>(1u << (index % 8));
+            if (byte >= NumBytes)
+                return false;
+            return (_buffer[byte] & bit) != 0;
+        }
+
+        /**
          * @brief Get the number of bits stored.
          */
         static constexpr size_t bitCount() noexcept
@@ -223,7 +317,7 @@ namespace okami
         /**
          * @brief Get the number of bytes used.
          */
-        static constexpr size_t byteCount() noexcept
+        static constexpr size_t size() noexcept
         {
             return NumBytes;
         }
