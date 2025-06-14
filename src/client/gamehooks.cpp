@@ -64,7 +64,10 @@ typedef void(__fastcall *ItemPickupFn)(void *rcx, int edx, int r8);
 static ItemPickupFn oItemPickup = nullptr;
 void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, int NumItems)
 {
-    std::cout << "[apclient] onItemPickup rcx=" << std::hex << MaybeInventoryStruct << " edx=" << ItemID << " r8= " << NumItems << std::endl;
+    if (checkItems(ItemID))
+    {
+        return;
+    }
 
     return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
 }

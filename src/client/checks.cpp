@@ -1,5 +1,6 @@
 #include "checks.h"
 #include "okami/okami.hpp"
+#include "okami/items.hpp"
 
 void checkBrushes(ISocket &socket)
 {
@@ -31,4 +32,36 @@ void checkBrushes(ISocket &socket)
     }
 
     PrevBrushes.copyFrom(CurrentBrushes);
+}
+
+bool checkItems(int ItemID, ISocket &socket)
+{
+    if (okami::ItemTable.count(ItemID) == 0)
+    {
+        return false;
+    }
+
+    auto Item = okami::ItemTable.at(ItemID);
+
+    switch (Item.Category)
+    {
+    case okami::ItemCategory::KT:
+    case okami::ItemCategory::Treasure:
+    case okami::ItemCategory::KeyItem:
+    case okami::ItemCategory::Weapon:
+    case okami::ItemCategory::Artifact:
+    case okami::ItemCategory::Map:
+        std::cout << "Sending Item Location 0x" << std::hex << ItemID << std::dec << std::endl;
+        if (socket.isConnected())
+        {
+            socket.sendLocation(ItemID);
+            return true;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return false;
 }
