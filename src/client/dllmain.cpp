@@ -3,6 +3,7 @@
 #include "gamehooks.h"
 #include "archipelagosocket.h"
 #include "gui.h"
+#include "checks.h"
 #include <okami_apclient-GitVersion.h>
 #include "okami/okami.hpp"
 
@@ -34,4 +35,5 @@ extern "C" __declspec(dllexport) void okamiAPClientInit()
     okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll"));
     GameHooks::setup();
     guiInitHooks();
+    checkInit();
 }

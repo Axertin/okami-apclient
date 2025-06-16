@@ -62,6 +62,7 @@ namespace okami
     void *MaybeInventoryStructPtr;
 
     // Game function pointers
+    char *GetSaveDataRootDirectoryFnPtr;
     void *MainFlowerStartupFnPtr;
     void *MainFlowerStopFnPtr;
     void *MainFlowerTickFnPtr;
@@ -167,6 +168,7 @@ namespace okami
      */
     void initFunctions()
     {
+        GetSaveDataRootDirectoryFnPtr = reinterpret_cast<char *>(okami::FlowerBase + 0x22F7);
         MainFlowerStartupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6240);
         MainFlowerStopFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6230);
         MainFlowerTickFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B63B0);

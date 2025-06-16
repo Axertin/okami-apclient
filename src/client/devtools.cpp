@@ -52,6 +52,12 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         }
     }
 
+    if (ImGui::CollapsingHeader("Flags"))
+    {
+        ImGui::Text("Brushes: %x %x %x %x", okami::AmmyUsableBrushTechniques.get().rawByte(0), okami::AmmyUsableBrushTechniques.get().rawByte(1), okami::AmmyUsableBrushTechniques.get().rawByte(2), okami::AmmyUsableBrushTechniques.get().rawByte(3));
+        ImGui::Text("Dojo: %x %x %x %x", okami::AmmyUsableDojoTechniques.get().rawByte(0), okami::AmmyUsableDojoTechniques.get().rawByte(1), okami::AmmyUsableDojoTechniques.get().rawByte(2), okami::AmmyUsableDojoTechniques.get().rawByte(3));
+    }
+
     if (ImGui::CollapsingHeader("Maps"))
     {
         static int MapID = 0;

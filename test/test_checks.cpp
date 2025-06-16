@@ -17,6 +17,8 @@ TEST_CASE("checkBrushes detects and sends newly set brush flag", "[check]")
     okami::AmmyObtainedBrushTechniques.bind<4>(reinterpret_cast<uintptr_t>(MockMemory));
     okami::AmmyUsableBrushTechniques.bind<4>(reinterpret_cast<uintptr_t>(MockUsable));
 
+    enableChecks();
+
     checkBrushes(MockSock);
 
     REQUIRE(mock.sentLocations.empty());
@@ -29,12 +31,16 @@ TEST_CASE("checkBrushes detects and sends newly set brush flag", "[check]")
     REQUIRE(mock.sentLocations.size() == 1);
     REQUIRE(mock.sentLocations[0] == (0x100 + static_cast<int>(okami::BrushOverlay::power_slash)));
     REQUIRE(MockUsable[1] == 0);
+
+    disableChecks();
 }
 
 TEST_CASE("checkItems detects and sends item checks", "[check]")
 {
     MockSocket mock;
     ISocket &MockSock = mock;
+
+    enableChecks();
 
     SECTION("Weapon (Infinity Judge)")
     {
@@ -89,4 +95,6 @@ TEST_CASE("checkItems detects and sends item checks", "[check]")
         REQUIRE(mock.sentLocations[0] == 0xF8);
         mock.sentLocations.clear();
     }
+
+    disableChecks();
 }

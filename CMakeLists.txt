@@ -70,6 +70,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/src/client/sources.cmake)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GitVersion)
 
+# grab SSL keys
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/cacert.pem)
   file(DOWNLOAD https://curl.se/ca/cacert.pem ${CMAKE_CURRENT_BINARY_DIR}/cacert.pem SHOW_PROGRESS)
 endif()
@@ -85,6 +86,10 @@ endif()
 if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
+
+# Fallback default if not passed via preset
+set(CXX_STD "17" CACHE STRING "Requested C++ standard")
+set(STD_FEATURE "cxx_std_${CXX_STD}")
 
 project("okami-apclient" LANGUAGES CXX)
 
@@ -109,6 +114,7 @@ add_library(imgui STATIC
 )
 
 target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
 # Primary program
 add_library(okami-apclient SHARED ${CLIENT_SOURCES}
@@ -123,6 +129,7 @@ target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
 target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
+target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
 enable_strict_warnings(okami-apclient)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -143,6 +150,7 @@ target_precompile_headers(apclient-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sr
 target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)
+target_compile_features(apclient-loader PRIVATE ${STD_FEATURE})
 enable_strict_warnings(apclient-loader)
 
 
@@ -163,7 +171,7 @@ target_include_directories(okami-tests PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
   ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends
   ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient)
-set_target_properties(okami-tests PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES)
+target_compile_features(okami-tests PRIVATE ${STD_FEATURE})
 
 include(CTest)
 include(Catch)
