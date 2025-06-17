@@ -9,8 +9,8 @@
 
 namespace okami
 {
-    inline MemoryAccessor<uint16_t> ExeriorMapID; // Loading zone sequence 3
-    inline MemoryAccessor<uint16_t> CurrentMapID; // Loading zone sequence 1
+    inline MemoryAccessor<uint16_t> ExteriorMapID; // Loading zone sequence 3
+    inline MemoryAccessor<uint16_t> CurrentMapID;  // Loading zone sequence 1
     inline MemoryAccessor<uint16_t> VestigialMapID1;
     inline MemoryAccessor<uint16_t> VestigialMapID2; // Loading zone sequence 2
 

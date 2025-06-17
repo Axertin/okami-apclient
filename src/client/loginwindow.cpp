@@ -10,7 +10,7 @@ void LoginWindow::checkIfShouldBeVisible()
 {
     while (CheckingVisibility)
     {
-        OnTitleScreen = (okami::ExeriorMapID.get() == 0xC00); // Title Screen
+        OnTitleScreen = (okami::ExteriorMapID.get() == 0xC00); // Title Screen
 
         for (int i = 0; i < 25 && CheckingVisibility; ++i)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));

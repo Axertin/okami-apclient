@@ -61,14 +61,14 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     if (ImGui::CollapsingHeader("Maps"))
     {
         static int MapID = 0;
-        ImGui::Text("External Map: %d (%s)", okami::ExeriorMapID.get(), okami::decodeMapName(okami::ExeriorMapID.get()).c_str());
+        ImGui::Text("External Map: %d (%s)", okami::ExteriorMapID.get(), okami::decodeMapName(okami::ExteriorMapID.get()).c_str());
         ImGui::Text("Current Map: %d (%s)", okami::CurrentMapID.get(), okami::decodeMapName(okami::CurrentMapID.get()).c_str());
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
         ImGui::InputInt("Map ID", &MapID);
         ImGui::SameLine();
         if (ImGui::Button("Teleport"))
         {
-            okami::ExeriorMapID.set(MapID);
+            okami::ExteriorMapID.set(MapID);
             okami::CurrentMapID.set(MapID);
             okami::LoadingZoneTrigger.set(0x2);
         }

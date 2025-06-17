@@ -14,6 +14,11 @@ void disableChecks()
     checksEnabled = false;
 }
 
+bool isChecksEnabled()
+{
+    return checksEnabled;
+}
+
 void checkBrushes(ISocket &socket)
 {
     static okami::BitfieldFlagsStorage<okami::BrushOverlay, 4> PrevBrushes;
@@ -91,21 +96,32 @@ bool checkItems(int ItemID, ISocket &socket)
 void startChecks()
 {
 
-    std::cout << "[checks] Waiting for title screen to be exited" << std::endl;
-    while (okami::ExeriorMapID == 0xC00) // Title Menu
+    for (;;)
     {
-        checksEnabled = false;
+        if (okami::ExteriorMapID != 0xC00)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        else
+        {
+            std::cout << "[checks] Waiting for title screen to be exited" << std::endl;
+            while (okami::ExteriorMapID == 0xC00) // Title Menu
+            {
+                checksEnabled = false;
+            }
+
+            std::cout << "[checks] Exiting main menu, initializing checks" << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(15)); // Wait for memory to initialize
+
+            std::cout << "[checks] Delay Finished!" << std::endl;
+            checksEnabled = true;
+        }
     }
-
-    std::cout << "[checks] Exiting main menu, initializing checks" << std::endl;
-    std::this_thread::sleep_for(std::chrono::seconds(15)); // Wait for memory to initialize
-
-    std::cout << "[checks] Delay Finished!" << std::endl;
-    checksEnabled = true;
 }
 
 void checkInit()
 {
+    checksEnabled = false;
     std::thread([]
                 {                                 
                 std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game to initialize

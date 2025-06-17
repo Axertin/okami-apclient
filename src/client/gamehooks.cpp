@@ -19,12 +19,12 @@ void printMonitors()
     std::cout << "Ink: " << okami::AmmyCurrentInk.get() << "                                                                          " << std::endl;
     std::cout << "Food: " << okami::AmmyCurrentFood.get() << "                                                                          " << std::endl;
     std::cout << "Money: " << okami::AmmyCurrentMoney.get() << "                                                                          " << std::endl;
-    std::cout << "Exterior MapID: " << okami::ExeriorMapID.get() << "                                                                          " << std::endl;
+    std::cout << "Exterior MapID: " << okami::ExteriorMapID.get() << "                                                                          " << std::endl;
     std::cout << "Current MapID: " << okami::CurrentMapID.get() << "                                                                          " << std::endl;
     std::cout << "VMID1: " << okami::VestigialMapID1.get() << "                                                                          " << std::endl;
     std::cout << "VMID2: " << okami::VestigialMapID2.get() << "                                                                          " << std::endl;
     std::cout << "Map Name: " << okami::decodeMapName(okami::CurrentMapID.get()) << "                                                                          " << std::endl;
-    std::cout << "Exterior Map Name: " << okami::decodeMapName(okami::ExeriorMapID.get()) << "                                                                          " << std::endl;
+    std::cout << "Exterior Map Name: " << okami::decodeMapName(okami::ExteriorMapID.get()) << "                                                                          " << std::endl;
     std::cout << "Inventory ItemID: 0x" << std::hex << okami::InventoryItemID.get() << "                                                                          " << std::dec << std::endl;
     std::cout << "Inventory StringID: 0x" << std::hex << okami::InventoryItemID.get() << "                                                                          " << std::dec << std::endl;
 

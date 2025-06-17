@@ -138,7 +138,7 @@ namespace okami
         AmmyCurrentSunFragments.bind(okami::MainBase + 0xB2063A);
         InventoryItemQualities.bind(okami::MainBase + 0xB20630);
 
-        ExeriorMapID.bind(okami::MainBase + 0xB6B240);
+        ExteriorMapID.bind(okami::MainBase + 0xB6B240);
         CurrentMapID.bind(okami::MainBase + 0xB65E74);
         VestigialMapID1.bind(okami::MainBase + 0xB4F0B4);
         VestigialMapID2.bind(okami::MainBase + 0xB6B246);

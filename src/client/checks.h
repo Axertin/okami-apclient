@@ -9,3 +9,4 @@ bool checkItems(int ItemID, ISocket &socket = ArchipelagoSocket::instance());
 void enableChecks();
 void disableChecks();
 void checkDojoMoves();
+bool isChecksEnabled();
