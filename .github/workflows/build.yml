@@ -13,33 +13,32 @@ on:
       - develop
 
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - id: set-matrix
+        run: |
+          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]]; then
+            # Only debug builds on develop branch
+            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
+          else
+            # Both debug and release on master/PRs/tags
+            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
+          fi
+
   build:
     name: Build ${{ matrix.config }}
     runs-on: windows-latest
+    needs: setup
     permissions:
       id-token: write
       contents: read
       checks: write
 
     strategy:
-      matrix:
-        config: [debug, release]
-        include:
-          - config: debug
-            preset: x64-clang-debug
-            run_tests: true
-          - config: release
-            preset: x64-clang-release
-            run_tests: false
-            release_condition: true
-            # Only run release builds on master branch or PRs to master
-            if: |
-              (matrix.config == 'debug') || 
-              (matrix.config == 'release' && (
-                github.ref_name == 'master' || 
-                (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master') ||
-                startsWith(github.ref, 'refs/tags/')
-              ))
+      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
 
     defaults:
       run:
