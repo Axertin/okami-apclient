@@ -3,6 +3,7 @@
 #include "okami/okami.hpp"
 #include "loginwindow.h"
 #include "devtools.h"
+#include "console.h"
 
 static ID3D11Device *device = nullptr;
 static ID3D11DeviceContext *context = nullptr;
@@ -95,6 +96,8 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     Windows.push_back(std::make_unique<LoginWindow>());
     Windows.push_back(std::make_unique<DevTools>());
+    Windows.push_back(std::make_unique<Console>());
+    g_Console = static_cast<Console *>(Windows.back().get());
 
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(device, context);

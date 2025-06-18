@@ -2,6 +2,7 @@
 set(CLIENT_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/archipelagosocket.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/console.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devtools.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/dllmain.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/gamehooks.cpp

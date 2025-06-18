@@ -14,6 +14,14 @@
 #include <thread>
 #include <chrono>
 #include <deque>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <mutex>
+#include <memory>
+#include <streambuf>
+#include <functional>
 #include <MinHook.h>
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
