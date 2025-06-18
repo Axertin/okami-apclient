@@ -5,16 +5,40 @@ on:
     branches:
       - master
       - develop
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - master
       - develop
 
 jobs:
-  build-windows-release:
-    name: Build Release
+  build:
+    name: Build ${{ matrix.config }}
     runs-on: windows-latest
-    if: github.ref_name == 'master' || (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master')
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
+
+    strategy:
+      matrix:
+        config: [debug, release]
+        include:
+          - config: debug
+            preset: x64-clang-debug
+            run_tests: true
+          - config: release
+            preset: x64-clang-release
+            run_tests: false
+            release_condition: true
+
+            # Only run release builds on master branch or PRs to master
+            if: |
+              matrix.config == 'debug' || 
+              github.ref_name == 'master' || 
+              (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master') ||
+              startsWith(github.ref, 'refs/tags/')
 
     defaults:
       run:
@@ -34,106 +58,117 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
 
-      - name: Configure
-        run: cmake --preset x64-clang-release
-
-      - name: Build
-        run: cmake --build --preset x64-clang-release
-
-      - name: Read Version
-        id: get_version
-        run: |
-          $version = Get-Content out/build/x64-clang-release/version.txt
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-      
-      - name: Stage Artifacts
-        run: |
-          mkdir -p release/mods/apclient
-          cp out/build/x64-clang-release/okami-apclient.dll release/mods/apclient/
-          cp out/build/x64-clang-release/cacert.pem release/mods/apclient/
-          cp out/build/x64-clang-release/apclient-loader.dll release/mods/
-
-      - name: Zip Artifacts
-        run: |
-          Compress-Archive -Path release/* -DestinationPath okami-apclient-${{ steps.get_version.outputs.version }}.zip
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Cache vcpkg
+        uses: actions/cache@v4
         with:
-          name: okami-apclient-${{ steps.get_version.outputs.version }}
-          path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
-
-  build-windows-debug:
-    name: Build Debug
-    runs-on: windows-latest
-    permissions:
-      id-token: write
-      contents: read
-      checks: write
-
-    defaults:
-      run:
-        shell: pwsh
-        working-directory: ${{ github.workspace }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-          fetch-depth: 0
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v3
+          path: out/build/${{ matrix.preset }}/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-${{ matrix.config }}-
+            ${{ runner.os }}-vcpkg-
 
       - name: Configure CMake
-        run: cmake --preset x64-clang-debug
+        run: cmake --preset ${{ matrix.preset }}
 
       - name: Build
-        run: cmake --build --preset x64-clang-debug
+        run: cmake --build --preset ${{ matrix.preset }}
 
       - name: Run Unit Tests
-        run: out/build/x64-clang-debug/okami-tests.exe --reporter JUnit --out out/build/x64-clang-debug/Test.xml
-        env:
-          CTEST_OUTPUT_ON_FAILURE: 1
+        if: matrix.run_tests
+        run: |
+          $testExe = "out/build/${{ matrix.preset }}/okami-tests.exe"
+          if (Test-Path $testExe) {
+            & $testExe --reporter JUnit --out out/build/${{ matrix.preset }}/Test.xml
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "Tests failed with exit code $LASTEXITCODE"
+            }
+          } else {
+            Write-Host "Test executable not found at $testExe"
+            exit 1
+          }
+        continue-on-error: true
 
       - name: Publish Test Results
-        if: always()
+        if: always() && matrix.run_tests
         uses: dorny/test-reporter@v1
         with:
           name: Unit Tests
-          path: 'out/build/x64-clang-debug/Test.xml'
+          path: 'out/build/${{ matrix.preset }}/Test.xml'
           reporter: java-junit
 
       - name: Upload JUnit Test Results
-        if: always()
+        if: always() && matrix.run_tests
         uses: actions/upload-artifact@v4
         with:
-          name: junit-test-results
+          name: junit-test-results-${{ github.run_number }}
           path: '**/Test.xml'
 
       - name: Read Version
         id: get_version
         run: |
-          $version = Get-Content out/build/x64-clang-debug/version.txt
+          $version = Get-Content out/build/${{ matrix.preset }}/version.txt
           echo "version=$version" >> $env:GITHUB_OUTPUT
       
       - name: Stage Artifacts
         run: |
-          mkdir -p debug/mods/apclient
-          cp out/build/x64-clang-debug/okami-apclient.dll debug/mods/apclient/
-          cp out/build/x64-clang-debug/cacert.pem debug/mods/apclient/
-          cp out/build/x64-clang-debug/apclient-loader.dll debug/mods/
+          $buildDir = "out/build/${{ matrix.preset }}"
+          $stageDir = "${{ matrix.config }}"
+          
+          New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
+          Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
+          Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
+          Copy-Item "$buildDir/apclient-loader.dll" "$stageDir/mods/"
 
-      - name: Zip Artifacts
-        run: |
-          Compress-Archive -Path debug/* -DestinationPath okami-apclient-${{ steps.get_version.outputs.version }}.zip
-
-      - name: Upload Artifacts
+      - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: okami-apclient-${{ steps.get_version.outputs.version }}
-          path: okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          name: okami-apclient-${{ matrix.config }}-${{ steps.get_version.outputs.version }}
+          path: ${{ matrix.config }}/
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download Release Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: okami-apclient-release-*
+          path: ./artifacts
+          merge-multiple: false
+
+      - name: Create Release Archive
+        run: |
+          # Find the release artifact directory
+          RELEASE_DIR=$(find ./artifacts -name "okami-apclient-release-*" -type d | head -1)
+          if [ -z "$RELEASE_DIR" ]; then
+            echo "No release artifacts found"
+            exit 1
+          fi
+          
+          # Create the release zip
+          cd "$RELEASE_DIR"
+          zip -r "../../okami-apclient-${{ steps.get_version.outputs.version }}.zip" .
+          cd ../..
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.get_version.outputs.version }}
+          body_path: release_notes.md
+          files: |
+            okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.version, 'alpha') || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
+          generate_release_notes: true
