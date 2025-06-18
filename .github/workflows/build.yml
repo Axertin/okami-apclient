@@ -92,7 +92,7 @@ jobs:
         run: cmake --build --preset x64-clang-debug
 
       - name: Run Unit Tests
-        run: out/build/x64-clang-debug/okami-tests.exe --reporter xml --out out/build/x64-clang-debug/Test.xml
+        run: out/build/x64-clang-debug/okami-tests.exe --reporter JUnit --out out/build/x64-clang-debug/Test.xml
         env:
           CTEST_OUTPUT_ON_FAILURE: 1
 
