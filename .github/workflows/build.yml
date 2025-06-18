@@ -66,6 +66,10 @@ jobs:
   build-windows-debug:
     name: Build Debug
     runs-on: windows-latest
+    permissions:
+      id-token: write
+      contents: read
+      checks: write
 
     defaults:
       run:
