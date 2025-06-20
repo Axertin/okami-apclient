@@ -60,6 +60,7 @@ namespace okami
     MemoryAccessor<uint8_t> LoadingZoneTrigger;
 
     void *MaybeInventoryStructPtr;
+    void *MaybePlayerClassPtr;
 
     // Game function pointers
 
@@ -71,6 +72,7 @@ namespace okami
     void *MainFlowerLoadPtr;
     void *MainFlowerTreasurePickedUpPtr;
     void *MainFlowerItemPickupFnPtr;
+    void *EditBrushesFnPtr;
 
     // Overlay structures
     MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
@@ -163,6 +165,7 @@ namespace okami
         LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
 
         MaybeInventoryStructPtr = reinterpret_cast<void *>(okami::MainBase + 0xB66670);
+        MaybePlayerClassPtr = reinterpret_cast<void *>(okami::MainBase + 0x8909C0);
     }
 
     /**
@@ -170,6 +173,7 @@ namespace okami
      */
     void initFunctions()
     {
+        // edit brushbitfield = mainBase + 17C270 (void setBrushes(void* <ammy class? this?>, uint32_t index, int op)) --> op
         GetSaveDataRootDirectoryFnPtr = reinterpret_cast<char *>(okami::FlowerBase + 0x22F7);
         MainFlowerStartupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6240);
         MainFlowerStopFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6230);
@@ -177,5 +181,17 @@ namespace okami
         MainFlowerLoadPtr = reinterpret_cast<void *>(okami::MainBase + 0x4390A0);
         MainFlowerTreasurePickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
         MainFlowerItemPickupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4965D0);
+
+        EditBrushesFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x17C270);
     }
 } // namespace okami
+
+// edit brushes function
+//      mainbase + 17C270
+//      void editBrushesFn(void* ammy class?, uint32_t bitindex, int op)
+//          ops
+//              1 = set in both fields
+//              2 = set in obtained only
+//              3 = clear in both fields
+//              4 = clear in available only
+//

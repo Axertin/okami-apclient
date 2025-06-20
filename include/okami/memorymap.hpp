@@ -59,6 +59,7 @@ namespace okami
     extern MemoryAccessor<uint8_t> LoadingZoneTrigger;
 
     extern void *MaybeInventoryStructPtr;
+    extern void *MaybePlayerClassPtr;
 
     // Game function pointers
     extern void *D3D11PresentFnPtr;
@@ -69,6 +70,7 @@ namespace okami
     extern void *MainFlowerLoadPtr;
     extern void *MainFlowerTreasurePickedUpPtr;
     extern void *MainFlowerItemPickupFnPtr;
+    extern void *EditBrushesFnPtr;
 
     // Overlay structures
     extern MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
