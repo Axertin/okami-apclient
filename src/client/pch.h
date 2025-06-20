@@ -22,6 +22,11 @@
 #include <memory>
 #include <streambuf>
 #include <functional>
+#include <streambuf>
+#include <cstdio>
+#include <tuple>
+#include <type_traits>
+#include <filesystem>
 #include <MinHook.h>
 #include <imgui.h>
 #include <imgui_impl_dx11.h>

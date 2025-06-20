@@ -4,6 +4,7 @@
 #include "archipelagosocket.h"
 #include "gui.h"
 #include "checks.h"
+#include "logger.h"
 #include <okami_apclient-GitVersion.h>
 #include "okami/okami.hpp"
 
@@ -30,7 +31,8 @@ BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule,
 
 extern "C" __declspec(dllexport) void okamiAPClientInit()
 {
-    std::cout << "[apclient] Initializing okami_apclient v" << okami_apclient::version_string() << "( " << okami_apclient::version_shorthash() << ")" << std::endl;
+    initializeLogger();
+    logInfo("[apclient] Initializing okami_apclient v%s (%s)", okami_apclient::version_string(), okami_apclient::version_shorthash());
 
     okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll"));
     GameHooks::setup();

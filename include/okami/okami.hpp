@@ -8,6 +8,7 @@
 #include "items.hpp"
 #include "maps.hpp"
 #include "brushes.hpp"
+#include "logger.h"
 
 namespace okami
 {
@@ -34,7 +35,7 @@ namespace okami
                 nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
                 D3D11_SDK_VERSION, &SwapChainDesc, &pSwapChain, &pDevice, nullptr, &pContext)))
         {
-            std::cout << "[okamigame] Failed to initialize dummy D3D11 device!";
+            logError("[okamigame] Failed to initialize dummy D3D11 device!");
         }
 
         void **vtable = *reinterpret_cast<void ***>(pSwapChain);
@@ -51,19 +52,17 @@ namespace okami
     /// @return success boolean
     inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     {
-        std::cout << "[okamigame] Initializing Modules...";
+        logInfo("[okamigame] Initializing Modules...");
         okami::MainBase = reinterpret_cast<uintptr_t>(MainDllModuleHandle);
         if (okami::MainBase == 0)
         {
-            std::cout << std::endl
-                      << "[okamigame] Main.dll BaseAddress not found!" << std::endl;
+            logError("[okamigame] Main.dll BaseAddress not found!");
             return false;
         }
         okami::FlowerBase = reinterpret_cast<uintptr_t>(FlowerDllModuleHandle);
         if (okami::FlowerBase == 0)
         {
-            std::cout << std::endl
-                      << "[okamigame] flower_kernel.dll BaseAddress not found!" << std::endl;
+            logError("[okamigame] flower_kernel.dll BaseAddress not found!");
             return false;
         }
 
@@ -71,9 +70,9 @@ namespace okami
         okami::initFunctions();
         getPresentFunctionPtr();
 
-        std::cout << "Done!" << std::endl;
+        logInfo("Done!");
 
-        std::cout << std::hex << "[okamigame] Module Addresses: main.dll->0x" << okami::MainBase << " flower_kernel.dll->0x" << okami::FlowerBase << std::dec << std::endl;
+        logInfo("[okamigame] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
 
         return true;
     }

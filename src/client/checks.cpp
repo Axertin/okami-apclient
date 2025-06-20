@@ -1,4 +1,5 @@
 #include "checks.h"
+#include "logger.h"
 #include "okami/okami.hpp"
 #include "okami/items.hpp"
 #include "okami/maps.hpp"
@@ -30,7 +31,7 @@ void checkBrushes(ISocket &socket)
     {
         if (!okami::AmmyObtainedBrushTechniques.isBound() || !okami::AmmyUsableBrushTechniques.isBound())
         {
-            std::cout << "Check must wait until brushes are bound!" << std::endl;
+            logInfo("Check must wait until brushes are bound!");
             return;
         }
 
@@ -43,7 +44,7 @@ void checkBrushes(ISocket &socket)
             {
                 if (flag != okami::BrushOverlay::sunrise_default)
                 {
-                    std::cout << "Sending Brush Location 0x" << std::hex << (0x100 + static_cast<int>(flag)) << std::dec << std::endl;
+                    logInfo("Sending Brush Location 0x%x", (0x100 + static_cast<int>(flag)));
 
                     if (socket.isConnected())
                         socket.sendLocation(0x100 + static_cast<int>(flag));
@@ -77,7 +78,7 @@ bool checkItems(int ItemID, ISocket &socket)
         case okami::ItemCategory::Weapon:
         case okami::ItemCategory::Artifact:
         case okami::ItemCategory::Map:
-            std::cout << "Sending Item Location 0x" << std::hex << ItemID << std::dec << std::endl;
+            logInfo("Sending Item Location 0x%x", ItemID);
             if (socket.isConnected())
             {
                 socket.sendLocation(ItemID);
@@ -104,16 +105,16 @@ void startChecks()
         }
         else
         {
-            std::cout << "[checks] Waiting for title screen to be exited" << std::endl;
+            logInfo("[checks] Waiting for title screen to be exited");
             while (okami::ExteriorMapID == 0xC00) // Title Menu
             {
                 checksEnabled = false;
             }
 
-            std::cout << "[checks] Exiting main menu, initializing checks" << std::endl;
+            logInfo("[checks] Exiting main menu, initializing checks");
             std::this_thread::sleep_for(std::chrono::seconds(15)); // Wait for memory to initialize
 
-            std::cout << "[checks] Delay Finished!" << std::endl;
+            logInfo("[checks] Delay Finished!");
             checksEnabled = true;
         }
     }

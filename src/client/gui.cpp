@@ -62,7 +62,7 @@ LRESULT WINAPI onWndProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
  */
 bool guiTryInit(IDXGISwapChain *pSwapChain)
 {
-    std::cout << "[gui] Initializing ImGui" << std::endl;
+    logInfo("[gui] Initializing ImGui");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO &io = ImGui::GetIO();
@@ -73,13 +73,13 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     if (!hwnd || !IsWindow(hwnd))
     {
-        std::cout << "[gui] Invalid HWND from swapchain!" << std::endl;
+        logError("[gui] Invalid HWND from swapchain!");
         return false;
     }
 
     if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void **>(&device))))
     {
-        std::cout << "[gui] Failed to get render device!" << std::endl;
+        logError("[gui] Failed to get render device!");
         return false;
     }
 
@@ -97,7 +97,6 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
     Windows.push_back(std::make_unique<LoginWindow>());
     Windows.push_back(std::make_unique<DevTools>());
     Windows.push_back(std::make_unique<Console>());
-    g_Console = static_cast<Console *>(Windows.back().get());
 
     ImGui_ImplWin32_Init(hwnd);
     ImGui_ImplDX11_Init(device, context);
@@ -115,13 +114,13 @@ void guiRenderFrame(IDXGISwapChain *pSwapChain)
     static int WindowHeight;
 
     if (!ImGui::GetCurrentContext())
-        std::cout << "[gui] ImGui context missing!" << std::endl;
+        logError("[gui] ImGui context missing!");
     else
     {
         RECT rect;
         if (!GetClientRect(hwnd, &rect))
         {
-            std::cout << "[gui] Failed to get window size!" << std::endl;
+            logError("[gui] Failed to get window size!");
             return;
         }
         const int BaseWidth = 1920;

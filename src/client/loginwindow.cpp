@@ -2,6 +2,7 @@
 #include "gui.h"
 #include "loginwindow.h"
 #include "okami/okami.hpp"
+#include "logger.h"
 
 /**
  * @brief Background thread that periodically checks if the login window should be visible.
@@ -120,7 +121,7 @@ bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, s
 
     if (!file.is_open())
     {
-        std::cout << "[login] Failed to open file: " << path << std::endl;
+        logError("[login] Failed to open file: %s", path);
         return false; // Return false if the file doesn't exist
     }
 
@@ -131,7 +132,7 @@ bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, s
     }
     catch (const std::exception &e)
     {
-        std::cerr << "[login] JSON parse failed: " << e.what() << std::endl;
+        logError("[login] JSON parse failed: %e", e.what());
         return false; // Invalid JSON format
     }
     file.close();
