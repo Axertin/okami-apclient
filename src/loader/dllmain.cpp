@@ -1,7 +1,7 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 // Bootstrap loader for other DLLs
 
-#include "pch.h"
+#include "framework.h"
 
 typedef void (*StartOkamiClientFn)();
 

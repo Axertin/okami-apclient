@@ -119,7 +119,23 @@ target_compile_features(imgui PRIVATE ${STD_FEATURE})
 # Primary program
 add_library(okami-apclient SHARED ${CLIENT_SOURCES}
   ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
-target_precompile_headers(okami-apclient PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/client/pch.h)
+target_precompile_headers(okami-apclient PRIVATE
+  <algorithm>
+  <array>
+  <chrono>
+  <cstdint>
+  <functional>
+  <iostream>
+  <memory>
+  <optional>
+  <string>
+  <thread>
+  <unordered_map>
+  <vector>
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/client/framework.h"
+  [["imgui.h"]]
+  [["nlohmann/json.hpp"]]
+)
 target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_include_directories(okami-apclient SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
@@ -146,7 +162,10 @@ file(WRITE ${CMAKE_BINARY_DIR}/version.txt
 
 # Bootstrap loader DLL
 add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
-target_precompile_headers(apclient-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/pch.h)
+target_precompile_headers(apclient-loader PRIVATE
+  <iostream>
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
+)
 target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
 target_link_libraries(apclient-loader PRIVATE SHlwapi)
 target_include_directories(apclient-loader PRIVATE)

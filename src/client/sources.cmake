@@ -9,5 +9,4 @@ set(CLIENT_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/gui.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/pch.cpp
 )
