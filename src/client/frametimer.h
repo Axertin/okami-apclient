@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.h"
 #include "okami/okami.hpp"
 
 struct FrameTimer

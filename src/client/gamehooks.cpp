@@ -61,10 +61,9 @@ void GameHooks::setup()
     logInfo("[apclient] Initializing MinHook...");
     if (MH_Initialize() != MH_OK)
     {
-        logError("Failed!");
+        logError("[apclient] Failed to initialize MinHook!");
         return;
     }
-    logInfo("Done!");
 
     MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
     MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));

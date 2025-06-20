@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include "mock_socket.hpp"
-#include "okami/okami.hpp"
+#include "okami/memorymap.hpp"
 #include "okami/items.hpp"
 
 TEST_CASE("checkBrushes detects and sends newly set brush flag", "[check]")
