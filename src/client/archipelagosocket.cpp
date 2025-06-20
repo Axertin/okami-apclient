@@ -2,6 +2,7 @@
 #include "archipelagosocket.h"
 #include "loginwindow.h"
 #include "gamehooks.h"
+#include "logger.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -49,6 +50,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
     Client->set_slot_connected_handler([LoginData](const nlohmann::json &Data)
                                        {
+                                           logInfo("APClient Connected");
                                            ConnectionStatus = "Connected";
                                            // bool DeathLink = false;
                                            std::list<std::string> Tags = {};
@@ -64,7 +66,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
     Client->set_slot_refused_handler([LoginData](const std::list<std::string> &Errors)
                                      {
                                     for (const auto& error : Errors) {
-                                        ; // TODO: Do something when refused a slot
+                                        logError("AP Slot Refused, Error: %s", error);
                                     } });
 
     Client->set_room_info_handler([LoginData]()
@@ -74,14 +76,15 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
     Client->set_items_received_handler([](const std::list<APClient::NetworkItem> &Items)
                                        {
-                                    for (const auto& Item : Items) {
-                                        if(Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
-                                            return;
+                                           for (const auto& Item : Items) {
+                                               logInfo("Receiving Item 0x%X", Item.item);
+                                               if (Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
+                                                   return;
 
-                                        if (Item.item > 0xFF)
-                                        {
-                                            // TODO: Brush / Dojo logic
-                                        } else {
+                                               if (Item.item > 0xFF)
+                                               {
+                                                   // TODO: Brush / Dojo logic
+                                               } else {
                                             GameHooks::giveItem(static_cast<int>(Item.item), 1);
                                         }
                                         
@@ -95,7 +98,9 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
 void ArchipelagoSocket::sendLocation(int64_t LocationID)
 {
-    std::list<int64_t> Check;
+    logInfo("Sending Location 0x%X", LocationID);
+    std::list<int64_t>
+        Check;
     Check.push_back(LocationID);
     Client->LocationChecks(Check);
 }

@@ -44,7 +44,7 @@ void checkBrushes(ISocket &socket)
             {
                 if (flag != okami::BrushOverlay::sunrise_default)
                 {
-                    logInfo("Sending Brush Location 0x%x", (0x100 + static_cast<int>(flag)));
+                    logInfo("Sending Brush Location 0x%X", (0x100 + static_cast<int>(flag)));
 
                     if (socket.isConnected())
                         socket.sendLocation(0x100 + static_cast<int>(flag));
@@ -78,7 +78,7 @@ bool checkItems(int ItemID, ISocket &socket)
         case okami::ItemCategory::Weapon:
         case okami::ItemCategory::Artifact:
         case okami::ItemCategory::Map:
-            logInfo("Sending Item Location 0x%x", ItemID);
+            logInfo("Sending Item Location 0x%X", ItemID);
             if (socket.isConnected())
             {
                 socket.sendLocation(ItemID);

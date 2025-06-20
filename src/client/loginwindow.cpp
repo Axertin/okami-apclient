@@ -121,7 +121,7 @@ bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, s
 
     if (!file.is_open())
     {
-        logError("[login] Failed to open file: %s", path);
+        logWarning("[login] Failed to open file: %s", path);
         return false; // Return false if the file doesn't exist
     }
 
