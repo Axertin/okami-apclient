@@ -2,6 +2,9 @@
 #include "loginwindow.h"
 #include "okami/memorymap.hpp"
 #include "logger.h"
+#ifdef _WIN32
+#include "imgui.h"
+#endif
 
 /**
  * @brief Background thread that periodically checks if the login window should be visible.
@@ -33,6 +36,7 @@ void LoginWindow::toggleVisibility()
  */
 void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
 {
+#ifdef _WIN32
     (void)OuterWidth;
     (void)OuterHeight;
     (void)UIScale;
@@ -73,6 +77,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     ImGui::TextWrapped("%s", message.c_str());
     ImGui::End();
+#endif
 }
 
 /**

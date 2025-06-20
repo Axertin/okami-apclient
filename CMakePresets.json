@@ -79,6 +79,35 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "linux-native-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                "CXX_STD": "17",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-linux",
+                "BUILD_TESTS_ONLY": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "environment": {
+                "VCPKG_DEFAULT_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "linux-tests-debug",
+            "displayName": "Linux Tests Debug",
+            "inherits": "linux-native-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
         }
     ],
     "buildPresets": [
@@ -120,6 +149,11 @@
             "name": "x64-clang-test",
             "description": "Test with Clang",
             "configurePreset": "x64-clang-debug"
+        },
+        {
+            "name": "linux-tests",
+            "description": "Run tests on Linux",
+            "configurePreset": "linux-tests-debug"
         }
     ]
 }

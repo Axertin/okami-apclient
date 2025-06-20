@@ -60,6 +60,9 @@ function(enable_strict_warnings target)
   endif()
 endfunction()
 
+# option to build tests only (for Linux development)
+option(BUILD_TESTS_ONLY "Build only the test target, skip Windows-specific targets" OFF)
+
 # Generate client source list if needed
 execute_process(
   COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_sources.cmake
@@ -93,28 +96,41 @@ set(STD_FEATURE "cxx_std_${CXX_STD}")
 
 project("okami-apclient" LANGUAGES CXX)
 
-# dependencies
-find_package(minhook CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(asio CONFIG REQUIRED)
-find_package(OpenSSL REQUIRED)
-find_package(ZLIB REQUIRED)
+if(BUILD_TESTS_ONLY)
+  message(STATUS "Building tests only - skipping Windows-specific dependencies")
+  # Only find packages needed for tests
+  find_package(nlohmann_json CONFIG REQUIRED)
+  find_package(asio CONFIG REQUIRED)
+  find_package(OpenSSL REQUIRED)
+  find_package(ZLIB REQUIRED)
+  find_package(Catch2 CONFIG REQUIRED)
+
+else()
+  # dependencies
+  find_package(minhook CONFIG REQUIRED)
+  find_package(nlohmann_json CONFIG REQUIRED)
+  find_package(asio CONFIG REQUIRED)
+  find_package(OpenSSL REQUIRED)
+  find_package(ZLIB REQUIRED)
+  find_package(Catch2 CONFIG REQUIRED)
+endif()
 
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
-# imgui
-add_library(imgui STATIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx11.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32.cpp
-)
+if(NOT BUILD_TESTS_ONLY)
+  # imgui
+  add_library(imgui STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx11.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32.cpp
+  )
 
-target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
-target_compile_features(imgui PRIVATE ${STD_FEATURE})
+  target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+  target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
 # Primary program
 add_library(okami-apclient SHARED ${CLIENT_SOURCES}
@@ -148,17 +164,17 @@ target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlo
 target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
 enable_strict_warnings(okami-apclient)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  target_link_libraries(okami-apclient PRIVATE Crypt32)
-  target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
-endif()
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_link_libraries(okami-apclient PRIVATE Crypt32)
+    target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
+  endif()
 
-add_version_info(TARGET okami-apclient)
-get_target_property(_version okami-apclient VERSION_STRING)
+  add_version_info(TARGET okami-apclient)
+  get_target_property(_version okami-apclient VERSION_STRING)
 
-# Write out version to file (for CI use)
-file(WRITE ${CMAKE_BINARY_DIR}/version.txt
-  "${_version}")
+  # Write out version to file (for CI use)
+  file(WRITE ${CMAKE_BINARY_DIR}/version.txt
+    "${_version}")
 
 # Bootstrap loader DLL
 add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
@@ -172,24 +188,63 @@ target_include_directories(apclient-loader PRIVATE)
 target_compile_features(apclient-loader PRIVATE ${STD_FEATURE})
 enable_strict_warnings(apclient-loader)
 
+endif()
+
 
 # Tests
-find_package(Catch2 CONFIG REQUIRED)
+add_executable(okami-tests ${tests}
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
+  )
+target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA)
 
-add_executable(okami-tests ${tests} ${CLIENT_SOURCES}
-  ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
-target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-target_link_libraries(okami-tests PRIVATE Catch2::Catch2WithMain minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
+# Conditional linking based on platform and build mode
+if(BUILD_TESTS_ONLY)
+  # Linux-only test build - exclude Windows-specific libraries
+  target_link_libraries(okami-tests PRIVATE 
+    Catch2::Catch2WithMain 
+    nlohmann_json::nlohmann_json 
+    asio::asio 
+    OpenSSL::SSL 
+    OpenSSL::Crypto 
+    ZLIB::ZLIB
+  )
+  # target_include_directories(okami-tests SYSTEM PRIVATE /usr/x86_64-w64-mingw32ucrt/sys-root/mingw/include)
+  # Don't set _WIN32_WINNT for Linux builds
+else()
+  # Full Windows build
+  target_compile_definitions(okami-tests PRIVATE _WIN32_WINNT=0x0601)
+  target_link_libraries(okami-tests PRIVATE 
+    Catch2::Catch2WithMain 
+    minhook::minhook 
+    nlohmann_json::nlohmann_json 
+    asio::asio 
+    OpenSSL::SSL 
+    OpenSSL::Crypto 
+    ZLIB::ZLIB 
+    imgui 
+    d3d11 
+    dxgi 
+    ws2_32
+  )
+endif()
+
 target_include_directories(okami-tests PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends
   ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient)
+
+# Only include imgui directories if not building tests only
+if(NOT BUILD_TESTS_ONLY)
+  target_include_directories(okami-tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+endif()
 target_compile_features(okami-tests PRIVATE ${STD_FEATURE})
 
 include(CTest)
@@ -198,7 +253,9 @@ catch_discover_tests(okami-tests)
 
 # Install
 # TODO: Allow override of install_prefix
-set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
-install(TARGETS apclient-loader DESTINATION mods)
-install(TARGETS okami-apclient DESTINATION mods/apclient)
-install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
+if(NOT BUILD_TESTS_ONLY)
+  set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
+  install(TARGETS apclient-loader DESTINATION mods)
+  install(TARGETS okami-apclient DESTINATION mods/apclient)
+  install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
+endif()

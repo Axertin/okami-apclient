@@ -2,6 +2,7 @@
 #include "gui.h"
 #include "archipelagosocket.h"
 #include "window.h"
+#include <string>
 
 class LoginWindow : public Window
 {
@@ -21,9 +22,9 @@ public:
         if (loadLoginData(JsonSavePath, SavedServer, SavedSlot, SavedPassword))
         {
             // If data was loaded successfully, pre-fill the fields
-            strncpy_s(Server, SavedServer.c_str(), sizeof(Server));
-            strncpy_s(Slot, SavedSlot.c_str(), sizeof(Slot));
-            strncpy_s(Password, SavedPassword.c_str(), sizeof(Password));
+            copyToBuffer(Server, SavedServer);
+            copyToBuffer(Slot, SavedSlot);
+            copyToBuffer(Password, SavedPassword);
         }
         titleChecker = std::thread(&LoginWindow::checkIfShouldBeVisible, this);
     }
@@ -45,6 +46,14 @@ public:
     char mState[128] = "";
 
 private:
+    template <size_t N>
+    void copyToBuffer(char (&buffer)[N], const std::string &source)
+    {
+        size_t copyLen = std::min(source.length(), N - 1);
+        std::copy(source.begin(), source.begin() + copyLen, buffer);
+        buffer[copyLen] = '\0';
+    }
+
     const std::string JsonSavePath = "./connection.json";
     std::thread titleChecker;
     std::string message;

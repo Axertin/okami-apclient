@@ -3,11 +3,15 @@
 #include <fstream>
 #include <filesystem>
 #include "loginwindow.h"
+#include "mock_socket.hpp"
 #pragma warning(pop)
 
 TEST_CASE("LoginWindow::saveLoginData and loadLoginData - Greenpath", "[login]")
 {
-    LoginWindow window(false);
+    MockSocket mock;
+    ISocket &MockSock = mock;
+
+    LoginWindow window(false, MockSock);
     std::string testFile = "./connection_test.json";
 
     std::string testServer = "example.org";
@@ -32,7 +36,9 @@ TEST_CASE("LoginWindow::saveLoginData and loadLoginData - Greenpath", "[login]")
 
 TEST_CASE("LoginWindow::loadLoginData - Redpath (missing file)", "[login]")
 {
-    LoginWindow window(false);
+    MockSocket mock;
+    ISocket &MockSock = mock;
+    LoginWindow window(false, MockSock);
     std::string testFile = "./nonexistent_file.json";
 
     std::string server, slot, password;
@@ -43,7 +49,9 @@ TEST_CASE("LoginWindow::loadLoginData - Redpath (missing file)", "[login]")
 
 TEST_CASE("LoginWindow::loadLoginData - Redpath (invalid JSON)", "[login]")
 {
-    LoginWindow window(false);
+    MockSocket mock;
+    ISocket &MockSock = mock;
+    LoginWindow window(false, MockSock);
     std::string testFile = "./invalid_json.json";
 
     // Write malformed JSON
