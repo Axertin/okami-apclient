@@ -1,6 +1,7 @@
 #include "devtools.h"
+#include "imgui.h"
 #include "gui.h"
-#include "okami/okami.hpp"
+#include "okami/memorymap.hpp"
 #include "gamehooks.h"
 
 void DevTools::toggleVisibility()

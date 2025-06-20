@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "gui.h"
 #include "loginwindow.h"
-#include "okami/okami.hpp"
+#include "okami/memorymap.hpp"
 #include "logger.h"
 
 /**

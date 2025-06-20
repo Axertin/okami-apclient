@@ -61,6 +61,7 @@ namespace okami
     extern void *MaybeInventoryStructPtr;
 
     // Game function pointers
+    extern void *D3D11PresentFnPtr;
     extern char *GetSaveDataRootDirectoryFnPtr;
     extern void *MainFlowerStartupFnPtr;
     extern void *MainFlowerStopFnPtr;

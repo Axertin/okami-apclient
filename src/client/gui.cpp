@@ -1,9 +1,21 @@
 
 #include "gui.h"
-#include "okami/okami.hpp"
+
 #include "loginwindow.h"
+#include <imgui.h>
+#include <imgui_impl_dx11.h>
+#include "okami/memorymap.hpp"
 #include "devtools.h"
 #include "console.h"
+
+#ifdef _WIN32
+#include <MinHook.h>
+#include <d3d11.h>
+#include <dxgi.h>
+#include <imgui_impl_win32.h>
+#endif
+
+#ifdef _WIN32
 
 static ID3D11Device *device = nullptr;
 static ID3D11DeviceContext *context = nullptr;
@@ -216,8 +228,42 @@ void guiCleanup()
     ImGui::DestroyContext();
 }
 
+void getPresentFunctionPtr()
+{
+    DXGI_SWAP_CHAIN_DESC SwapChainDesc = {};
+    SwapChainDesc.BufferCount = 1;
+    SwapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    SwapChainDesc.OutputWindow = GetForegroundWindow();
+    SwapChainDesc.SampleDesc.Count = 1;
+    SwapChainDesc.Windowed = TRUE;
+    SwapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    SwapChainDesc.BufferDesc.Width = 2;
+    SwapChainDesc.BufferDesc.Height = 2;
+    SwapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+
+    ID3D11Device *pDevice = nullptr;
+    ID3D11DeviceContext *pContext = nullptr;
+    IDXGISwapChain *pSwapChain = nullptr;
+
+    if (FAILED(D3D11CreateDeviceAndSwapChain(
+            nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
+            D3D11_SDK_VERSION, &SwapChainDesc, &pSwapChain, &pDevice, nullptr, &pContext)))
+    {
+        logError("[apclient] Failed to initialize dummy D3D11 device!");
+    }
+
+    void **vtable = *reinterpret_cast<void ***>(pSwapChain);
+    okami::D3D11PresentFnPtr = vtable[8];
+
+    pSwapChain->Release();
+    pDevice->Release();
+    pContext->Release();
+}
+
 void guiInitHooks()
 {
+    getPresentFunctionPtr();
+
     std::thread([]
                 {                                 
                 std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game swapchain and window to initialize
@@ -225,3 +271,12 @@ void guiInitHooks()
                 MH_EnableHook(okami::D3D11PresentFnPtr); })
         .detach();
 }
+
+#else // If not _WIN32
+
+void guiInitHooks()
+{
+    logWarning("[apclient] Not built for WIN32, no GUI is available.");
+}
+
+#endif

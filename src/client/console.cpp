@@ -1,6 +1,7 @@
 #include "console.h"
 #include "logger.h"
 #include <stdexcept>
+#include <mutex>
 #include <imgui.h>
 
 // Console Implementation - Handles UI rendering only

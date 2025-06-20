@@ -1,6 +1,6 @@
 #include "checks.h"
 #include "logger.h"
-#include "okami/okami.hpp"
+#include "okami/memorymap.hpp"
 #include "okami/items.hpp"
 #include "okami/maps.hpp"
 

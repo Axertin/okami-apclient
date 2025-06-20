@@ -1,5 +1,7 @@
 #pragma once
-#include "okami/okami.hpp"
+#include <chrono>
+#include <deque>
+#include <numeric>
 
 struct FrameTimer
 {

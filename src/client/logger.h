@@ -1,7 +1,16 @@
-// logger.h
 #pragma once
-
-#include "pch.h"
+#include <string>
+#include <iostream>
+#include <mutex>
+#include <vector>
+#include <functional>
+#include <fstream>
+#include <streambuf>
+#include <cstdio>
+#include <tuple>
+#include <type_traits>
+#include <filesystem>
+#include <imgui.h>
 
 enum class LogLevel
 {
@@ -150,7 +159,7 @@ std::string formatString(const char *format, Args... args)
     return std::string(buf.get(), buf.get() + size - 1); // -1 to exclude null terminator
 }
 
-// Format string versions - variadic templates for any number of arguments
+// Format string variadic templates
 template <typename... Args>
 void logMessage(LogLevel level, const char *format, Args... args)
 {
