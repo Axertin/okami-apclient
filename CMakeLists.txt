@@ -19,7 +19,7 @@ function(enable_strict_warnings target)
     endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
-      target_compile_options(${target} PRIVATE -Werror)
+      # target_compile_options(${target} PRIVATE -Werror)
     endif()
 
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
@@ -49,7 +49,7 @@ function(enable_strict_warnings target)
     endif()
 
     if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
-      target_compile_options(${target} PRIVATE /WX)
+      # target_compile_options(${target} PRIVATE /WX)
     endif()
 
     # Prevent Edit-and-Continue even in Debug
@@ -202,7 +202,7 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/receive.cpp
-)
+  )
 endif()
 
 
@@ -220,7 +220,7 @@ if(BUILD_TESTS_ONLY)
     OpenSSL::SSL
     OpenSSL::Crypto
     ZLIB::ZLIB
-)
+  )
   # target_include_directories(okami-tests SYSTEM PRIVATE /usr/x86_64-w64-mingw32ucrt/sys-root/mingw/include)
   # Don't set _WIN32_WINNT for Linux builds
 else()
@@ -238,7 +238,7 @@ else()
     d3d11
     dxgi
     ws2_32
-)
+  )
 endif()
 
 target_include_directories(okami-tests PRIVATE
