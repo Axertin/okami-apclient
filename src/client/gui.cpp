@@ -1,4 +1,3 @@
-
 #include "gui.h"
 
 #include "loginwindow.h"
@@ -21,7 +20,14 @@ static ID3D11Device *device = nullptr;
 static ID3D11DeviceContext *context = nullptr;
 static HWND hwnd = nullptr;
 static ID3D11RenderTargetView *rtv = nullptr;
+
 static bool GuiIsVisible = true;
+static bool MouseIsReleased = false;
+static unsigned long LastToggleTime = 0;
+static const unsigned long DEBOUNCE_MS = 200;
+
+static bool homePressed = false;
+static bool endPressed = false;
 
 static std::vector<std::unique_ptr<Window>> Windows;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -32,33 +38,25 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 static WNDPROC oWndProc = nullptr;
 LRESULT WINAPI onWndProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 {
-    if (ImGui_ImplWin32_WndProcHandler(Handle, Msg, WParam, LParam))
-    {
-        return 0;
-    }
-
-    if (GetAsyncKeyState(VK_DELETE))
-    {
-        GuiIsVisible = !GuiIsVisible;
-        return 0;
-    }
+    if (GuiIsVisible && ImGui_ImplWin32_WndProcHandler(Handle, Msg, WParam, LParam))
+        return true;
 
     ImGuiIO &io = ImGui::GetIO();
-    if (GuiIsVisible && io.WantCaptureMouse)
+
+    if (io.WantCaptureMouse && MouseIsReleased)
     {
-        switch (Msg)
-        {
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONUP:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONUP:
-        case WM_MOUSEMOVE:
-        case WM_MOUSEWHEEL:
-        case WM_KEYDOWN:
-        case WM_KEYUP:
-        case WM_CHAR:
-            return 0;
-        }
+        // Keep cursor free
+        ClipCursor(nullptr);
+        ShowCursor(TRUE);
+        return true;
+    }
+
+    // Re-capture mouse when clicking back into game (not on ImGui)
+    else if (Msg == WM_LBUTTONDOWN && MouseIsReleased && !io.WantCaptureMouse)
+    {
+        while (ShowCursor(FALSE) > -1)
+            ;
+        MouseIsReleased = false;
     }
 
     return oWndProc ? oWndProc(Handle, Msg, WParam, LParam)
@@ -67,10 +65,6 @@ LRESULT WINAPI onWndProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 
 /**
  * @brief Try to initialize ImGUI
- *
- * @param pSwapChain Pointer to DX11 swapchain
- * @return true if successful
- * @return false if unsuccessful
  */
 bool guiTryInit(IDXGISwapChain *pSwapChain)
 {
@@ -97,7 +91,7 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
     oWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&onWndProc)));
 
-    device->GetImmediateContext(&context); // https://i.kym-cdn.com/photos/images/original/003/033/089/164.jpeg
+    device->GetImmediateContext(&context);
 
     ImGui::StyleColorsDark();
 
@@ -118,51 +112,51 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
 
 /**
  * @brief Render ImGUI frame
- * @param pSwapChain Pointer to DX11 swapchain
  */
 void guiRenderFrame(IDXGISwapChain *pSwapChain)
 {
-    static int WindowWidth;
-    static int WindowHeight;
-
     if (!ImGui::GetCurrentContext())
-        logError("[gui] ImGui context missing!");
-    else
     {
-        RECT rect;
-        if (!GetClientRect(hwnd, &rect))
-        {
-            logError("[gui] Failed to get window size!");
-            return;
-        }
-        const int BaseWidth = 1920;
-        const int BaseHeight = 1080;
-        float WidthScale = static_cast<float>(WindowWidth) / BaseWidth;
-        float HeightScale = static_cast<float>(WindowHeight) / BaseHeight;
-        float UIScale = (((WidthScale) < (HeightScale)) ? (WidthScale) : (HeightScale));
+        logError("[gui] ImGui context missing!");
+        return;
+    }
 
-        ImGui_ImplWin32_NewFrame();
-        ImGui_ImplDX11_NewFrame();
-        ImGui::NewFrame();
+    RECT rect;
+    GetClientRect(hwnd, &rect);
+    int WindowWidth = rect.right - rect.left;
+    int WindowHeight = rect.bottom - rect.top;
 
+    const int BaseWidth = 1920;
+    const int BaseHeight = 1080;
+    float WidthScale = static_cast<float>(WindowWidth) / BaseWidth;
+    float HeightScale = static_cast<float>(WindowHeight) / BaseHeight;
+    float UIScale = std::min(WidthScale, HeightScale);
+
+    ImGui_ImplWin32_NewFrame();
+    ImGui_ImplDX11_NewFrame();
+    ImGui::NewFrame();
+
+    // Draw GUI only if visible
+    if (GuiIsVisible)
+    {
         for (auto &Window : Windows)
         {
-            Window.get()->draw(WindowWidth, WindowHeight, UIScale);
+            Window->draw(WindowWidth, WindowHeight, UIScale);
         }
-
-        ImGui::Render();
-
-        if (!rtv)
-        {
-            ID3D11Texture2D *backBuffer = nullptr;
-            pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
-            device->CreateRenderTargetView(backBuffer, nullptr, &rtv);
-            backBuffer->Release();
-        }
-        context->OMSetRenderTargets(1, &rtv, nullptr);
-
-        ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
     }
+
+    ImGui::Render();
+
+    if (!rtv)
+    {
+        ID3D11Texture2D *backBuffer = nullptr;
+        pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
+        device->CreateRenderTargetView(backBuffer, nullptr, &rtv);
+        backBuffer->Release();
+    }
+
+    context->OMSetRenderTargets(1, &rtv, nullptr);
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 /**
@@ -177,34 +171,54 @@ HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
     if (!initialized && guiTryInit(pSwapChain))
         initialized = true;
 
-    if (GuiIsVisible)
+    // Handle toggle keys
+    unsigned long currentTime = GetTickCount();
+    if (currentTime - LastToggleTime > DEBOUNCE_MS)
     {
-        static bool CursorOn = false;
-        ClipCursor(nullptr);
-        ReleaseCapture();
-        if (!CursorOn)
+        // Check HOME key
+        bool homeDown = (GetAsyncKeyState(VK_HOME) & 0x8000) != 0;
+        if (homeDown && !homePressed)
         {
-            for (int i = 0; i < 10; i++)
-                if (ShowCursor(true) >= 0)
-                    break;
-            CursorOn = true;
+            GuiIsVisible = !GuiIsVisible;
+            LastToggleTime = currentTime;
+            logDebug("[gui] GUI visibility toggled: %s", GuiIsVisible ? "ON" : "OFF");
         }
-        ImGui::GetIO().MouseDrawCursor = false;
-    }
-    else
-    {
-        static bool CursorOn = true;
-        if (CursorOn)
+        homePressed = homeDown;
+
+        // Check END key - release/capture mouse
+        bool endDown = (GetAsyncKeyState(VK_END) & 0x8000) != 0;
+        if (endDown && !endPressed)
         {
-            for (int i = 0; i < 10; ++i)
-                if (ShowCursor(false) < 0)
-                    break;
-            CursorOn = false;
+            if (!MouseIsReleased)
+            {
+                // Release the mouse
+                ClipCursor(nullptr);
+                ShowCursor(TRUE);
+                MouseIsReleased = true;
+                logDebug("[gui] Mouse released for ImGui");
+            }
+            else
+            {
+                // Re-capture the mouse
+                while (ShowCursor(FALSE) > -1)
+                    ;
+                MouseIsReleased = false;
+                logDebug("[gui] Mouse captured by game");
+            }
+            LastToggleTime = currentTime;
         }
-        ImGui::GetIO().MouseDrawCursor = false;
+        endPressed = endDown;
     }
 
-    if (initialized && GuiIsVisible)
+    // Keep cursor visible when released
+    if (MouseIsReleased)
+    {
+        ClipCursor(nullptr);
+        ShowCursor(TRUE);
+    }
+
+    // Render GUI
+    if (initialized)
     {
         guiRenderFrame(pSwapChain);
     }
@@ -265,10 +279,10 @@ void guiInitHooks()
     getPresentFunctionPtr();
 
     std::thread([]
-                {                                 
-                std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game swapchain and window to initialize
-                MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
-                MH_EnableHook(okami::D3D11PresentFnPtr); })
+                {
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
+        MH_EnableHook(okami::D3D11PresentFnPtr); })
         .detach();
 }
 
