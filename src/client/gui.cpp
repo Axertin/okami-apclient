@@ -249,7 +249,7 @@ void getPresentFunctionPtr()
             nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
             D3D11_SDK_VERSION, &SwapChainDesc, &pSwapChain, &pDevice, nullptr, &pContext)))
     {
-        logError("[apclient] Failed to initialize dummy D3D11 device!");
+        logError("[gui] Failed to initialize dummy D3D11 device!");
     }
 
     void **vtable = *reinterpret_cast<void ***>(pSwapChain);
@@ -276,7 +276,7 @@ void guiInitHooks()
 
 void guiInitHooks()
 {
-    logWarning("[apclient] Not built for WIN32, no GUI is available.");
+    logWarning("[gui] Not built for WIN32, no GUI is available.");
 }
 
 #endif

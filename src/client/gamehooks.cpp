@@ -20,9 +20,8 @@ static FunctionType Main_FlowerStopOrigin = nullptr;
 /// @return void
 void __cdecl GameHooks::onGameStop()
 {
-    logInfo("Cleaning Up...");
+    logInfo("[gamehooks] Cleaning Up...");
     GameHooks::cleanup();
-    logInfo("Done!");
     Main_FlowerStopOrigin();
 }
 
@@ -39,7 +38,7 @@ typedef void(__fastcall *ItemPickupFn)(void *rcx, int edx, int r8);
 static ItemPickupFn oItemPickup = nullptr;
 void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, int NumItems)
 {
-    logDebug("ItemPickup called with 0x%p, 0x%X, 0x%X", ItemID, NumItems);
+    logDebug("[gamehooks] ItemPickup called with 0x%p, 0x%X, 0x%X", ItemID, NumItems);
     if (checkItems(ItemID))
     {
         return;
@@ -52,7 +51,7 @@ typedef bool(__fastcall *EditBrushesFn)(void *MaybeInventoryStruct, int BitIndex
 static EditBrushesFn oEditBrushes = nullptr;
 bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex, int Operation)
 {
-    logDebug("EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
+    logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
     checkBrushes(BitIndex);
 
     return true;
@@ -69,10 +68,10 @@ void GameHooks::giveItem(int ItemID, int NumItems)
  */
 void GameHooks::setup()
 {
-    logInfo("[apclient] Initializing MinHook...");
+    logInfo("[gamehooks] Initializing MinHook...");
     if (MH_Initialize() != MH_OK)
     {
-        logError("[apclient] Failed to initialize MinHook!");
+        logError("[gamehooks] Failed to initialize MinHook!");
         return;
     }
 
@@ -84,7 +83,7 @@ void GameHooks::setup()
 
     MH_EnableHook(MH_ALL_HOOKS);
 
-    logInfo("[apclient] Game hooks initialized.");
+    logInfo("[gamehooks] Game hooks initialized.");
 }
 
 void GameHooks::cleanup()

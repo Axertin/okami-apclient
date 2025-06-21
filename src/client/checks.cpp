@@ -31,7 +31,7 @@ void checkBrushes(ISocket &socket)
     {
         if (!okami::AmmyObtainedBrushTechniques.isBound() || !okami::AmmyUsableBrushTechniques.isBound())
         {
-            logWarning("Check must wait until brushes are bound!");
+            logWarning("[checks] Check must wait until brushes are bound!");
             return;
         }
 
@@ -44,7 +44,7 @@ void checkBrushes(ISocket &socket)
             {
                 if (flag != okami::BrushOverlay::sunrise_default)
                 {
-                    logDebug("Sending Brush Location 0x%X", (0x100 + static_cast<int>(flag)));
+                    logDebug("[checks] Sending Brush Location 0x%X", (0x100 + static_cast<int>(flag)));
 
                     if (socket.isConnected())
                         socket.sendLocation(0x100 + static_cast<int>(flag));
@@ -64,7 +64,7 @@ void checkBrushes(int index, ISocket &socket)
     if (checksEnabled)
     {
         int BrushLocation = 0x100 + index;
-        logDebug("Sending Brush Location 0x%X", BrushLocation);
+        logDebug("[checks] Sending Brush Location 0x%X", BrushLocation);
 
         if (socket.isConnected())
             socket.sendLocation(BrushLocation);
@@ -90,7 +90,7 @@ bool checkItems(int ItemID, ISocket &socket)
         case okami::ItemCategory::Weapon:
         case okami::ItemCategory::Artifact:
         case okami::ItemCategory::Map:
-            logInfo("Sending Item Location 0x%X", ItemID);
+            logInfo("[checks] Sending Item Location 0x%X", ItemID);
             if (socket.isConnected())
             {
                 socket.sendLocation(ItemID);
