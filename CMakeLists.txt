@@ -132,37 +132,37 @@ if(NOT BUILD_TESTS_ONLY)
   target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
   target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
-# Primary program
-add_library(okami-apclient SHARED ${CLIENT_SOURCES}
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
-target_precompile_headers(okami-apclient PRIVATE
-  <algorithm>
-  <array>
-  <chrono>
-  <cstdint>
-  <functional>
-  <iostream>
-  <memory>
-  <optional>
-  <string>
-  <thread>
-  <unordered_map>
-  <vector>
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/client/framework.h"
-  [["imgui.h"]]
-  [["nlohmann/json.hpp"]]
-)
-target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-target_include_directories(okami-apclient SYSTEM PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
-target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
-target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
-enable_strict_warnings(okami-apclient)
+  # Primary program
+  add_library(okami-apclient SHARED ${CLIENT_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
+  target_precompile_headers(okami-apclient PRIVATE
+    <algorithm>
+    <array>
+    <chrono>
+    <cstdint>
+    <functional>
+    <iostream>
+    <memory>
+    <optional>
+    <string>
+    <thread>
+    <unordered_map>
+    <vector>
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/client/framework.h"
+    [["imgui.h"]]
+    [["nlohmann/json.hpp"]]
+  )
+  target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
+  target_include_directories(okami-apclient SYSTEM PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+  target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
+  target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
+  enable_strict_warnings(okami-apclient)
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_link_libraries(okami-apclient PRIVATE Crypt32)
@@ -176,59 +176,69 @@ enable_strict_warnings(okami-apclient)
   file(WRITE ${CMAKE_BINARY_DIR}/version.txt
     "${_version}")
 
-# Bootstrap loader DLL
-add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
-target_precompile_headers(apclient-loader PRIVATE
-  <iostream>
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
-)
-target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-target_link_libraries(apclient-loader PRIVATE SHlwapi)
-target_include_directories(apclient-loader PRIVATE)
-target_compile_features(apclient-loader PRIVATE ${STD_FEATURE})
-enable_strict_warnings(apclient-loader)
+  # Bootstrap loader DLL
+  add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
+  target_precompile_headers(apclient-loader PRIVATE
+    <iostream>
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
+  )
+  target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
+  target_link_libraries(apclient-loader PRIVATE SHlwapi)
+  target_include_directories(apclient-loader PRIVATE)
+  target_compile_features(apclient-loader PRIVATE ${STD_FEATURE})
+  enable_strict_warnings(apclient-loader)
 
+endif()
+
+if(WIN32)
+  set(TESTED_UNITS
+    ${CLIENT_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc)
+else()
+  set(TESTED_UNITS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/client/receive.cpp
+)
 endif()
 
 
 # Tests
-add_executable(okami-tests ${tests}
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
-  )
+add_executable(okami-tests ${tests} ${TESTED_UNITS})
 target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA)
 
 # Conditional linking based on platform and build mode
 if(BUILD_TESTS_ONLY)
   # Linux-only test build - exclude Windows-specific libraries
-  target_link_libraries(okami-tests PRIVATE 
-    Catch2::Catch2WithMain 
-    nlohmann_json::nlohmann_json 
-    asio::asio 
-    OpenSSL::SSL 
-    OpenSSL::Crypto 
+  target_link_libraries(okami-tests PRIVATE
+    Catch2::Catch2WithMain
+    nlohmann_json::nlohmann_json
+    asio::asio
+    OpenSSL::SSL
+    OpenSSL::Crypto
     ZLIB::ZLIB
-  )
+)
   # target_include_directories(okami-tests SYSTEM PRIVATE /usr/x86_64-w64-mingw32ucrt/sys-root/mingw/include)
   # Don't set _WIN32_WINNT for Linux builds
 else()
   # Full Windows build
   target_compile_definitions(okami-tests PRIVATE _WIN32_WINNT=0x0601)
-  target_link_libraries(okami-tests PRIVATE 
-    Catch2::Catch2WithMain 
-    minhook::minhook 
-    nlohmann_json::nlohmann_json 
-    asio::asio 
-    OpenSSL::SSL 
-    OpenSSL::Crypto 
-    ZLIB::ZLIB 
-    imgui 
-    d3d11 
-    dxgi 
+  target_link_libraries(okami-tests PRIVATE
+    Catch2::Catch2WithMain
+    minhook::minhook
+    nlohmann_json::nlohmann_json
+    asio::asio
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    ZLIB::ZLIB
+    imgui
+    d3d11
+    dxgi
     ws2_32
-  )
+)
 endif()
 
 target_include_directories(okami-tests PRIVATE

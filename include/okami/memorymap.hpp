@@ -57,7 +57,9 @@ namespace okami
 
     // Other important things
     extern MemoryAccessor<uint8_t> LoadingZoneTrigger;
+    extern MemoryAccessor<float> CameraFOV;
 
+    extern void *MaybeAmmyObject;
     extern void *MaybeInventoryStructPtr;
     extern void *MaybePlayerClassPtr;
 

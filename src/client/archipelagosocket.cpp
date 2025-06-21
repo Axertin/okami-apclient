@@ -3,6 +3,7 @@
 #include "loginwindow.h"
 #include "gamehooks.h"
 #include "logger.h"
+#include "receive.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -50,7 +51,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
     Client->set_slot_connected_handler([LoginData](const nlohmann::json &Data)
                                        {
-                                           logInfo("APClient Connected");
+                                           logInfo("[apsocket] APClient Connected");
                                            ConnectionStatus = "Connected";
                                            // bool DeathLink = false;
                                            std::list<std::string> Tags = {};
@@ -66,7 +67,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
     Client->set_slot_refused_handler([LoginData](const std::list<std::string> &Errors)
                                      {
                                     for (const auto& error : Errors) {
-                                        logError("AP Slot Refused, Error: %s", error);
+                                        logError("[apsocket] AP Slot Refused, Error: %s", error);
                                     } });
 
     Client->set_room_info_handler([LoginData]()
@@ -76,19 +77,15 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
     Client->set_items_received_handler([](const std::list<APClient::NetworkItem> &Items)
                                        {
-                                           for (const auto& Item : Items) {
-                                               logInfo("Receiving Item 0x%X", Item.item);
-                                               if (Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
+                                           for (const auto &Item : Items)
+                                           {
+                                            
+                                                logDebug("[apsocket] Received Item, ID: 0x%X", Item.item);
+                                                if (Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
                                                    return;
 
-                                               if (Item.item > 0xFF)
-                                               {
-                                                   // TODO: Brush / Dojo logic
-                                               } else {
-                                            GameHooks::giveItem(static_cast<int>(Item.item), 1);
-                                        }
-                                        
-                                    } });
+                                               receiveAPItem(Item.item);
+                                           } });
 
     Client->set_location_info_handler([](const std::list<APClient::NetworkItem> &Items)
                                       {
@@ -98,7 +95,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 
 void ArchipelagoSocket::sendLocation(int64_t LocationID)
 {
-    logInfo("Sending Location 0x%X", LocationID);
+    logInfo("[apsocket] Sending Location 0x%X", LocationID);
     std::list<int64_t>
         Check;
     Check.push_back(LocationID);

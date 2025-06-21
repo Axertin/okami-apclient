@@ -58,7 +58,9 @@ namespace okami
 
     // Other important things
     MemoryAccessor<uint8_t> LoadingZoneTrigger;
+    MemoryAccessor<float> CameraFOV;
 
+    void *MaybeAmmyObject;
     void *MaybeInventoryStructPtr;
     void *MaybePlayerClassPtr;
 
@@ -163,7 +165,9 @@ namespace okami
         AstralPouchAcqFlag.bind(okami::MainBase + 0xB2063C);
 
         LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
+        CameraFOV.bind(okami::MainBase + 0xB663B0);
 
+        MaybeAmmyObject = reinterpret_cast<void *>(okami::MainBase + 0xB6B2D0);
         MaybeInventoryStructPtr = reinterpret_cast<void *>(okami::MainBase + 0xB66670);
         MaybePlayerClassPtr = reinterpret_cast<void *>(okami::MainBase + 0x8909C0);
     }
