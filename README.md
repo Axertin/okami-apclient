@@ -4,6 +4,27 @@ A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipe
 
 **Note**: This mod is in active development. Instability, bugs, and missing features are to be expected.
 
+## Installing
+
+1. Download the latest release from [the releases page](https://github.com/Axertin/okami-apclient/releases)
+2. Unzip the release into the game's installation directory
+3. The file structure should look like this:
+
+   ```
+   Okami/
+   ├── mods/
+   │   ├── apclient-loader.dll
+   │   └── apclient/
+   │       ├── okami-apclient.dll
+   │       └── cacert.pem
+   ├── okami-loader.exe
+   ├── okami.exe (and the rest of the vanilla files)
+   ```
+
+4. Run `okami-loader.exe`, and you're off!
+
+**Note**: The mod produces debug logs in `Okami/logs/`, date and timestamped. Providing a log will make it a lot easier to diagnose any issues you're having!
+
 ## Building From Source
 
 ### Prerequisites
