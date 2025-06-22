@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - master
-      - develop
     tags:
       - 'v*'
   pull_request:
     branches:
       - master
-      - develop
   workflow_call:  # Allow this workflow to be called by other workflows
 
 jobs:
@@ -24,12 +22,11 @@ jobs:
           # For workflow_call (releases), always build both configurations
           if [[ "${{ github.event_name }}" == "workflow_call" ]]; then
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]] || \
-            [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "develop" ]]; then
-            # Only debug builds on develop branch and PRs to develop
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Only debug builds for PRs (faster feedback)
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
           else
-            # Both debug and release on master/PRs/tags
+            # Both debug and release for master pushes and tags
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
           fi
 
