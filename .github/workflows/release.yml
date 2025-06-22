@@ -64,24 +64,28 @@ jobs:
         id: release_notes
         run: |
           # Get the previous tag for comparison
-          PREV_TAG=$(git tag --sort=-version:refname | grep -v "${{ steps.get_version.outputs.version }}" | head -1 || echo "")
+          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne "${{ steps.get_version.outputs.version }}" } | Select-Object -First 1
           
-          cat > release_notes.md << EOF
+          $changelogLine = if ($prevTag) {
+            "Full changelog: https://github.com/${{ github.repository }}/compare/${prevTag}...${{ steps.get_version.outputs.version }}"
+          } else {
+            "This is the first release!"
+          }
+          
+          $notes = @"
           ## Okami APClient ${{ steps.get_version.outputs.version }}
           
           ### Installation
           1. Download the zip file below
           2. Extract to your Okami HD installation directory
-          3. Run \`okami-loader.exe\`
+          3. Run ``okami-loader.exe``
           
           ### What's Changed
-          $(if [ -n "$PREV_TAG" ]; then
-            echo "Full changelog: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.get_version.outputs.version }}"
-          else
-            echo "This is the first release!"
-          fi)
-          EOF
-          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+          $changelogLine
+          "@
+          
+          $notes | Out-File -FilePath release_notes.md -Encoding utf8
+          echo "notes_file=release_notes.md" >> $env:GITHUB_OUTPUT
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
