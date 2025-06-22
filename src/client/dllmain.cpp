@@ -59,13 +59,15 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     return true;
 }
 
-extern "C" __declspec(dllexport) void okamiAPClientInit()
+extern "C" __declspec(dllexport) int entry()
 {
     initializeLogger();
     logInfo("[apclient] Initializing okami_apclient v%s (%s)", okami_apclient::version_string(), okami_apclient::version_shorthash());
 
-    initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll"));
+    if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+        return 1;
     GameHooks::setup();
     guiInitHooks();
     checkInit();
+    return 0;
 }

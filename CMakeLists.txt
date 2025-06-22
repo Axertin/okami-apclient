@@ -31,6 +31,7 @@ function(enable_strict_warnings target)
         /clang:-Wno-c++98-compat-pedantic
         /clang:-Wno-c++17-extensions
         /clang:-Wno-unused-lambda-capture
+        /clang:-Wno-missing-field-initializers
       )
 
       if(extra_warnings)
@@ -178,16 +179,19 @@ if(NOT BUILD_TESTS_ONLY)
     "${_version}")
 
   # Bootstrap loader DLL
-  add_library(apclient-loader SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/dllmain.cpp)
-  target_precompile_headers(apclient-loader PRIVATE
+  add_executable(okami-loader
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/injector.cpp
+  )
+  target_precompile_headers(okami-loader PRIVATE
     <iostream>
     "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
   )
-  target_compile_definitions(apclient-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-  target_link_libraries(apclient-loader PRIVATE SHlwapi)
-  target_include_directories(apclient-loader PRIVATE)
-  target_compile_features(apclient-loader PRIVATE ${STD_FEATURE})
-  enable_strict_warnings(apclient-loader)
+  target_compile_definitions(okami-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
+  target_link_libraries(okami-loader PRIVATE SHlwapi)
+  target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
+  target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
+  enable_strict_warnings(okami-loader)
 
 endif()
 
@@ -266,7 +270,7 @@ catch_discover_tests(okami-tests)
 # TODO: Allow override of install_prefix
 if(NOT BUILD_TESTS_ONLY)
   set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
-  install(TARGETS apclient-loader DESTINATION mods)
+  install(TARGETS okami-loader DESTINATION .)
   install(TARGETS okami-apclient DESTINATION mods/apclient)
   install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
 endif()

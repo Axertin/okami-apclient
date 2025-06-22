@@ -20,8 +20,9 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]]; then
-            # Only debug builds on develop branch
+          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]] || \
+            [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "develop" ]]; then
+            # Only debug builds on develop branch and PRs to develop
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
           else
             # Both debug and release on master/PRs/tags
@@ -117,7 +118,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
           Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
           Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/apclient-loader.dll" "$stageDir/mods/"
+          Copy-Item "$buildDir/okami-loader.exe" "$stageDir/"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
