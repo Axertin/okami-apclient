@@ -1,51 +1,16 @@
-name: Build
+name: Release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - master
-  workflow_call:  # Allow this workflow to be called by other workflows
 
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - id: set-matrix
-        run: |
-          # For workflow_call (releases), always build both configurations
-          if [[ "${{ github.event_name }}" == "workflow_call" ]]; then
-            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            # Only debug builds for PRs (faster feedback)
-            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
-          else
-            # Both debug and release for master pushes and tags
-            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
-          fi
-
-  build:
-    name: Build ${{ matrix.config }}
+  release:
+    name: Create Release
     runs-on: windows-latest
-    needs: setup
     permissions:
-      id-token: write
-      contents: read
-      checks: write
-
-    strategy:
-      matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
-
-    defaults:
-      run:
-        shell: pwsh
-        working-directory: ${{ github.workspace }}
+      contents: write
 
     steps:
       - name: Checkout
@@ -63,66 +28,68 @@ jobs:
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
-          path: out/build/${{ matrix.preset }}/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
+          path: out/build/x64-clang-release/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-release-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-${{ matrix.config }}-
+            ${{ runner.os }}-vcpkg-release-
             ${{ runner.os }}-vcpkg-
 
       - name: Configure CMake
-        run: cmake --preset ${{ matrix.preset }}
+        run: cmake --preset x64-clang-release
 
       - name: Build
-        run: cmake --build --preset ${{ matrix.preset }}
+        run: cmake --build --preset x64-clang-release
 
-      - name: Run Unit Tests
-        if: matrix.run_tests
-        run: |
-          $testExe = "out/build/${{ matrix.preset }}/okami-tests.exe"
-          if (Test-Path $testExe) {
-            & $testExe --reporter JUnit --out out/build/${{ matrix.preset }}/Test.xml
-            if ($LASTEXITCODE -ne 0) {
-              Write-Host "Tests failed with exit code $LASTEXITCODE"
-            }
-          } else {
-            Write-Host "Test executable not found at $testExe"
-            exit 1
-          }
-        continue-on-error: true
-
-      - name: Publish Test Results
-        if: always() && matrix.run_tests
-        uses: dorny/test-reporter@v1
-        with:
-          name: Unit Tests
-          path: 'out/build/${{ matrix.preset }}/Test.xml'
-          reporter: java-junit
-
-      - name: Upload JUnit Test Results
-        if: always() && matrix.run_tests
-        uses: actions/upload-artifact@v4
-        with:
-          name: junit-test-results-${{ github.run_number }}
-          path: '**/Test.xml'
-
-      - name: Read Version
+      - name: Get version from tag
         id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Stage Release Files
         run: |
-          $version = Get-Content out/build/${{ matrix.preset }}/version.txt
-          echo "version=$version" >> $env:GITHUB_OUTPUT
-      
-      - name: Stage Artifacts
-        run: |
-          $buildDir = "out/build/${{ matrix.preset }}"
-          $stageDir = "${{ matrix.config }}"
+          $buildDir = "out/build/x64-clang-release"
+          $stageDir = "release"
           
           New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
           Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
           Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
           Copy-Item "$buildDir/okami-loader.exe" "$stageDir/"
 
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Create Release Archive
+        run: |
+          cd release
+          Compress-Archive -Path * -DestinationPath "../okami-apclient-${{ steps.get_version.outputs.version }}.zip"
+          cd ..
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # Get the previous tag for comparison
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "${{ steps.get_version.outputs.version }}" | head -1 || echo "")
+          
+          cat > release_notes.md << EOF
+          ## Okami APClient ${{ steps.get_version.outputs.version }}
+          
+          ### Installation
+          1. Download the zip file below
+          2. Extract to your Okami HD installation directory
+          3. Run \`okami-loader.exe\`
+          
+          ### What's Changed
+          $(if [ -n "$PREV_TAG" ]; then
+            echo "Full changelog: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.get_version.outputs.version }}"
+          else
+            echo "This is the first release!"
+          fi)
+          EOF
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: ${{ matrix.config == 'release' && format('okami-apclient-{0}', steps.get_version.outputs.version) || format('okami-apclient-{0}-{1}', matrix.config, steps.get_version.outputs.version) }}
-          path: ${{ matrix.config }}/
+          name: Release ${{ steps.get_version.outputs.version }}
+          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          files: |
+            okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.version, 'alpha') || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
+          generate_release_notes: true
