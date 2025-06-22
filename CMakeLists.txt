@@ -242,7 +242,7 @@ else()
   )
 endif()
 
-target_include_directories(okami-tests PRIVATE
+target_include_directories(okami-tests SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
@@ -252,7 +252,7 @@ target_include_directories(okami-tests PRIVATE
 
 # Only include imgui directories if not building tests only
 if(NOT BUILD_TESTS_ONLY)
-  target_include_directories(okami-tests PRIVATE
+  target_include_directories(okami-tests SYSTEM PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
 endif()
