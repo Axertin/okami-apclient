@@ -60,14 +60,11 @@ namespace okami {
     uint16_t unk11[56];
 
     uint32_t mapStateBits[MapTypes::NUM_MAP_TYPES + 1][8];
-    uint32_t animalsFedBits[5];
-    uint32_t unk12;
-    uint32_t unk13;
-    uint32_t unk14;
+    uint32_t animalsFedBits[8];
+    uint16_t numAnimalsFed[20];
     uint32_t unk15[10];
     uint32_t unk16[1];
     uint32_t unk17[4];
-    uint16_t numAnimalsFed[20];
     uint32_t unk18;
     uint32_t unk19;
     uint32_t unk20;
@@ -76,10 +73,9 @@ namespace okami {
     uint8_t unk22[780];
 
     uint32_t totalMoney;
-    uint16_t demonFangs;
-    uint8_t unk23[2];
-    uint16_t enemiesKilled;
-    uint8_t unk24[30];
+    uint32_t demonFangs;
+    uint32_t enemiesKilled;
+    uint8_t unk24[28];
   };
 
   // singleton at +0xB205D0
@@ -118,9 +114,8 @@ namespace okami {
   struct TrackerData {
     uint32_t firstTimeItem[8];
     uint32_t logbookAvailable[3];
-    uint8_t unk0;
-    uint8_t animalTomeUnlocked[4];
-    uint8_t unk1[15];
+    uint32_t animalTomeUnlocked;
+    uint32_t unk1[4];
     uint32_t field_40;
     uint32_t field_44;
     uint32_t field_48;
