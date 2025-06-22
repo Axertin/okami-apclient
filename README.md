@@ -87,14 +87,9 @@ To build:
 Contributions are welcome! Please:
 
 1. Fork the repository
-2. Create a feature branch from `develop`
-3. Submit a pull request
-
-### Development Workflow
-
-- `master`: Stable code and release candidates
-- `develop`: Active development branch
-- Feature branches should be created from `develop`
+2. Create a feature branch from `master`
+3. Test your changes
+4. Submit a pull request
 
 ## Project Structure
 
