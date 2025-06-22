@@ -1,0 +1,84 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  # Call the build workflow to ensure we have fresh artifacts
+  build:
+    uses: ./.github/workflows/build.yml
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for tag comparison
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Download Release Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: okami-apclient-${{ steps.get_version.outputs.version }}
+          path: ./release-files
+
+      - name: Create Release Archive
+        run: |
+          # Check that we have the release files
+          if [ ! -d "./release-files" ]; then
+            echo "Release files not found!"
+            exit 1
+          fi
+          
+          echo "Release files found:"
+          ls -la ./release-files/
+          
+          # Create the release zip
+          cd ./release-files
+          zip -r "../okami-apclient-${{ steps.get_version.outputs.version }}.zip" .
+          cd ..
+
+      - name: Generate Release Notes
+        id: release_notes
+        run: |
+          # Get the previous tag for comparison
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "${{ steps.get_version.outputs.version }}" | head -1 || echo "")
+          
+          cat > release_notes.md << EOF
+          ## Okami APClient ${{ steps.get_version.outputs.version }}
+          
+          ### Installation
+          1. Download the zip file below
+          2. Extract to your Okami HD installation directory
+          3. Run \`okami-loader.exe\`
+          
+          ### What's Changed
+          $(if [ -n "$PREV_TAG" ]; then
+            echo "Full changelog: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ steps.get_version.outputs.version }}"
+          else
+            echo "This is the first release!"
+          fi)
+          EOF
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.get_version.outputs.version }}
+          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          files: |
+            okami-apclient-${{ steps.get_version.outputs.version }}.zip
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.version, 'alpha') || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
+          generate_release_notes: true

@@ -4,13 +4,12 @@ on:
   push:
     branches:
       - master
-      - develop
     tags:
       - 'v*'
   pull_request:
     branches:
       - master
-      - develop
+  workflow_call:  # Allow this workflow to be called by other workflows
 
 jobs:
   setup:
@@ -20,12 +19,14 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]] || \
-            [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "develop" ]]; then
-            # Only debug builds on develop branch and PRs to develop
+          # For workflow_call (releases), always build both configurations
+          if [[ "${{ github.event_name }}" == "workflow_call" ]]; then
+            echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            # Only debug builds for PRs (faster feedback)
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
           else
-            # Both debug and release on master/PRs/tags
+            # Both debug and release for master pushes and tags
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
           fi
 
@@ -123,53 +124,5 @@ jobs:
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: okami-apclient-${{ matrix.config }}-${{ steps.get_version.outputs.version }}
+          name: ${{ matrix.config == 'release' && format('okami-apclient-{0}', steps.get_version.outputs.version) || format('okami-apclient-{0}-{1}', matrix.config, steps.get_version.outputs.version) }}
           path: ${{ matrix.config }}/
-
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/')
-    permissions:
-      contents: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Get version from tag
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-
-      - name: Download Release Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: okami-apclient-release-*
-          path: ./artifacts
-          merge-multiple: false
-
-      - name: Create Release Archive
-        run: |
-          # Find the release artifact directory
-          RELEASE_DIR=$(find ./artifacts -name "okami-apclient-release-*" -type d | head -1)
-          if [ -z "$RELEASE_DIR" ]; then
-            echo "No release artifacts found"
-            exit 1
-          fi
-          
-          # Create the release zip
-          cd "$RELEASE_DIR"
-          zip -r "../../okami-apclient-${{ steps.get_version.outputs.version }}.zip" .
-          cd ../..
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Release ${{ steps.get_version.outputs.version }}
-          body_path: release_notes.md
-          files: |
-            okami-apclient-${{ steps.get_version.outputs.version }}.zip
-          draft: false
-          prerelease: ${{ contains(steps.get_version.outputs.version, 'alpha') || contains(steps.get_version.outputs.version, 'beta') || contains(steps.get_version.outputs.version, 'rc') }}
-          generate_release_notes: true
