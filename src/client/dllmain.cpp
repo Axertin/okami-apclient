@@ -1,13 +1,17 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
-#include "pch.h"
+#include "archipelagosocket.h" // include the socket first, before any windows headers / minhook!
+#include "framework.h"
+#include "MinHook.h"
 #include "gamehooks.h"
-#include "archipelago.h"
 #include "gui.h"
+#include "checks.h"
+#include "logger.h"
 #include <okami_apclient-GitVersion.h>
+#include "okami/memorymap.hpp"
 
-BOOL APIENTRY DllMain(HMODULE hModule,
+BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule,
                       DWORD ul_reason_for_call,
-                      LPVOID lpReserved)
+                      [[maybe_unused]] LPVOID lpReserved)
 {
 
     switch (ul_reason_for_call)
@@ -26,11 +30,44 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     return TRUE;
 }
 
-extern "C" __declspec(dllexport) void okamiAPClientInit()
+/** @brief Find Base Addresses of both vanilla DLLs
+ *  @param MainDllModuleHandle Handle of main.dll
+ *  @param FlowerDllModuleHandle Handle of flower_kernel.dll
+ *  @return success boolean
+ */
+inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
 {
-    std::cout << "[apclient] Initializing okami_apclient v" << okami_apclient::version_string() << "( " << okami_apclient::version_shorthash() << ")" << std::endl;
+    logInfo("[apclient] Initializing Modules...");
+    okami::MainBase = reinterpret_cast<uintptr_t>(MainDllModuleHandle);
+    if (okami::MainBase == 0)
+    {
+        logError("[apclient] Main.dll BaseAddress not found!");
+        return false;
+    }
+    okami::FlowerBase = reinterpret_cast<uintptr_t>(FlowerDllModuleHandle);
+    if (okami::FlowerBase == 0)
+    {
+        logError("[apclient] flower_kernel.dll BaseAddress not found!");
+        return false;
+    }
 
-    okami::initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll"));
+    okami::initVariables();
+    okami::initFunctions();
+
+    logInfo("[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
+
+    return true;
+}
+
+extern "C" __declspec(dllexport) int entry()
+{
+    initializeLogger();
+    logInfo("[apclient] Initializing okami_apclient v%s (%s)", okami_apclient::version_string(), okami_apclient::version_shorthash());
+
+    if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+        return 1;
     GameHooks::setup();
     guiInitHooks();
+    checkInit();
+    return 0;
 }

@@ -1,8 +1,5 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-    "stm32-for-vscode.openOCDPath": false,
-    "stm32-for-vscode.makePath": false,
-    "stm32-for-vscode.armToolchainPath": false,
     "files.associations": {
         "thread": "cpp",
         "ios": "cpp",
@@ -119,5 +116,7 @@
         "string_view": "cpp",
         "rope": "cpp",
         "slist": "cpp"
-    }
+    },
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.loggingLevel": "Information"
 }

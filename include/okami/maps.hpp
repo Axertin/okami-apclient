@@ -2,15 +2,17 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <iomanip>
+#include "memoryaccessor.hpp"
 
 namespace okami
 {
-    inline uint16_t *ExeriorMapIDPtr; // Loading zone sequence 3
-    inline uint16_t *CurrentMapIDPtr; // Loading zone sequence 1
-    inline uint16_t *VestigialMapID1Ptr;
-    inline uint16_t *VsstigialMapID2Ptr; // Loading zone sequence 2
+    inline MemoryAccessor<uint16_t> ExteriorMapID; // Loading zone sequence 3
+    inline MemoryAccessor<uint16_t> CurrentMapID;  // Loading zone sequence 1
+    inline MemoryAccessor<uint16_t> VestigialMapID1;
+    inline MemoryAccessor<uint16_t> VestigialMapID2; // Loading zone sequence 2
 
     inline static const std::unordered_map<uint16_t, std::string> MapNames = {
         {0x006, "Endless loading screen"},
@@ -25,7 +27,7 @@ namespace okami
         {0x033, "Brush Interaction Test Map #6"},
         {0x034, "Brush Interaction Test Map #7"},
         {0x0FF, "Collision and Movement Test Map"},
-        {0x100, "Kamiki Village - Dark"},
+        {0x100, "Kamiki Village - Cursed"},
         {0x101, "Cave of Nagi"},
         {0x102, "Kamiki Village"},
         {0x103, "Hana Valley"},
