@@ -84,7 +84,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/src/client/sources.cmake)
 
 # Add GitVersion to cmake module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-include(GitVersion)
+include(SimpleGitVersion)
 
 # grab SSL keys
 if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/cacert.pem)
@@ -147,6 +147,7 @@ if(NOT BUILD_TESTS_ONLY)
 
   # Primary program
   add_library(okami-apclient SHARED ${CLIENT_SOURCES}
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
   target_precompile_headers(okami-apclient PRIVATE
     <algorithm>
@@ -183,14 +184,10 @@ if(NOT BUILD_TESTS_ONLY)
     target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
   endif()
 
-  add_version_info(TARGET okami-apclient)
+  add_git_version_info(okami-apclient)
   get_target_property(_version okami-apclient VERSION_STRING)
 
-  # Write out version to file (for CI use)
-  file(WRITE ${CMAKE_BINARY_DIR}/version.txt
-    "${_version}")
-
-  # Bootstrap loader DLL
+  # Injector
   add_executable(okami-loader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/injector.cpp
@@ -209,8 +206,7 @@ endif()
 if(WIN32)
   set(TESTED_UNITS
     ${CLIENT_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient/okami_apclient-GitVersion.cc)
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
 else()
   set(TESTED_UNITS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
@@ -263,7 +259,7 @@ target_include_directories(okami-tests SYSTEM PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
   ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/out/version/okami_apclient)
+  ${CMAKE_CURRENT_BINARY_DIR}/generated)
 
 # Only include imgui directories if not building tests only
 if(NOT BUILD_TESTS_ONLY)

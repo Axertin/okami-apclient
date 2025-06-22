@@ -13,7 +13,6 @@ A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipe
    ```
    Okami/
    ├── mods/
-   │   ├── apclient-loader.dll
    │   └── apclient/
    │       ├── okami-apclient.dll
    │       └── cacert.pem
@@ -88,19 +87,14 @@ To build:
 Contributions are welcome! Please:
 
 1. Fork the repository
-2. Create a feature branch from `develop`
-3. Submit a pull request
-
-### Development Workflow
-
-- `master`: Stable code and release candidates
-- `develop`: Active development branch
-- Feature branches should be created from `develop`
+2. Create a feature branch from `master`
+3. Test your changes
+4. Submit a pull request
 
 ## Project Structure
 
 - `src/client/`: Main mod DLL
-- `src/loader/`: Bootstrap loader DLL
+- `src/loader/`: Okami Injector and DLL loader
 - `include/okami/`: Game-specific helpers, memory structures, and initializations
 - `external/`: Dependency Git submodules
 - `cmake/`: Build system utilities

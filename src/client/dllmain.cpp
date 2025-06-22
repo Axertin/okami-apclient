@@ -6,7 +6,7 @@
 #include "gui.h"
 #include "checks.h"
 #include "logger.h"
-#include <okami_apclient-GitVersion.h>
+#include "version.h"
 #include "okami/memorymap.hpp"
 
 BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule,
@@ -62,7 +62,7 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
 extern "C" __declspec(dllexport) int entry()
 {
     initializeLogger();
-    logInfo("[apclient] Initializing okami_apclient v%s (%s)", okami_apclient::version_string(), okami_apclient::version_shorthash());
+    logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
 
     if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
         return 1;
