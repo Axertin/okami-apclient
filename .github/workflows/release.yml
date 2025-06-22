@@ -42,7 +42,11 @@ jobs:
 
       - name: Get version from tag
         id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+        run: |
+          echo "GITHUB_REF: $env:GITHUB_REF"
+          $version = $env:GITHUB_REF -replace 'refs/tags/', ''
+          echo "Extracted version: $version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
 
       - name: Stage Release Files
         run: |
@@ -60,38 +64,10 @@ jobs:
           Compress-Archive -Path * -DestinationPath "../okami-apclient-${{ steps.get_version.outputs.version }}.zip"
           cd ..
 
-      - name: Generate Release Notes
-        id: release_notes
-        run: |
-          # Get the previous tag for comparison
-          $prevTag = git tag --sort=-version:refname | Where-Object { $_ -ne "${{ steps.get_version.outputs.version }}" } | Select-Object -First 1
-          
-          $changelogLine = if ($prevTag) {
-            "Full changelog: https://github.com/${{ github.repository }}/compare/${prevTag}...${{ steps.get_version.outputs.version }}"
-          } else {
-            "This is the first release!"
-          }
-          
-          $notes = @"
-          ## Okami APClient ${{ steps.get_version.outputs.version }}
-          
-          ### Installation
-          1. Download the zip file below
-          2. Extract to your Okami HD installation directory
-          3. Run ``okami-loader.exe``
-          
-          ### What's Changed
-          $changelogLine
-          "@
-          
-          $notes | Out-File -FilePath release_notes.md -Encoding utf8
-          echo "notes_file=release_notes.md" >> $env:GITHUB_OUTPUT
-
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ steps.get_version.outputs.version }}
-          body_path: ${{ steps.release_notes.outputs.notes_file }}
+          name: "Okami APClient ${{ steps.get_version.outputs.version }}"
           files: |
             okami-apclient-${{ steps.get_version.outputs.version }}.zip
           draft: false
