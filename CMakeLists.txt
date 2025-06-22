@@ -92,7 +92,7 @@ if(POLICY CMP0091)
 endif()
 
 # Fallback default if not passed via preset
-set(CXX_STD "17" CACHE STRING "Requested C++ standard")
+set(CXX_STD "23" CACHE STRING "Requested C++ standard")
 set(STD_FEATURE "cxx_std_${CXX_STD}")
 
 project("okami-apclient" LANGUAGES CXX)
