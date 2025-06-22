@@ -30,6 +30,7 @@ function(enable_strict_warnings target)
         /clang:-Wno-c++98-compat
         /clang:-Wno-c++98-compat-pedantic
         /clang:-Wno-c++17-extensions
+        /clang:-Wno-unused-lambda-capture
       )
 
       if(extra_warnings)
