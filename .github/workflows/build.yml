@@ -20,8 +20,9 @@ jobs:
     steps:
       - id: set-matrix
         run: |
-          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]]; then
-            # Only debug builds on develop branch
+          if [[ "${{ github.ref_name }}" == "develop" && "${{ github.event_name }}" == "push" ]] || \
+            [[ "${{ github.event_name }}" == "pull_request" && "${{ github.base_ref }}" == "develop" ]]; then
+            # Only debug builds on develop branch and PRs to develop
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true}]}" >> $GITHUB_OUTPUT
           else
             # Both debug and release on master/PRs/tags
