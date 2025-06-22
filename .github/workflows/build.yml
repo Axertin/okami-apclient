@@ -117,7 +117,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
           Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
           Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/apclient-loader.exe" "$stageDir/"
+          Copy-Item "$buildDir/okami-loader.exe" "$stageDir/"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
