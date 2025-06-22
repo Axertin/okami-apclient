@@ -62,6 +62,17 @@ function(enable_strict_warnings target)
   endif()
 endfunction()
 
+function(apply_release_optimizations target)
+  if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_options(${target} PRIVATE /O2 /Ob2 /GL /Gy)
+    target_link_options(${target} PRIVATE /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO)
+
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      target_compile_options(${target} PRIVATE -flto=thin)
+    endif()
+  endif()
+endfunction()
+
 # option to build tests only (for Linux development)
 option(BUILD_TESTS_ONLY "Build only the test target, skip Windows-specific targets" OFF)
 
@@ -165,6 +176,7 @@ if(NOT BUILD_TESTS_ONLY)
   target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
   target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
   enable_strict_warnings(okami-apclient)
+  apply_release_optimizations(okami-apclient)
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_link_libraries(okami-apclient PRIVATE Crypt32)
@@ -187,11 +199,10 @@ if(NOT BUILD_TESTS_ONLY)
     <iostream>
     "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
   )
-  target_compile_definitions(okami-loader PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
-  target_link_libraries(okami-loader PRIVATE SHlwapi)
   target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
   enable_strict_warnings(okami-loader)
+  apply_release_optimizations(okami-loader)
 
 endif()
 
