@@ -78,3 +78,5 @@ COLLECT_CHECK(world.totalMoney, 0x260 + 0xF28);
 COLLECT_CHECK(world.demonFangs, 0x260 + 0xF2C);
 COLLECT_CHECK(world.enemiesKilled, 0x260 + 0xF30);
 
+SIZECHECK(hx::Texture, 0x18);
+SIZECHECK(CustomTextures, 0x10160);

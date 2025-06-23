@@ -148,6 +148,7 @@ if(NOT BUILD_TESTS_ONLY)
   # Primary program
   add_library(okami-apclient SHARED ${CLIENT_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
   target_precompile_headers(okami-apclient PRIVATE
     <algorithm>

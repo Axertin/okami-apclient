@@ -8,8 +8,6 @@ namespace okami
 {
     inline MemoryAccessor<uint16_t> InventoryItemID;
     inline MemoryAccessor<uint16_t> InventoryStringID;
-    inline MemoryAccessor<int16_t> AmmyCurrentSunFragments;
-    inline MemoryAccessor<int16_t> InventoryItemQualities; // 256-element Array
 
     enum class ItemCategory
     {

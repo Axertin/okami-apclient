@@ -23,14 +23,14 @@ namespace okami {
     CollectionData collection;
 
     // Loaded to +0xB322B0
-    uint8_t persistentMapBits[MapTypes::NUM_MAP_TYPES][228];  // mostly dialog
+    BitField<1824> persistentMapBits[MapTypes::NUM_MAP_TYPES];  // mostly dialog
 
     // Loaded to +0xB36CF0
-    uint8_t issunDialogBits[MapTypes::NUM_MAP_TYPES][64];
+    BitField<512> issunDialogBits[MapTypes::NUM_MAP_TYPES];
     uint32_t unk1;  // padding?
 
     // Loaded to +0xB21820
-    CustomTextureBits customTextures;
+    CustomTextures customTextures;
   }; // 0x172A0 each
 
   struct SaveFile {

@@ -51,6 +51,17 @@ namespace okami
         }
 
         /**
+         * @brief Access memory directly.
+         *
+         * @return The pointer to the value stored at the memory location.
+         */
+        T* get_ptr() const
+        {
+            assert(address != 0);
+            return reinterpret_cast<T*>(address);
+        }
+
+        /**
          * @brief Write a value to memory.
          *
          * @param value The value to write.
@@ -73,6 +84,11 @@ namespace okami
 
         /// Get the raw address this accessor points to.
         uintptr_t raw() const { return address; }
+
+        /// Implicit memory access via get_ptr().
+        T* operator->() const {
+            return get_ptr();
+        }
     };
 
     template <typename Enum>
