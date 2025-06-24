@@ -54,12 +54,12 @@ template <unsigned int N, class Fn>
 void checklistCols(unsigned numCols, const Fn &pNameFn,
                    okami::BitField<N> &bits)
 {
-    if (ImGui::Button("All"))
+    if (ImGui::Button("All##Btn"))
     {
         bits.SetAll();
     }
     ImGui::SameLine();
-    if (ImGui::Button("None"))
+    if (ImGui::Button("None##Btn"))
     {
         bits.ClearAll();
     }
