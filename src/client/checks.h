@@ -1,6 +1,7 @@
 #pragma once
-#include "archipelagosocket.h"
 #include <unordered_map>
+
+#include "archipelagosocket.h"
 
 void checkInit();
 void checkBrushes(ISocket &socket = ArchipelagoSocket::instance());

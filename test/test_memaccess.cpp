@@ -1,13 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
+
+#include "okami/brushes.hpp"
 #include "okami/memoryaccessor.hpp"
 #include "okami/memorymap.hpp"
-#include "okami/brushes.hpp"
 
 TEST_CASE("MemoryAccessor reads and writes scalar types", "[memory]")
 {
     uint32_t simulatedMemory = 0;
 
-    okami::MemoryAccessor<uint32_t> accessor(reinterpret_cast<uintptr_t>(&simulatedMemory));
+    okami::MemoryAccessor<uint32_t> accessor(
+        reinterpret_cast<uintptr_t>(&simulatedMemory));
 
     // Write a value
     accessor.set(123456);

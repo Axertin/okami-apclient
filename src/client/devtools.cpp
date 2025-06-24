@@ -1,11 +1,12 @@
 #include "devtools.h"
-#include "imgui.h"
-#include "gui.h"
-#include "okami/memorymap.hpp"
+
 #include "gamehooks.h"
+#include "gui.h"
+#include "imgui.h"
 #include "okami/data/itemtype.hpp"
 #include "okami/data/maptype.hpp"
 #include "okami/items.hpp"
+#include "okami/memorymap.hpp"
 
 void DevTools::toggleVisibility()
 {
@@ -32,18 +33,26 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     ImGui::Begin(name.c_str(), &IsVisible, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::Text("IGT: %d", okami::AmmyTracker->timePlayed);
-    ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(), Framer.getFPS());
+    ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(),
+                Framer.getFPS());
 
     if (ImGui::CollapsingHeader("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen))
     {
-        ImGui::Text("Pos: (%.2f,%.2f,%.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
-        ImGui::Text("Health: %d / %d", okami::AmmyStats->currentHealth, okami::AmmyStats->maxHealth);
-        ImGui::Text("Money: %d / %d", okami::AmmyCollections->currentMoney, okami::AmmyCollections->world.totalMoney);
-        ImGui::Text("Praise: %d / %d", okami::AmmyStats->currentPraise, okami::AmmyStats->totalPraise);
-        ImGui::Text("Ink: %d / %d", okami::AmmyCollections->currentInk, okami::AmmyCollections->maxInk);
-        ImGui::Text("Food: %d / %d", okami::AmmyStats->currentFood, okami::AmmyStats->maxFood);
+        ImGui::Text("Pos: (%.2f,%.2f,%.2f)", okami::AmmyPosX.get(),
+                    okami::AmmyPosY.get(), okami::AmmyPosZ.get());
+        ImGui::Text("Health: %d / %d", okami::AmmyStats->currentHealth,
+                    okami::AmmyStats->maxHealth);
+        ImGui::Text("Money: %d / %d", okami::AmmyCollections->currentMoney,
+                    okami::AmmyCollections->world.totalMoney);
+        ImGui::Text("Praise: %d / %d", okami::AmmyStats->currentPraise,
+                    okami::AmmyStats->totalPraise);
+        ImGui::Text("Ink: %d / %d", okami::AmmyCollections->currentInk,
+                    okami::AmmyCollections->maxInk);
+        ImGui::Text("Food: %d / %d", okami::AmmyStats->currentFood,
+                    okami::AmmyStats->maxFood);
         ImGui::Text("Godhood: %d", okami::AmmyStats->godhood);
-        ImGui::Text("Demon Fangs: %d", okami::AmmyCollections->world.demonFangs);
+        ImGui::Text("Demon Fangs: %d",
+                    okami::AmmyCollections->world.demonFangs);
     }
 
     if (ImGui::CollapsingHeader("CharacterStats"))
@@ -56,7 +65,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("Move %u: %s", i, okami::AmmyStats->dojoTechniquesUnlocked.IsSet(i) ? "yes" : "no");
+                ImGui::Text("Move %u: %s", i,
+                            okami::AmmyStats->dojoTechniquesUnlocked.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         ImGui::Text("unk2: %d", okami::AmmyStats->unk2);
@@ -68,7 +80,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyStats->weaponsUnlocked.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyStats->weaponsUnlocked.IsSet(i) ? "yes"
+                                                                       : "no");
             }
         }
 
@@ -83,29 +97,41 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("numSaves: %d", okami::AmmyCollections->numSaves);
         ImGui::Text("unk1: %d", okami::AmmyCollections->unk1);
         ImGui::Text("unk2: %d", okami::AmmyCollections->unk2);
-        ImGui::Text("walletUpgrades: %d", okami::AmmyCollections->walletUpgrades);
-        ImGui::Text("healthUpgrades: %d", okami::AmmyCollections->healthUpgrades);
+        ImGui::Text("walletUpgrades: %d",
+                    okami::AmmyCollections->walletUpgrades);
+        ImGui::Text("healthUpgrades: %d",
+                    okami::AmmyCollections->healthUpgrades);
         ImGui::Text("unk3: %d", okami::AmmyCollections->unk3);
         ImGui::Text("unk4: %d", okami::AmmyCollections->unk4);
         if (ImGui::CollapsingHeader("Stray Beads"))
         {
             for (unsigned i = 0; i < 128; i++)
             {
-                ImGui::Text("Bead %u: %s", i, okami::AmmyCollections->strayBeadsCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text("Bead %u: %s", i,
+                            okami::AmmyCollections->strayBeadsCollected.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         if (ImGui::CollapsingHeader("Travel Guides Collected"))
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->travelGuidesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text(
+                    "%u: %s", i,
+                    okami::AmmyCollections->travelGuidesCollected.IsSet(i)
+                        ? "yes"
+                        : "no");
             }
         }
         if (ImGui::CollapsingHeader("Travel Guides Viewed"))
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->travelGuidesViewed.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->travelGuidesViewed.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -113,7 +139,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->dojoMovesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->dojoMovesCollected.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -121,7 +150,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->dojoMovesViewed.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->dojoMovesViewed.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -129,7 +161,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->fishTomesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->fishTomesCollected.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -137,7 +172,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->fishTomesViewed.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->fishTomesViewed.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -145,7 +183,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->animalTomesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text(
+                    "%u: %s", i,
+                    okami::AmmyCollections->animalTomesCollected.IsSet(i)
+                        ? "yes"
+                        : "no");
             }
         }
 
@@ -153,7 +195,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->animalTomesViewed.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->animalTomesViewed.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -161,7 +206,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->treasureTomesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text(
+                    "%u: %s", i,
+                    okami::AmmyCollections->treasureTomesCollected.IsSet(i)
+                        ? "yes"
+                        : "no");
             }
         }
 
@@ -169,7 +218,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 64; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->treasureTomesViewed.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyCollections->treasureTomesViewed.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
 
@@ -177,7 +229,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < okami::ItemTypes::NUM_ITEM_TYPES; i++)
             {
-                ImGui::Text("%s: %u", okami::ItemTable.contains(i) ? okami::ItemTable.at(i).Name.c_str() : "", okami::AmmyCollections->inventory[i]);
+                ImGui::Text("%s: %u",
+                            okami::ItemTable.contains(i)
+                                ? okami::ItemTable.at(i).Name.c_str()
+                                : "",
+                            okami::AmmyCollections->inventory[i]);
             }
         }
     }
@@ -198,7 +254,8 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk10: %u", okami::AmmyCollections->world.unk10);
         for (unsigned i = 0; i < 56; i++)
         {
-            ImGui::Text("unk11[%u]: %u", i, okami::AmmyCollections->world.unk11[i]);
+            ImGui::Text("unk11[%u]: %u", i,
+                        okami::AmmyCollections->world.unk11[i]);
         }
         if (ImGui::CollapsingHeader("Map state bits"))
         {
@@ -208,7 +265,12 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
                 {
                     for (unsigned j = 0; j < 256; j++)
                     {
-                        ImGui::Text("%u: %s", j, okami::AmmyCollections->world.mapStateBits[i].IsSet(j) ? "yes" : "no");
+                        ImGui::Text(
+                            "%u: %s", j,
+                            okami::AmmyCollections->world.mapStateBits[i].IsSet(
+                                j)
+                                ? "yes"
+                                : "no");
                     }
                 }
             }
@@ -217,19 +279,25 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 256; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->world.animalsFedBits.IsSet(i) ? "yes" : "no");
+                ImGui::Text(
+                    "%u: %s", i,
+                    okami::AmmyCollections->world.animalsFedBits.IsSet(i)
+                        ? "yes"
+                        : "no");
             }
         }
         if (ImGui::CollapsingHeader("Num animals fed"))
         {
             for (unsigned i = 0; i < 20; i++)
             {
-                ImGui::Text("%u: %u", i, okami::AmmyCollections->world.numAnimalsFed[i]);
+                ImGui::Text("%u: %u", i,
+                            okami::AmmyCollections->world.numAnimalsFed[i]);
             }
         }
         for (unsigned i = 0; i < 10; i++)
         {
-            ImGui::Text("unk15[%u]: %u", i, okami::AmmyCollections->world.unk15[i]);
+            ImGui::Text("unk15[%u]: %u", i,
+                        okami::AmmyCollections->world.unk15[i]);
         }
         ImGui::Text("unk16: %u", okami::AmmyCollections->world.unk16[0]);
         ImGui::Text("unk17[0]: %u", okami::AmmyCollections->world.unk17[0]);
@@ -247,15 +315,18 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 780; i++)
             {
-                ImGui::Text("unk22[%u]: %u", i, okami::AmmyCollections->world.unk22[i]);
+                ImGui::Text("unk22[%u]: %u", i,
+                            okami::AmmyCollections->world.unk22[i]);
             }
         }
-        ImGui::Text("enemiesKilled: %u", okami::AmmyCollections->world.enemiesKilled);
+        ImGui::Text("enemiesKilled: %u",
+                    okami::AmmyCollections->world.enemiesKilled);
         if (ImGui::CollapsingHeader("unk24"))
         {
             for (unsigned i = 0; i < 28; i++)
             {
-                ImGui::Text("unk24[%u]: %u", i, okami::AmmyCollections->world.unk24[i]);
+                ImGui::Text("unk24[%u]: %u", i,
+                            okami::AmmyCollections->world.unk24[i]);
             }
         }
     }
@@ -266,21 +337,32 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < okami::ItemTypes::NUM_ITEM_TYPES; i++)
             {
-                ImGui::Text("%s: %s", okami::ItemTable.contains(i) ? okami::ItemTable.at(i).Name.c_str() : "", okami::AmmyTracker->firstTimeItem.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%s: %s",
+                            okami::ItemTable.contains(i)
+                                ? okami::ItemTable.at(i).Name.c_str()
+                                : "",
+                            okami::AmmyTracker->firstTimeItem.IsSet(i) ? "yes"
+                                                                       : "no");
             }
         }
         if (ImGui::CollapsingHeader("logbook available"))
         {
             for (unsigned i = 0; i < 96; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->logbookAvailable.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyTracker->logbookAvailable.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         if (ImGui::CollapsingHeader("animal tome unlocked"))
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->animalTomeUnlocked.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyTracker->animalTomeUnlocked.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         ImGui::Text("unk1[0]: %u", okami::AmmyTracker->unk1[0]);
@@ -299,14 +381,20 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (unsigned i = 0; i < 96; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->bestiaryTomeUnlocked.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyTracker->bestiaryTomeUnlocked.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         if (ImGui::CollapsingHeader("bestiary tome read"))
         {
             for (unsigned i = 0; i < 96; i++)
             {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->bestiaryTomeRead.IsSet(i) ? "yes" : "no");
+                ImGui::Text("%u: %s", i,
+                            okami::AmmyTracker->bestiaryTomeRead.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
         ImGui::Text("unk2: %u", okami::AmmyTracker->unk2);
@@ -335,12 +423,17 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     if (ImGui::CollapsingHeader("Flags"))
     {
-        ImGui::Text("Brushes: 0x%X", okami::AmmyCollections->world.usableBrushTechniques.word(1));
+        ImGui::Text(
+            "Brushes: 0x%X",
+            okami::AmmyCollections->world.usableBrushTechniques.word(1));
         if (ImGui::CollapsingHeader("Dojo"))
         {
             for (unsigned i = 0; i < 32; i++)
             {
-                ImGui::Text("Move %u: %s", i, okami::AmmyCollections->dojoMovesCollected.IsSet(i) ? "yes" : "no");
+                ImGui::Text("Move %u: %s", i,
+                            okami::AmmyCollections->dojoMovesCollected.IsSet(i)
+                                ? "yes"
+                                : "no");
             }
         }
     }
@@ -348,8 +441,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     if (ImGui::CollapsingHeader("Maps"))
     {
         static int MapID = 0;
-        ImGui::Text("External Map: %d (%s)", okami::ExteriorMapID.get(), okami::decodeMapName(okami::ExteriorMapID.get()).c_str());
-        ImGui::Text("Current Map: %d (%s)", okami::CurrentMapID.get(), okami::decodeMapName(okami::CurrentMapID.get()).c_str());
+        ImGui::Text("External Map: %d (%s)", okami::ExteriorMapID.get(),
+                    okami::decodeMapName(okami::ExteriorMapID.get()).c_str());
+        ImGui::Text("Current Map: %d (%s)", okami::CurrentMapID.get(),
+                    okami::decodeMapName(okami::CurrentMapID.get()).c_str());
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
         ImGui::InputInt("Map ID", &MapID);
         ImGui::SameLine();

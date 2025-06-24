@@ -1,8 +1,9 @@
 #include "checks.h"
+
 #include "logger.h"
-#include "okami/memorymap.hpp"
 #include "okami/items.hpp"
 #include "okami/maps.hpp"
+#include "okami/memorymap.hpp"
 
 static bool checksEnabled = false;
 
@@ -69,7 +70,6 @@ bool checkItems(int ItemID, ISocket &socket)
 
 void startChecks()
 {
-
     for (;;)
     {
         if (okami::ExteriorMapID != 0xC00)
@@ -85,7 +85,8 @@ void startChecks()
             }
 
             logInfo("[checks] Exiting main menu, initializing checks");
-            std::this_thread::sleep_for(std::chrono::seconds(15)); // Wait for memory to initialize
+            std::this_thread::sleep_for(
+                std::chrono::seconds(15)); // Wait for memory to initialize
 
             logInfo("[checks] Delay Finished!");
             checksEnabled = true;
@@ -96,9 +97,12 @@ void startChecks()
 void checkInit()
 {
     checksEnabled = false;
-    std::thread([]
-                {                                 
-                std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game to initialize
-                startChecks(); })
+    std::thread(
+        []
+        {
+            std::this_thread::sleep_for(
+                std::chrono::seconds(2)); // Wait for game to initialize
+            startChecks();
+        })
         .detach();
 }

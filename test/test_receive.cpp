@@ -1,8 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
-#include "okami/memoryaccessor.hpp"
-#include "okami/memorymap.hpp"
+
 #include "okami/brushes.hpp"
 #include "okami/items.hpp"
+#include "okami/memoryaccessor.hpp"
+#include "okami/memorymap.hpp"
 #include "receive.h"
 
 TEST_CASE("receiveAPItem properly sets brush flags", "[receive]")

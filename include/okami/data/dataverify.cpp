@@ -1,5 +1,6 @@
-// Static assertions to validate data struct members are exactly where they are expected.
-// This verifies that things are defined correctly and that align directives act as expected.
+// Static assertions to validate data struct members are exactly where they are
+// expected. This verifies that things are defined correctly and that align
+// directives act as expected.
 
 #include <cstddef>
 
@@ -7,14 +8,15 @@
 
 using namespace okami;
 
-#define OFFCHECK(type,member,offset) \
-  static_assert(offsetof(type,member) == (offset), #type "." #member " at wrong offset, expected @ " #offset)
+#define OFFCHECK(type, member, offset)                                         \
+    static_assert(offsetof(type, member) == (offset),                          \
+                  #type "." #member " at wrong offset, expected @ " #offset)
 
-#define SIZECHECK(type,size) \
-  static_assert(sizeof(type) == (size), #type " is the wrong size, expected " #size)
+#define SIZECHECK(type, size)                                                  \
+    static_assert(sizeof(type) == (size),                                      \
+                  #type " is the wrong size, expected " #size)
 
-
-#define CHARA_CHECK(member,offset) OFFCHECK(CharacterStats,member,offset)
+#define CHARA_CHECK(member, offset) OFFCHECK(CharacterStats, member, offset)
 
 SIZECHECK(CharacterStats, 0x48);
 CHARA_CHECK(currentHealth, 0x00);
@@ -33,8 +35,7 @@ CHARA_CHECK(u, 0x3C);
 CHARA_CHECK(v, 0x40);
 CHARA_CHECK(w, 0x44);
 
-
-#define TRACK_CHECK(member,offset) OFFCHECK(TrackerData,member,offset)
+#define TRACK_CHECK(member, offset) OFFCHECK(TrackerData, member, offset)
 
 SIZECHECK(TrackerData, 0x80);
 TRACK_CHECK(firstTimeItem, 0x00);
@@ -43,8 +44,7 @@ TRACK_CHECK(bestiaryTomeUnlocked, 0x54);
 TRACK_CHECK(bestiaryTomeRead, 0x60);
 TRACK_CHECK(timePlayed, 0x7C);
 
-
-#define COLLECT_CHECK(member,offset) OFFCHECK(CollectionData,member,offset)
+#define COLLECT_CHECK(member, offset) OFFCHECK(CollectionData, member, offset)
 
 SIZECHECK(CollectionData, 0x11B0);
 SIZECHECK(WorldStateData, 0xF50);
@@ -61,7 +61,8 @@ COLLECT_CHECK(travelGuidesCollected, 0x28);
 COLLECT_CHECK(travelGuidesViewed, 0x2C);
 COLLECT_CHECK(dojoMovesCollected, 0x30);
 COLLECT_CHECK(dojoMovesViewed, 0x34);
-// TODO figure out exactly what the tomes are and how they match up, since my tests had wrong locations
+// TODO figure out exactly what the tomes are and how they match up, since my
+// tests had wrong locations
 COLLECT_CHECK(inventory, 0x60);
 
 COLLECT_CHECK(world, 0x260);

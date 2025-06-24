@@ -1,9 +1,10 @@
 #include "logger.h"
+
+#include <cstdio>
 #include <ctime>
 #include <iomanip>
-#include <sstream>
-#include <cstdio>
 #include <memory>
+#include <sstream>
 
 // Global logger instance
 Logger *g_Logger = nullptr;
@@ -52,7 +53,9 @@ const char *LogEntry::getLevelString() const
     }
 }
 
-StreamCapture::StreamCapture(std::ostream &stream, std::function<void(const std::string &, LogLevel)> callback, LogLevel level)
+StreamCapture::StreamCapture(
+    std::ostream &stream,
+    std::function<void(const std::string &, LogLevel)> callback, LogLevel level)
     : stream_(stream), callback_(callback), level_(level)
 {
     old_buf_ = stream.rdbuf(this);
@@ -150,7 +153,8 @@ void Logger::initializeLogFile()
     auto now = std::time(nullptr);
     auto tm = *std::localtime(&now);
     std::ostringstream filename;
-    filename << "logs/okami_log_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".txt";
+    filename << "logs/okami_log_" << std::put_time(&tm, "%Y%m%d_%H%M%S")
+             << ".txt";
 
     logFile_.open(filename.str(), std::ios::out | std::ios::app);
     if (logFile_.is_open())
@@ -162,12 +166,12 @@ void Logger::initializeLogFile()
 void Logger::setupStreamCapture()
 {
     auto captureCallback = [this](const std::string &msg, LogLevel level)
-    {
-        this->addLogEntry(msg, level);
-    };
+    { this->addLogEntry(msg, level); };
 
-    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback, LogLevel::Info);
-    stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback, LogLevel::Error);
+    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback,
+                                                     LogLevel::Info);
+    stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback,
+                                                     LogLevel::Error);
 }
 
 void Logger::cleanupStreamCapture()
@@ -186,8 +190,8 @@ void Logger::addLogEntry(const std::string &message, LogLevel level)
     if (logFile_.is_open())
     {
         logFile_ << "[" << logEntries_.back().timestamp << "] "
-                 << logEntries_.back().getLevelString() << " "
-                 << message << std::endl;
+                 << logEntries_.back().getLevelString() << " " << message
+                 << std::endl;
         logFile_.flush();
     }
 

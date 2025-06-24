@@ -1,8 +1,9 @@
 
 #include "archipelagosocket.h"
-#include "loginwindow.h"
+
 #include "gamehooks.h"
 #include "logger.h"
+#include "loginwindow.h"
 #include "receive.h"
 
 #pragma warning(push, 0)
@@ -11,7 +12,8 @@
 
 #pragma warning(push)
 #pragma warning(disable : 4996)
-const std::string uuid_file = std::string(std::getenv("APPDATA")).append("\\uuid");
+const std::string uuid_file =
+    std::string(std::getenv("APPDATA")).append("\\uuid");
 #pragma warning(pop)
 
 const std::string CertStore = "cacert.pem";
@@ -38,10 +40,10 @@ ArchipelagoSocket &ArchipelagoSocket::instance()
 void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 {
     std::string uri = LoginData->Server;
-    uuid = ap_get_uuid(uuid_file,
-                       (uri.empty()) ? APClient::DEFAULT_URI : IsWS ? uri.substr(5)
-                                                           : IsWSS  ? uri.substr(6)
-                                                                    : uri);
+    uuid = ap_get_uuid(uuid_file, (uri.empty()) ? APClient::DEFAULT_URI
+                                  : IsWS        ? uri.substr(5)
+                                  : IsWSS       ? uri.substr(6)
+                                                : uri);
 
     if (Client != nullptr)
         Client->reset();
@@ -49,55 +51,63 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
     Client = new APClient(uuid, GameName, uri, CertStore);
     APSyncQueued = false;
 
-    Client->set_slot_connected_handler([LoginData](const nlohmann::json &Data)
-                                       {
-                                           logInfo("[apsocket] APClient Connected");
-                                           ConnectionStatus = "Connected";
-                                           // bool DeathLink = false;
-                                           std::list<std::string> Tags = {};
-                                           // if(DeathLink)
-                                           //     Tags.push_back("DeathLink");
-                                           Client->ConnectUpdate(false, ItemHandlingVector, true, Tags);
-                                           Client->StatusUpdate(APClient::ClientStatus::PLAYING);
+    Client->set_slot_connected_handler(
+        [LoginData](const nlohmann::json &Data)
+        {
+            logInfo("[apsocket] APClient Connected");
+            ConnectionStatus = "Connected";
+            // bool DeathLink = false;
+            std::list<std::string> Tags = {};
+            // if(DeathLink)
+            //     Tags.push_back("DeathLink");
+            Client->ConnectUpdate(false, ItemHandlingVector, true, Tags);
+            Client->StatusUpdate(APClient::ClientStatus::PLAYING);
 
-                                           ; // TODO: Do other things on connection
-                                       });
+            ; // TODO: Do other things on connection
+        });
     Client->set_slot_disconnected_handler([LoginData]() {});
 
-    Client->set_slot_refused_handler([LoginData](const std::list<std::string> &Errors)
-                                     {
-                                    for (const auto& error : Errors) {
-                                        logError("[apsocket] AP Slot Refused, Error: %s", error);
-                                    } });
+    Client->set_slot_refused_handler(
+        [LoginData](const std::list<std::string> &Errors)
+        {
+            for (const auto &error : Errors)
+            {
+                logError("[apsocket] AP Slot Refused, Error: %s", error);
+            }
+        });
 
-    Client->set_room_info_handler([LoginData]()
-                                  {
-                                std::list<std::string> Tags;
-                                Client->ConnectSlot(LoginData->Slot, LoginData->Password, ItemHandlingVector, Tags); });
+    Client->set_room_info_handler(
+        [LoginData]()
+        {
+            std::list<std::string> Tags;
+            Client->ConnectSlot(LoginData->Slot, LoginData->Password,
+                                ItemHandlingVector, Tags);
+        });
 
-    Client->set_items_received_handler([](const std::list<APClient::NetworkItem> &Items)
-                                       {
-                                           for (const auto &Item : Items)
-                                           {
-                                            
-                                                logDebug("[apsocket] Received Item, ID: 0x%X", Item.item);
-                                                if (Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
-                                                   return;
+    Client->set_items_received_handler(
+        [](const std::list<APClient::NetworkItem> &Items)
+        {
+            for (const auto &Item : Items)
+            {
+                logDebug("[apsocket] Received Item, ID: 0x%X", Item.item);
+                if (Item.index <= 0 /*APSaveData.MaxReceivedIndex*/)
+                    return;
 
-                                               receiveAPItem(Item.item);
-                                           } });
+                receiveAPItem(Item.item);
+            }
+        });
 
-    Client->set_location_info_handler([](const std::list<APClient::NetworkItem> &Items)
-                                      {
-                                          ; // TODO: Do Something to handle locations
-                                      });
+    Client->set_location_info_handler(
+        [](const std::list<APClient::NetworkItem> &Items)
+        {
+            ; // TODO: Do Something to handle locations
+        });
 }
 
 void ArchipelagoSocket::sendLocation(int64_t LocationID)
 {
     logInfo("[apsocket] Sending Location 0x%X", LocationID);
-    std::list<int64_t>
-        Check;
+    std::list<int64_t> Check;
     Check.push_back(LocationID);
     Client->LocationChecks(Check);
 }
@@ -132,7 +142,8 @@ std::string ArchipelagoSocket::getItemDesc(int player)
 {
     if (Client)
     {
-        return "Item for " + Client->get_player_alias(player) + " playing " + Client->get_player_game(player);
+        return "Item for " + Client->get_player_alias(player) + " playing " +
+               Client->get_player_game(player);
     }
     return "";
 }
@@ -146,7 +157,8 @@ std::string ArchipelagoSocket::getAddrInfo()
     return "";
 }
 
-bool ArchipelagoSocket::scoutLocations(std::list<int64_t> Locations, int CreateAsHint)
+bool ArchipelagoSocket::scoutLocations(std::list<int64_t> Locations,
+                                       int CreateAsHint)
 {
     if (Client)
     {

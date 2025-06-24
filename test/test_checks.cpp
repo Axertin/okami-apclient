@@ -1,10 +1,12 @@
-#include "checks.h"
-#include <catch2/catch_test_macros.hpp>
-#include <vector>
 #include <algorithm>
+#include <vector>
+
+#include <catch2/catch_test_macros.hpp>
+
+#include "checks.h"
 #include "mock_socket.hpp"
-#include "okami/memorymap.hpp"
 #include "okami/items.hpp"
+#include "okami/memorymap.hpp"
 
 TEST_CASE("checkItems detects and sends item checks", "[check]")
 {
@@ -70,7 +72,8 @@ TEST_CASE("checkItems detects and sends item checks", "[check]")
     disableChecks();
 }
 
-TEST_CASE("checkBrushes sends the correct location when given an index", "[check]")
+TEST_CASE("checkBrushes sends the correct location when given an index",
+          "[check]")
 {
     MockSocket mock;
     ISocket &MockSock = mock;

@@ -1,11 +1,12 @@
 #include "gui.h"
 
-#include "loginwindow.h"
 #include <imgui.h>
 #include <imgui_impl_dx11.h>
-#include "okami/memorymap.hpp"
-#include "devtools.h"
+
 #include "console.h"
+#include "devtools.h"
+#include "loginwindow.h"
+#include "okami/memorymap.hpp"
 
 #ifdef _WIN32
 #include <MinHook.h>
@@ -30,7 +31,10 @@ static bool homePressed = false;
 static bool endPressed = false;
 
 static std::vector<std::unique_ptr<Window>> Windows;
-extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
+                                                             UINT msg,
+                                                             WPARAM wParam,
+                                                             LPARAM lParam);
 
 /**
  * @brief Hook for WndProc
@@ -38,7 +42,8 @@ extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg
 static WNDPROC oWndProc = nullptr;
 LRESULT WINAPI onWndProc(HWND Handle, UINT Msg, WPARAM WParam, LPARAM LParam)
 {
-    if (GuiIsVisible && ImGui_ImplWin32_WndProcHandler(Handle, Msg, WParam, LParam))
+    if (GuiIsVisible &&
+        ImGui_ImplWin32_WndProcHandler(Handle, Msg, WParam, LParam))
         return true;
 
     ImGuiIO &io = ImGui::GetIO();
@@ -83,13 +88,15 @@ bool guiTryInit(IDXGISwapChain *pSwapChain)
         return false;
     }
 
-    if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void **>(&device))))
+    if (FAILED(pSwapChain->GetDevice(__uuidof(ID3D11Device),
+                                     reinterpret_cast<void **>(&device))))
     {
         logError("[gui] Failed to get render device!");
         return false;
     }
 
-    oWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&onWndProc)));
+    oWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrW(
+        hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(&onWndProc)));
 
     device->GetImmediateContext(&context);
 
@@ -150,7 +157,8 @@ void guiRenderFrame(IDXGISwapChain *pSwapChain)
     if (!rtv)
     {
         ID3D11Texture2D *backBuffer = nullptr;
-        pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void **>(&backBuffer));
+        pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D),
+                              reinterpret_cast<void **>(&backBuffer));
         device->CreateRenderTargetView(backBuffer, nullptr, &rtv);
         backBuffer->Release();
     }
@@ -162,9 +170,11 @@ void guiRenderFrame(IDXGISwapChain *pSwapChain)
 /**
  * @brief Hook for DX11 Present() Function
  */
-typedef HRESULT(__stdcall *PresentFn)(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags);
+typedef HRESULT(__stdcall *PresentFn)(IDXGISwapChain *pSwapChain,
+                                      UINT SyncInterval, UINT Flags);
 static PresentFn oPresent = nullptr;
-HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval, UINT Flags)
+HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
+                                  UINT Flags)
 {
     static bool initialized = false;
 
@@ -181,7 +191,8 @@ HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
         {
             GuiIsVisible = !GuiIsVisible;
             LastToggleTime = currentTime;
-            logDebug("[gui] GUI visibility toggled: %s", GuiIsVisible ? "ON" : "OFF");
+            logDebug("[gui] GUI visibility toggled: %s",
+                     GuiIsVisible ? "ON" : "OFF");
         }
         homePressed = homeDown;
 
@@ -261,7 +272,8 @@ void getPresentFunctionPtr()
 
     if (FAILED(D3D11CreateDeviceAndSwapChain(
             nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr, 0, nullptr, 0,
-            D3D11_SDK_VERSION, &SwapChainDesc, &pSwapChain, &pDevice, nullptr, &pContext)))
+            D3D11_SDK_VERSION, &SwapChainDesc, &pSwapChain, &pDevice, nullptr,
+            &pContext)))
     {
         logError("[gui] Failed to initialize dummy D3D11 device!");
     }
@@ -278,11 +290,15 @@ void guiInitHooks()
 {
     getPresentFunctionPtr();
 
-    std::thread([]
-                {
-        std::this_thread::sleep_for(std::chrono::seconds(2));
-        MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
-        MH_EnableHook(okami::D3D11PresentFnPtr); })
+    std::thread(
+        []
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+            MH_CreateHook(okami::D3D11PresentFnPtr,
+                          reinterpret_cast<LPVOID>(&onRenderPresent),
+                          reinterpret_cast<LPVOID *>(&oPresent));
+            MH_EnableHook(okami::D3D11PresentFnPtr);
+        })
         .detach();
 }
 

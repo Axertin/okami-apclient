@@ -6,7 +6,7 @@
 // Console - Handles UI rendering only
 class Console : public Window
 {
-public:
+  public:
     Console();               // Default constructor uses global logger
     Console(Logger &logger); // Alternative constructor for custom logger
     ~Console();
@@ -14,7 +14,7 @@ public:
     void toggleVisibility() override;
     void draw(int OuterWidth, int OuterHeight, float UIScale) override;
 
-private:
+  private:
     void drawLogOutput();
 
     Logger &logger_;

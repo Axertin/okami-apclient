@@ -1,14 +1,14 @@
-#include <iostream>
-#include <filesystem>
-#include <thread>
 #include <chrono>
+#include <filesystem>
+#include <iostream>
+#include <thread>
+
 #include "injector.h"
 
 namespace fs = std::filesystem;
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 {
-
     std::cout << "Okami APClient Loader" << std::endl;
 
     // Get loader directory
@@ -33,8 +33,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     // Check if game exe exists
     if (!fs::exists(okamiExe))
     {
-        std::cerr << "Error: Cannot find okami.exe at: "
-                  << okamiExe.string() << std::endl;
+        std::cerr << "Error: Cannot find okami.exe at: " << okamiExe.string()
+                  << std::endl;
         std::cout << "Press Enter to exit..." << std::endl;
         std::cin.get();
         return 1;
@@ -60,14 +60,16 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         processId = OkamiInjector::findOkamiProcess();
         if (!processId)
         {
-            std::cerr << "Error: Game launched but process not found." << std::endl;
+            std::cerr << "Error: Game launched but process not found."
+                      << std::endl;
             std::cout << "Press Enter to exit..." << std::endl;
             std::cin.get();
             return 1;
         }
     }
 
-    std::cout << "Found Okami HD process (PID: " << *processId << ")" << std::endl;
+    std::cout << "Found Okami HD process (PID: " << *processId << ")"
+              << std::endl;
     std::cout << "Injecting: " << dllPath.filename().string() << std::endl;
 
     // Perform injection and call entry point

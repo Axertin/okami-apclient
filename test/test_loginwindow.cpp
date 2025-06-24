@@ -1,7 +1,9 @@
 #pragma warning(push, 0)
-#include <catch2/catch_test_macros.hpp>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+
+#include <catch2/catch_test_macros.hpp>
+
 #include "loginwindow.h"
 #include "mock_socket.hpp"
 #pragma warning(pop)
@@ -23,7 +25,8 @@ TEST_CASE("LoginWindow::saveLoginData and loadLoginData - Greenpath", "[login]")
 
     // Load data
     std::string loadedServer, loadedSlot, loadedPassword;
-    bool result = window.loadLoginData(testFile, loadedServer, loadedSlot, loadedPassword);
+    bool result = window.loadLoginData(testFile, loadedServer, loadedSlot,
+                                       loadedPassword);
 
     REQUIRE(result == true);
     CHECK(loadedServer == testServer);

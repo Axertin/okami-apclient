@@ -3,9 +3,9 @@
 #include "gamehooks.h"
 #endif
 #include "logger.h"
-#include "okami/memorymap.hpp"
-#include "okami/items.hpp"
 #include "okami/brushes.hpp"
+#include "okami/items.hpp"
+#include "okami/memorymap.hpp"
 
 bool receiveAPItem(int ItemID)
 {
@@ -22,7 +22,8 @@ bool receiveAPItem(int ItemID)
     {
         if (okami::ItemTable.count(ItemID) != 0)
         {
-            logDebug("[receive] Receiving %s (0x%X)", okami::ItemTable.at(ItemID).Name, ItemID);
+            logDebug("[receive] Receiving %s (0x%X)",
+                     okami::ItemTable.at(ItemID).Name, ItemID);
 #ifdef _WIN32
             GameHooks::giveItem(ItemID, 1);
 #endif

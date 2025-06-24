@@ -1,19 +1,18 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
-#include "archipelagosocket.h" // include the socket first, before any windows headers / minhook!
-#include "framework.h"
 #include "MinHook.h"
+#include "archipelagosocket.h" // include the socket first, before any windows headers / minhook!
+#include "checks.h"
+#include "framework.h"
 #include "gamehooks.h"
 #include "gui.h"
-#include "checks.h"
 #include "logger.h"
-#include "version.h"
 #include "okami/memorymap.hpp"
+#include "version.h"
 
 BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule,
                       DWORD ul_reason_for_call,
                       [[maybe_unused]] LPVOID lpReserved)
 {
-
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
@@ -54,7 +53,9 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     okami::initVariables();
     okami::initFunctions();
 
-    logInfo("[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
+    logInfo(
+        "[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p",
+        okami::MainBase, okami::FlowerBase);
 
     return true;
 }
@@ -62,9 +63,11 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
 extern "C" __declspec(dllexport) int entry()
 {
     initializeLogger();
-    logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
+    logInfo("[apclient] Initializing okami_apclient v%s (%s)",
+            version::string(), version::hash());
 
-    if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+    if (!initialize(GetModuleHandleW(L"main.dll"),
+                    GetModuleHandleW(L"flower_kernel.dll")))
         return 1;
     GameHooks::setup();
     guiInitHooks();

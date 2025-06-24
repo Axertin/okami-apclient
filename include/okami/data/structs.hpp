@@ -1,29 +1,29 @@
 #pragma once
 #include <cstdint>
 
-#include "maptype.hpp"
-#include "itemtype.hpp"
 #include "bitfield.hpp"
+#include "itemtype.hpp"
+#include "maptype.hpp"
 
 namespace hx
 {
-  struct Texture
-  {
+struct Texture
+{
     uint32_t type;
     uint32_t field_4;
     void *pTexture2D;
     uint32_t count;
     uint8_t field_14;
     // 3 bytes padding
-  };
-}
+};
+} // namespace hx
 
 namespace okami
 {
 
-  // singleton at +0xB4DF90
-  struct CharacterStats
-  {
+// singleton at +0xB4DF90
+struct CharacterStats
+{
     uint16_t currentHealth;
     uint16_t maxHealth;
     uint16_t currentFood;
@@ -54,20 +54,22 @@ namespace okami
 
     float x, y, z; // set from elsewhere
     float u, v, w; // set from elsewhere
-  };
+};
 
-  struct WorldStateData
-  {
+struct WorldStateData
+{
     uint32_t timeOfDay;
     uint16_t day;
     uint16_t unk1; // set from +0xB6B242
     uint16_t unk2; // set from +0xB6B244
     uint16_t unk3;
     uint32_t unk4;
-    BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
-    BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
-    uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
-    BitField<256> riverOfHeavensRejuvinationBits; // set from BrushData (+0x8909C0 + 0x1F60)
+    BitField<64> usableBrushTechniques; // set from BrushData (+0x8909C0 + 0x70)
+    BitField<64>
+        obtainedBrushTechniques; // set from BrushData (+0x8909C0 + 0x78)
+    uint8_t brushUpgrades[64];   // set from BrushData (+0x8909C0 + 0x80)
+    BitField<256> riverOfHeavensRejuvinationBits; // set from BrushData
+                                                  // (+0x8909C0 + 0x1F60)
     uint32_t unk5[1];
     uint32_t unk6[1];
     uint8_t unk7;
@@ -77,7 +79,8 @@ namespace okami
     uint16_t unk11[56];
 
     BitField<256> mapStateBits[MapTypes::NUM_MAP_TYPES + 1];
-    BitField<256> animalsFedBits; // Whether a specific animal group in the world has been fed (globally)
+    BitField<256> animalsFedBits; // Whether a specific animal group in the
+                                  // world has been fed (globally)
     uint16_t numAnimalsFed[20];
     uint32_t unk15[10]; // wanted lists here
     uint32_t unk16[1];
@@ -93,11 +96,11 @@ namespace okami
     uint32_t demonFangs;
     uint32_t enemiesKilled;
     uint8_t unk24[28];
-  };
+};
 
-  // singleton at +0xB205D0
-  struct CollectionData
-  {
+// singleton at +0xB205D0
+struct CollectionData
+{
     uint16_t numSaves;
     uint16_t currentMapId; // set from +0xB6B240
     uint16_t lastMapId;    // set from +0xB6B248
@@ -126,11 +129,11 @@ namespace okami
 
     uint16_t inventory[ItemTypes::NUM_ITEM_TYPES];
     WorldStateData world;
-  };
+};
 
-  // singleton at +0xB21780
-  struct TrackerData
-  {
+// singleton at +0xB21780
+struct TrackerData
+{
     BitField<256> firstTimeItem;
     BitField<96> logbookAvailable;
     BitField<32> animalTomeUnlocked;
@@ -150,28 +153,28 @@ namespace okami
     uint8_t field_6F;
     uint32_t field_70[3];
     uint32_t timePlayed;
-  };
+};
 
-  struct CustomTexture
-  {
+struct CustomTexture
+{
     uint8_t textureBits[0x8000]; // 16 bits per pixel for 256x256 image
     uint32_t colors1[16];
     uint32_t colors2[16];
     hx::Texture texture[2];
-  };
+};
 
-  // singleton at +0xB21820
-  // assuming this is specifically for the things you can free-draw in-game
-  // i.e. the face mask for the Moon Cave
-  struct CustomTextures
-  {
+// singleton at +0xB21820
+// assuming this is specifically for the things you can free-draw in-game
+// i.e. the face mask for the Moon Cave
+struct CustomTextures
+{
     CustomTexture texture1;
     CustomTexture texture2;
-  };
+};
 
-  // singleton at +0x8909C0
-  struct BrushState
-  {
+// singleton at +0x8909C0
+struct BrushState
+{
     // TODO chonker
-  };
-}
+};
+} // namespace okami
