@@ -1,6 +1,7 @@
 {
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
+        "*.spec": "python",
         "thread": "cpp",
         "ios": "cpp",
         "atomic": "cpp",
@@ -115,7 +116,11 @@
         "netfwd": "cpp",
         "string_view": "cpp",
         "rope": "cpp",
-        "slist": "cpp"
+        "slist": "cpp",
+        "xthread": "cpp",
+        "xfunctional": "cpp",
+        "xmemory0": "cpp",
+        "xstddef": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++23",
     "C_Cpp.loggingLevel": "Information",

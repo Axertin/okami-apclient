@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include <cstdint>
 #include <iostream>
 
@@ -24,10 +25,8 @@ extern uintptr_t FlowerBase;
 extern MemoryAccessor<CharacterStats> AmmyStats;
 extern MemoryAccessor<CollectionData> AmmyCollections;
 extern MemoryAccessor<TrackerData> AmmyTracker;
-extern MemoryAccessor<std::array<BitField<1824>, MapTypes::NUM_MAP_TYPES>>
-    MapBits;
-extern MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>>
-    IssunDialogBits;
+extern MemoryAccessor<std::array<BitField<1824>, MapTypes::NUM_MAP_TYPES>> MapBits;
+extern MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> IssunDialogBits;
 
 extern MemoryAccessor<float> AmmyPosX;
 extern MemoryAccessor<float> AmmyPosY;

@@ -130,6 +130,18 @@ endif()
 
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
+set(ADDITIONAL_COMMON_SOURCES 
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/animals.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/bestiarytome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/dojotech.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/fish.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/movelisttome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/straybeads.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/travelguides.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/treasures.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
 
 if(NOT BUILD_TESTS_ONLY)
   # imgui
@@ -146,10 +158,7 @@ if(NOT BUILD_TESTS_ONLY)
   target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
   # Primary program
-  add_library(okami-apclient SHARED ${CLIENT_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
+  add_library(okami-apclient SHARED ${CLIENT_SOURCES} ${ADDITIONAL_COMMON_SOURCES})
   target_precompile_headers(okami-apclient PRIVATE
     <algorithm>
     <array>
@@ -205,20 +214,13 @@ if(NOT BUILD_TESTS_ONLY)
 endif()
 
 if(WIN32)
-  set(TESTED_UNITS
-    ${CLIENT_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp)
+  set(TESTED_UNITS ${CLIENT_SOURCES} ${ADDITIONAL_COMMON_SOURCES})
 else()
-  set(TESTED_UNITS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
+  set(TESTED_UNITS ${ADDITIONAL_COMMON_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/receive.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
   )
 endif()
 

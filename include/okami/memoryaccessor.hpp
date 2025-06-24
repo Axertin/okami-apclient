@@ -14,8 +14,7 @@ namespace okami
  */
 template <typename T> class MemoryAccessor
 {
-    static_assert(std::is_trivially_copyable_v<T>,
-                  "MemoryAccessor requires trivial types");
+    static_assert(std::is_trivially_copyable_v<T>, "MemoryAccessor requires trivial types");
 
     uintptr_t address;
 

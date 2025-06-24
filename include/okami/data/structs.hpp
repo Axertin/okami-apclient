@@ -1,6 +1,14 @@
 #pragma once
 #include <cstdint>
 
+#include "../animals.hpp"
+#include "../bestiarytome.hpp"
+#include "../dojotech.hpp"
+#include "../fish.hpp"
+#include "../movelisttome.hpp"
+#include "../straybeads.hpp"
+#include "../travelguides.hpp"
+#include "../treasures.hpp"
 #include "bitfield.hpp"
 #include "itemtype.hpp"
 #include "maptype.hpp"
@@ -35,8 +43,9 @@ struct CharacterStats
     uint8_t __padding2;
     uint8_t __padding3;
 
-    BitField<64> dojoTechniquesUnlocked;
+    BitField<DojoTechs::NUM_DOJO_TECHS> dojoTechniquesUnlocked;
 
+    uint32_t unk1b;
     uint8_t unk2;
     uint8_t unk3;
     uint8_t unk4;
@@ -81,14 +90,14 @@ struct WorldStateData
     BitField<256> mapStateBits[MapTypes::NUM_MAP_TYPES + 1];
     BitField<256> animalsFedBits; // Whether a specific animal group in the
                                   // world has been fed (globally)
-    uint16_t numAnimalsFed[20];
+    uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
     uint32_t unk15[10]; // wanted lists here
     uint32_t unk16[1];
     uint32_t unk17[4];
     uint32_t unk18;
     uint32_t unk19;
     uint32_t unk20;
-    uint32_t unk21[4];
+    uint32_t unk21[4]; // logbook entry viewed
 
     uint8_t unk22[780];
 
@@ -115,17 +124,18 @@ struct CollectionData
     uint8_t unk3;
     uint8_t unk4;
 
-    BitField<128> strayBeadsCollected;
-    BitField<32> travelGuidesCollected;
-    BitField<32> travelGuidesViewed;
-    BitField<32> dojoMovesCollected;
-    BitField<32> dojoMovesViewed;
-    BitField<64> fishTomesCollected;
-    BitField<64> fishTomesViewed;
-    BitField<32> animalTomesCollected;
-    BitField<32> animalTomesViewed;
-    BitField<64> treasureTomesCollected;
-    BitField<64> treasureTomesViewed;
+    BitField<StrayBeads::NUM_STRAY_BEADS> strayBeadsCollected;
+    BitField<TravelGuides::NUM_TRAVEL_GUIDES> travelGuidesCollected;
+    BitField<TravelGuides::NUM_TRAVEL_GUIDES> travelGuidesViewed;
+    BitField<MoveListTome::NUM_MOVE_LIST_ENTRIES>
+        dojoMovesCollected; // tome only
+    BitField<MoveListTome::NUM_MOVE_LIST_ENTRIES> dojoMovesViewed;
+    BitField<FishTome::NUM_FISH_ENTRIES> fishTomesCollected;
+    BitField<FishTome::NUM_FISH_ENTRIES> fishTomesViewed;
+    BitField<Animals::NUM_ANIMALS> animalTomesCollected;
+    BitField<Animals::NUM_ANIMALS> animalTomesViewed;
+    BitField<Treasures::NUM_TREASURES> treasureTomesCollected;
+    BitField<Treasures::NUM_TREASURES> treasureTomesViewed;
 
     uint16_t inventory[ItemTypes::NUM_ITEM_TYPES];
     WorldStateData world;
@@ -134,9 +144,9 @@ struct CollectionData
 // singleton at +0xB21780
 struct TrackerData
 {
-    BitField<256> firstTimeItem;
+    BitField<ItemTypes::NUM_ITEM_TYPES> firstTimeItem;
     BitField<96> logbookAvailable;
-    BitField<32> animalTomeUnlocked;
+    BitField<32> unknown;
     uint32_t unk1[4];
     uint32_t field_40;
     uint32_t field_44;
@@ -145,8 +155,8 @@ struct TrackerData
     uint16_t field_4E;
     uint16_t field_50;
     uint16_t field_52;
-    BitField<96> bestiaryTomeUnlocked;
-    BitField<96> bestiaryTomeRead;
+    BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeUnlocked;
+    BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeRead;
     uint8_t unk2;
     uint8_t field_6D;
     uint8_t field_6E;

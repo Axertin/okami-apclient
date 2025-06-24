@@ -27,8 +27,7 @@ MemoryAccessor<CharacterStats> AmmyStats;
 MemoryAccessor<CollectionData> AmmyCollections;
 MemoryAccessor<TrackerData> AmmyTracker;
 MemoryAccessor<std::array<BitField<1824>, MapTypes::NUM_MAP_TYPES>> MapBits;
-MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>>
-    IssunDialogBits;
+MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> IssunDialogBits;
 
 MemoryAccessor<float> AmmyPosX;
 MemoryAccessor<float> AmmyPosY;
@@ -117,8 +116,7 @@ void initVariables()
     CameraFOV.bind(okami::MainBase + 0xB663B0);
 
     MaybeAmmyObject = reinterpret_cast<void *>(okami::MainBase + 0xB6B2D0);
-    MaybeInventoryStructPtr =
-        reinterpret_cast<void *>(okami::MainBase + 0xB66670);
+    MaybeInventoryStructPtr = reinterpret_cast<void *>(okami::MainBase + 0xB66670);
     MaybePlayerClassPtr = reinterpret_cast<void *>(okami::MainBase + 0x8909C0);
 
     AmmyUsableBrushes.bind(okami::MainBase + 0x890A30);
@@ -133,17 +131,13 @@ void initFunctions()
 {
     // edit brushbitfield = mainBase + 17C270 (void setBrushes(void* <ammy
     // class? this?>, uint32_t index, int op)) --> op
-    GetSaveDataRootDirectoryFnPtr =
-        reinterpret_cast<char *>(okami::FlowerBase + 0x22F7);
-    MainFlowerStartupFnPtr =
-        reinterpret_cast<void *>(okami::MainBase + 0x4B6240);
+    GetSaveDataRootDirectoryFnPtr = reinterpret_cast<char *>(okami::FlowerBase + 0x22F7);
+    MainFlowerStartupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6240);
     MainFlowerStopFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6230);
     MainFlowerTickFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B63B0);
     MainFlowerLoadPtr = reinterpret_cast<void *>(okami::MainBase + 0x4390A0);
-    MainFlowerTreasurePickedUpPtr =
-        reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
-    MainFlowerItemPickupFnPtr =
-        reinterpret_cast<void *>(okami::MainBase + 0x4965D0);
+    MainFlowerTreasurePickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
+    MainFlowerItemPickupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4965D0);
 
     EditBrushesFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x17C270);
 }
