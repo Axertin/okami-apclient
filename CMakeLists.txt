@@ -207,7 +207,9 @@ endif()
 if(WIN32)
   set(TESTED_UNITS
     ${CLIENT_SOURCES}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp)
 else()
   set(TESTED_UNITS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp
@@ -215,9 +217,10 @@ else()
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/receive.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
   )
 endif()
-
 
 # Tests
 add_executable(okami-tests ${tests} ${TESTED_UNITS})

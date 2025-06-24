@@ -1,7 +1,9 @@
 #pragma once
 
-namespace okami {
-  namespace MapTypes {
+namespace okami
+{
+  namespace MapTypes
+  {
     enum Enum
     {
       None,
@@ -90,6 +92,6 @@ namespace okami {
       NUM_MAP_TYPES
     };
 
-    const char *GetName(unsigned value);
+    extern const char *GetName(unsigned value);
   }
 }
