@@ -4,7 +4,7 @@ IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 
-Standard: c++23
+Standard: c++20
 Cpp11BracedListStyle: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
