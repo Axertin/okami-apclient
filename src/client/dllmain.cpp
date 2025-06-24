@@ -1,5 +1,4 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
-#include "MinHook.h"
 #include "archipelagosocket.h" // include the socket first, before any windows headers / minhook!
 #include "checks.h"
 #include "framework.h"
@@ -8,6 +7,8 @@
 #include "logger.h"
 #include "okami/memorymap.hpp"
 #include "version.h"
+
+#include <MinHook.h>
 
 BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule,
                       DWORD ul_reason_for_call,

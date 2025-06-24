@@ -1,10 +1,10 @@
 #include "gamehooks.h"
 
-#include <MinHook.h>
-
 #include "checks.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
+
+#include <MinHook.h>
 
 typedef void(__cdecl *FunctionType)();
 

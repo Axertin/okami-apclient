@@ -51,14 +51,18 @@ BraceWrapping:
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '^<[[:alnum:]_]+>'
+  - Regex: '^<windows.h>'
     Priority: 1
-  - Regex: '^<.*\.h>'
+  - Regex: '^<MinHook.h>'
+    Priority: 10
+  - Regex: '^<[[:alnum:]_]+>'
     Priority: 2
-  - Regex: '^<.*>'
+  - Regex: '^<.*\.h>'
     Priority: 3
-  - Regex: '^".*"'
+  - Regex: '^<.*>'
     Priority: 4
+  - Regex: '^".*"'
+    Priority: 5
 
 # Alignment
 AlignAfterOpenBracket: Align

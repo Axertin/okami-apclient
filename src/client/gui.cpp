@@ -9,10 +9,11 @@
 #include "okami/memorymap.hpp"
 
 #ifdef _WIN32
-#include <MinHook.h>
 #include <d3d11.h>
 #include <dxgi.h>
 #include <imgui_impl_win32.h>
+
+#include <MinHook.h>
 #endif
 
 #ifdef _WIN32
