@@ -446,21 +446,14 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::CollapsingHeader("Usable Brushes"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("Brush %u: %s", i,
-                            okami::AmmyUsableBrushes->IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(2, "Brush",
+                                 *okami::AmmyUsableBrushes.get_ptr());
         }
 
         if (ImGui::CollapsingHeader("Obtained Brushes"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("Brush %u: %s", i,
-                            okami::AmmyObtainedBrushes->IsSet(i) ? "yes"
-                                                                 : "no");
-            }
+            checklistColsUnnamed(2, "Brush",
+                                 *okami::AmmyObtainedBrushes.get_ptr());
         }
     }
 
