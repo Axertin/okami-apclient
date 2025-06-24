@@ -117,6 +117,16 @@
         "rope": "cpp",
         "slist": "cpp"
     },
-    "C_Cpp.default.cppStandard": "c++17",
-    "C_Cpp.loggingLevel": "Information"
+    "C_Cpp.default.cppStandard": "c++23",
+    "C_Cpp.loggingLevel": "Information",
+    "editor.formatOnSave": true,
+    "C_Cpp.formatting": "clangFormat",
+    "C_Cpp.clang_format_style": "file",
+    "C_Cpp.clang_format_fallbackStyle": "LLVM",
+    "[cpp]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "ms-vscode.cpptools"
+    }
 }

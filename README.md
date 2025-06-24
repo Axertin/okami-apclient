@@ -89,7 +89,8 @@ Contributions are welcome! Please:
 1. Fork the repository
 2. Create a feature branch from `master`
 3. Test your changes
-4. Submit a pull request
+4. Run `format.sh` (use Git Bash on Windows)
+5. Submit a pull request
 
 ## Project Structure
 

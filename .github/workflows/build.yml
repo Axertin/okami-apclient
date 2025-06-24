@@ -27,6 +27,20 @@ jobs:
             # Both debug and release for master pushes and tags
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
           fi
+  
+  format-check:
+    name: Format Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check formatting
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          clang-format-version: '15'
+          check-path: 'src'
+          include-regex: '^.*\.(cpp|hpp|c|h)$'
 
   build:
     name: Build ${{ matrix.config }}
