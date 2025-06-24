@@ -16,9 +16,7 @@ class LoginWindow : public Window
             titleChecker.join(); // wait for thread to exit cleanly
         }
     }
-    LoginWindow()
-        : Window("Login"), Socket(ArchipelagoSocket::instance()),
-          CheckingVisibility(true), OnTitleScreen(true)
+    LoginWindow() : Window("Login"), Socket(ArchipelagoSocket::instance()), CheckingVisibility(true), OnTitleScreen(true)
     {
         IsVisible = true;
         std::string SavedServer, SavedSlot, SavedPassword;
@@ -31,8 +29,7 @@ class LoginWindow : public Window
         }
         titleChecker = std::thread(&LoginWindow::checkIfShouldBeVisible, this);
     }
-    LoginWindow(bool Check, ISocket &connsock = ArchipelagoSocket::instance())
-        : Window("Login"), Socket(connsock), OnTitleScreen(true)
+    LoginWindow(bool Check, ISocket &connsock = ArchipelagoSocket::instance()) : Window("Login"), Socket(connsock), OnTitleScreen(true)
     {
         CheckingVisibility = Check;
         IsVisible = true;
@@ -40,10 +37,8 @@ class LoginWindow : public Window
     void toggleVisibility() override;
     void draw(int OuterWidth, int OuterHeight, float UIScale) override;
     void setMessage(std::string);
-    bool loadLoginData(const std::string &path, std::string &oServer,
-                       std::string &oSlot, std::string &oPassword);
-    void saveLoginData(const std::string &path, const std::string &oServer,
-                       const std::string &oSlot, const std::string &oPassword);
+    bool loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword);
+    void saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword);
     char Server[128] = "archipelago.gg:";
     char Password[128] = "";
     char Slot[128] = "";
@@ -52,8 +47,7 @@ class LoginWindow : public Window
     char mState[128] = "";
 
   private:
-    template <size_t N>
-    void copyToBuffer(char (&buffer)[N], const std::string &source)
+    template <size_t N> void copyToBuffer(char (&buffer)[N], const std::string &source)
     {
         size_t copyLen = std::min(source.length(), N - 1);
         std::copy(source.begin(), source.begin() + copyLen, buffer);

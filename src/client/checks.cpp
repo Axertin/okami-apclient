@@ -85,8 +85,7 @@ void startChecks()
             }
 
             logInfo("[checks] Exiting main menu, initializing checks");
-            std::this_thread::sleep_for(
-                std::chrono::seconds(15)); // Wait for memory to initialize
+            std::this_thread::sleep_for(std::chrono::seconds(15)); // Wait for memory to initialize
 
             logInfo("[checks] Delay Finished!");
             checksEnabled = true;
@@ -100,8 +99,7 @@ void checkInit()
     std::thread(
         []
         {
-            std::this_thread::sleep_for(
-                std::chrono::seconds(2)); // Wait for game to initialize
+            std::this_thread::sleep_for(std::chrono::seconds(2)); // Wait for game to initialize
             startChecks();
         })
         .detach();

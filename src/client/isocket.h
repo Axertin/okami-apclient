@@ -15,8 +15,7 @@ class ISocket
     virtual std::string getItemName(int64_t id, int player) = 0;
     virtual std::string getItemDesc(int player) = 0;
     virtual std::string getAddrInfo() = 0;
-    virtual bool scoutLocations(std::list<int64_t> locations,
-                                int createAsHint) = 0;
+    virtual bool scoutLocations(std::list<int64_t> locations, int createAsHint) = 0;
 
     virtual bool isConnected() const = 0;
     virtual std::string getUUID() const = 0;

@@ -18,8 +18,7 @@ class ArchipelagoSocket : public ISocket
     std::string getItemName(int64_t ID, int Player) override;
     std::string getItemDesc(int Player) override;
     std::string getAddrInfo() override;
-    bool scoutLocations(std::list<int64_t> Locations,
-                        int CreateAsHint) override;
+    bool scoutLocations(std::list<int64_t> Locations, int CreateAsHint) override;
 
     bool isConnected() const override;
     std::string getUUID() const override;

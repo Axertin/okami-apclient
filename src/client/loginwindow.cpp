@@ -49,8 +49,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     // Draw login window
     ImGui::Begin(name.c_str(), &IsVisible, ImGuiWindowFlags_AlwaysAutoResize);
     ImGui::InputText("Server", Server, IM_ARRAYSIZE(Server));
-    ImGui::InputText("Password", Password, IM_ARRAYSIZE(Password),
-                     ImGuiInputTextFlags_Password);
+    ImGui::InputText("Password", Password, IM_ARRAYSIZE(Password), ImGuiInputTextFlags_Password);
     ImGui::InputText("Slot Name", Slot, IM_ARRAYSIZE(Slot));
 
     if (!Socket.isConnected())
@@ -100,10 +99,7 @@ void LoginWindow::setMessage(std::string newMessage)
  * @param oSlot The slot (player name).
  * @param oPassword The password used for authentication.
  */
-void LoginWindow::saveLoginData(const std::string &path,
-                                const std::string &oServer,
-                                const std::string &oSlot,
-                                const std::string &oPassword)
+void LoginWindow::saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword)
 {
     nlohmann::json jsonData;
     jsonData["Server"] = oServer;
@@ -125,8 +121,7 @@ void LoginWindow::saveLoginData(const std::string &path,
  * @return true If data was loaded successfully.
  * @return false If the file was not found or loading failed.
  */
-bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer,
-                                std::string &oSlot, std::string &oPassword)
+bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword)
 {
     std::ifstream file(path);
 

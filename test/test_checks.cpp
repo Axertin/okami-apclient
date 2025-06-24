@@ -72,8 +72,7 @@ TEST_CASE("checkItems detects and sends item checks", "[check]")
     disableChecks();
 }
 
-TEST_CASE("checkBrushes sends the correct location when given an index",
-          "[check]")
+TEST_CASE("checkBrushes sends the correct location when given an index", "[check]")
 {
     MockSocket mock;
     ISocket &MockSock = mock;

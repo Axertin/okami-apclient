@@ -39,11 +39,9 @@ void __cdecl GameHooks::onGameTick()
 
 typedef void(__fastcall *ItemPickupFn)(void *rcx, int edx, int r8);
 static ItemPickupFn oItemPickup = nullptr;
-void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID,
-                                        int NumItems)
+void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, int NumItems)
 {
-    logDebug("[gamehooks] ItemPickup called with 0x%p, 0x%X, 0x%X", ItemID,
-             NumItems);
+    logDebug("[gamehooks] ItemPickup called with 0x%p, 0x%X, 0x%X", ItemID, NumItems);
     if (checkItems(ItemID))
     {
         return;
@@ -52,14 +50,11 @@ void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID,
     return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
 }
 
-typedef bool(__fastcall *EditBrushesFn)(void *MaybeInventoryStruct,
-                                        int BitIndex, int Operation);
+typedef bool(__fastcall *EditBrushesFn)(void *MaybeInventoryStruct, int BitIndex, int Operation);
 static EditBrushesFn oEditBrushes = nullptr;
-bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex,
-                                       int Operation)
+bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex, int Operation)
 {
-    logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X",
-             MaybeInventoryStruct, BitIndex, Operation);
+    logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
     checkBrushes(BitIndex);
 
     return true;
@@ -83,21 +78,11 @@ void GameHooks::setup()
         return;
     }
 
-    MH_CreateHook(okami::MainFlowerStartupFnPtr,
-                  reinterpret_cast<LPVOID>(&onReturnToMenu),
-                  reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
-    MH_CreateHook(okami::MainFlowerStopFnPtr,
-                  reinterpret_cast<LPVOID>(&onGameStop),
-                  reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));
-    MH_CreateHook(okami::MainFlowerTickFnPtr,
-                  reinterpret_cast<LPVOID>(&onGameTick),
-                  reinterpret_cast<LPVOID *>(&Main_FlowerTickOrigin));
-    MH_CreateHook(okami::MainFlowerItemPickupFnPtr,
-                  reinterpret_cast<LPVOID>(&onItemPickup),
-                  reinterpret_cast<LPVOID *>(&oItemPickup));
-    MH_CreateHook(okami::EditBrushesFnPtr,
-                  reinterpret_cast<LPVOID>(&onBrushEdit),
-                  reinterpret_cast<LPVOID *>(&oEditBrushes));
+    MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
+    MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));
+    MH_CreateHook(okami::MainFlowerTickFnPtr, reinterpret_cast<LPVOID>(&onGameTick), reinterpret_cast<LPVOID *>(&Main_FlowerTickOrigin));
+    MH_CreateHook(okami::MainFlowerItemPickupFnPtr, reinterpret_cast<LPVOID>(&onItemPickup), reinterpret_cast<LPVOID *>(&oItemPickup));
+    MH_CreateHook(okami::EditBrushesFnPtr, reinterpret_cast<LPVOID>(&onBrushEdit), reinterpret_cast<LPVOID *>(&oEditBrushes));
 
     MH_EnableHook(MH_ALL_HOOKS);
 

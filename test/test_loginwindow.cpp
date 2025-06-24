@@ -25,8 +25,7 @@ TEST_CASE("LoginWindow::saveLoginData and loadLoginData - Greenpath", "[login]")
 
     // Load data
     std::string loadedServer, loadedSlot, loadedPassword;
-    bool result = window.loadLoginData(testFile, loadedServer, loadedSlot,
-                                       loadedPassword);
+    bool result = window.loadLoginData(testFile, loadedServer, loadedSlot, loadedPassword);
 
     REQUIRE(result == true);
     CHECK(loadedServer == testServer);

@@ -9,8 +9,7 @@
 // Global logger instance
 Logger *g_Logger = nullptr;
 
-LogEntry::LogEntry(const std::string &msg, LogLevel lvl)
-    : message(msg), level(lvl)
+LogEntry::LogEntry(const std::string &msg, LogLevel lvl) : message(msg), level(lvl)
 {
     auto now = std::time(nullptr);
     auto tm = *std::localtime(&now);
@@ -53,9 +52,7 @@ const char *LogEntry::getLevelString() const
     }
 }
 
-StreamCapture::StreamCapture(
-    std::ostream &stream,
-    std::function<void(const std::string &, LogLevel)> callback, LogLevel level)
+StreamCapture::StreamCapture(std::ostream &stream, std::function<void(const std::string &, LogLevel)> callback, LogLevel level)
     : stream_(stream), callback_(callback), level_(level)
 {
     old_buf_ = stream.rdbuf(this);
@@ -153,8 +150,7 @@ void Logger::initializeLogFile()
     auto now = std::time(nullptr);
     auto tm = *std::localtime(&now);
     std::ostringstream filename;
-    filename << "logs/okami_log_" << std::put_time(&tm, "%Y%m%d_%H%M%S")
-             << ".txt";
+    filename << "logs/okami_log_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".txt";
 
     logFile_.open(filename.str(), std::ios::out | std::ios::app);
     if (logFile_.is_open())
@@ -165,13 +161,10 @@ void Logger::initializeLogFile()
 
 void Logger::setupStreamCapture()
 {
-    auto captureCallback = [this](const std::string &msg, LogLevel level)
-    { this->addLogEntry(msg, level); };
+    auto captureCallback = [this](const std::string &msg, LogLevel level) { this->addLogEntry(msg, level); };
 
-    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback,
-                                                     LogLevel::Info);
-    stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback,
-                                                     LogLevel::Error);
+    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback, LogLevel::Info);
+    stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback, LogLevel::Error);
 }
 
 void Logger::cleanupStreamCapture()
@@ -189,9 +182,7 @@ void Logger::addLogEntry(const std::string &message, LogLevel level)
     // Write to file regardless of window visibility
     if (logFile_.is_open())
     {
-        logFile_ << "[" << logEntries_.back().timestamp << "] "
-                 << logEntries_.back().getLevelString() << " " << message
-                 << std::endl;
+        logFile_ << "[" << logEntries_.back().timestamp << "] " << logEntries_.back().getLevelString() << " " << message << std::endl;
         logFile_.flush();
     }
 

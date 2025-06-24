@@ -64,9 +64,9 @@ struct WorldStateData
     uint16_t unk2; // set from +0xB6B244
     uint16_t unk3;
     uint32_t unk4;
-    BitField<64> usableBrushTechniques; // set from BrushData (+0x8909C0 + 0x70)
-    BitField<64> obtainedBrushTechniques; // set from BrushData (+0x8909C0 + 0x78)
-    uint8_t brushUpgrades[64];   // set from BrushData (+0x8909C0 + 0x80)
+    BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
+    BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
+    uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvinationBits; // set from BrushData (+0x8909C0 + 0x1F60)
     uint32_t unk5[1];
     uint32_t unk6[1];

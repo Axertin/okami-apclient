@@ -9,16 +9,13 @@
 
 // Console Implementation - Handles UI rendering only
 
-Console::Console()
-    : Window("Console"), logger_(*g_Logger), autoScroll_(true),
-      showTimestamps_(true)
+Console::Console() : Window("Console"), logger_(*g_Logger), autoScroll_(true), showTimestamps_(true)
 {
     // Ensure logger is initialized
     if (g_Logger == nullptr)
     {
-        throw std::runtime_error(
-            "Console created before Logger initialization. Call "
-            "initializeLogger() first.");
+        throw std::runtime_error("Console created before Logger initialization. Call "
+                                 "initializeLogger() first.");
     }
 
     // Initialize level filters - all enabled by default
@@ -28,9 +25,7 @@ Console::Console()
     }
 }
 
-Console::Console(Logger &logger)
-    : Window("Console"), logger_(logger), autoScroll_(true),
-      showTimestamps_(true)
+Console::Console(Logger &logger) : Window("Console"), logger_(logger), autoScroll_(true), showTimestamps_(true)
 {
     // Initialize level filters - all enabled by default
     for (int i = 0; i < 4; ++i)
@@ -54,8 +49,7 @@ void Console::draw(int OuterWidth, int OuterHeight, float UIScale)
     if (!IsVisible)
         return;
 
-    ImGui::SetNextWindowSize(ImVec2(800 * UIScale, 400 * UIScale),
-                             ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(800 * UIScale, 400 * UIScale), ImGuiCond_FirstUseEver);
 
     if (ImGui::Begin(name.c_str(), &IsVisible))
     {
@@ -92,8 +86,7 @@ void Console::draw(int OuterWidth, int OuterHeight, float UIScale)
 
 void Console::drawLogOutput()
 {
-    if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false,
-                          ImGuiWindowFlags_HorizontalScrollbar))
+    if (ImGui::BeginChild("ScrollingRegion", ImVec2(0, 0), false, ImGuiWindowFlags_HorizontalScrollbar))
     {
         std::lock_guard<std::mutex> lock(logger_.getLogMutex());
         const auto &logEntries = logger_.getLogEntries();
@@ -113,13 +106,11 @@ void Console::drawLogOutput()
             std::string displayText;
             if (showTimestamps_)
             {
-                displayText = "[" + entry.timestamp + "] " +
-                              entry.getLevelString() + " " + entry.message;
+                displayText = "[" + entry.timestamp + "] " + entry.getLevelString() + " " + entry.message;
             }
             else
             {
-                displayText =
-                    std::string(entry.getLevelString()) + " " + entry.message;
+                displayText = std::string(entry.getLevelString()) + " " + entry.message;
             }
 
             ImGui::TextUnformatted(displayText.c_str());

@@ -8,13 +8,9 @@
 
 using namespace okami;
 
-#define OFFCHECK(type, member, offset)                                         \
-    static_assert(offsetof(type, member) == (offset),                          \
-                  #type "." #member " at wrong offset, expected @ " #offset)
+#define OFFCHECK(type, member, offset) static_assert(offsetof(type, member) == (offset), #type "." #member " at wrong offset, expected @ " #offset)
 
-#define SIZECHECK(type, size)                                                  \
-    static_assert(sizeof(type) == (size),                                      \
-                  #type " is the wrong size, expected " #size)
+#define SIZECHECK(type, size) static_assert(sizeof(type) == (size), #type " is the wrong size, expected " #size)
 
 #define CHARA_CHECK(member, offset) OFFCHECK(CharacterStats, member, offset)
 

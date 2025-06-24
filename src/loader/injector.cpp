@@ -29,37 +29,30 @@ std::optional<DWORD> OkamiInjector::findOkamiProcess()
 bool OkamiInjector::inject(DWORD processId, const std::wstring &dllPath)
 {
     // Open target process
-    HANDLE hProcess = OpenProcess(
-        PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION |
-            PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ,
-        FALSE, processId);
+    HANDLE hProcess =
+        OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, FALSE, processId);
 
     if (!hProcess)
     {
-        std::cerr << "Failed to open process: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to open process: " << formatWindowsError(GetLastError()) << std::endl;
         return false;
     }
 
     // Allocate memory for DLL path
     size_t pathSize = (dllPath.length() + 1) * sizeof(wchar_t);
-    LPVOID remotePath = VirtualAllocEx(
-        hProcess, nullptr, pathSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    LPVOID remotePath = VirtualAllocEx(hProcess, nullptr, pathSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
     if (!remotePath)
     {
-        std::cerr << "Failed to allocate memory: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to allocate memory: " << formatWindowsError(GetLastError()) << std::endl;
         CloseHandle(hProcess);
         return false;
     }
 
     // Write DLL path
-    if (!WriteProcessMemory(hProcess, remotePath, dllPath.c_str(), pathSize,
-                            nullptr))
+    if (!WriteProcessMemory(hProcess, remotePath, dllPath.c_str(), pathSize, nullptr))
     {
-        std::cerr << "Failed to write memory: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to write memory: " << formatWindowsError(GetLastError()) << std::endl;
         VirtualFreeEx(hProcess, remotePath, 0, MEM_RELEASE);
         CloseHandle(hProcess);
         return false;
@@ -67,19 +60,14 @@ bool OkamiInjector::inject(DWORD processId, const std::wstring &dllPath)
 
     // Get LoadLibraryW address
     HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
-    LPVOID loadLibraryAddr =
-        reinterpret_cast<LPVOID>(GetProcAddress(hKernel32, "LoadLibraryW"));
+    LPVOID loadLibraryAddr = reinterpret_cast<LPVOID>(GetProcAddress(hKernel32, "LoadLibraryW"));
 
     // Load the DLL
-    HANDLE hLoadThread = CreateRemoteThread(
-        hProcess, nullptr, 0,
-        reinterpret_cast<LPTHREAD_START_ROUTINE>(loadLibraryAddr), remotePath,
-        0, nullptr);
+    HANDLE hLoadThread = CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loadLibraryAddr), remotePath, 0, nullptr);
 
     if (!hLoadThread)
     {
-        std::cerr << "Failed to create LoadLibrary thread: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to create LoadLibrary thread: " << formatWindowsError(GetLastError()) << std::endl;
         VirtualFreeEx(hProcess, remotePath, 0, MEM_RELEASE);
         CloseHandle(hProcess);
         return false;
@@ -145,8 +133,7 @@ bool OkamiInjector::callEntryPoint(HANDLE hProcess, const std::wstring &dllPath)
 
     if (!targetModule)
     {
-        std::cerr << "Could not find injected module in target process"
-                  << std::endl;
+        std::cerr << "Could not find injected module in target process" << std::endl;
         return false;
     }
 
@@ -154,8 +141,7 @@ bool OkamiInjector::callEntryPoint(HANDLE hProcess, const std::wstring &dllPath)
     HMODULE localModule = LoadLibraryW(dllPath.c_str());
     if (!localModule)
     {
-        std::cerr << "Failed to load DLL locally for export resolution"
-                  << std::endl;
+        std::cerr << "Failed to load DLL locally for export resolution" << std::endl;
         return false;
     }
 
@@ -168,24 +154,18 @@ bool OkamiInjector::callEntryPoint(HANDLE hProcess, const std::wstring &dllPath)
     }
 
     // Calculate offset
-    DWORD_PTR offset = reinterpret_cast<DWORD_PTR>(entryProc) -
-                       reinterpret_cast<DWORD_PTR>(localModule);
+    DWORD_PTR offset = reinterpret_cast<DWORD_PTR>(entryProc) - reinterpret_cast<DWORD_PTR>(localModule);
     FreeLibrary(localModule);
 
     // Calculate remote address
-    LPVOID remoteEntry = reinterpret_cast<LPVOID>(
-        reinterpret_cast<DWORD_PTR>(targetModule) + offset);
+    LPVOID remoteEntry = reinterpret_cast<LPVOID>(reinterpret_cast<DWORD_PTR>(targetModule) + offset);
 
     // Create thread to run entry point
-    HANDLE hEntryThread = CreateRemoteThread(
-        hProcess, nullptr, 0,
-        reinterpret_cast<LPTHREAD_START_ROUTINE>(remoteEntry), nullptr, 0,
-        nullptr);
+    HANDLE hEntryThread = CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(remoteEntry), nullptr, 0, nullptr);
 
     if (!hEntryThread)
     {
-        std::cerr << "Failed to create entry point thread: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to create entry point thread: " << formatWindowsError(GetLastError()) << std::endl;
         return false;
     }
 
@@ -202,11 +182,8 @@ bool OkamiInjector::callEntryPoint(HANDLE hProcess, const std::wstring &dllPath)
 std::string OkamiInjector::formatWindowsError(DWORD error)
 {
     LPSTR messageBuffer = nullptr;
-    size_t size = FormatMessageA(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM |
-            FORMAT_MESSAGE_IGNORE_INSERTS,
-        nullptr, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
+    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error,
+                                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
 
     std::string message(messageBuffer, size);
     LocalFree(messageBuffer);
@@ -221,11 +198,9 @@ bool OkamiInjector::launchOkami(const std::wstring &exePath)
 
     // Create process suspended to ensure we can inject before it fully
     // initializes
-    if (!CreateProcessW(exePath.c_str(), nullptr, nullptr, nullptr, FALSE,
-                        CREATE_SUSPENDED, nullptr, nullptr, &si, &pi))
+    if (!CreateProcessW(exePath.c_str(), nullptr, nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &si, &pi))
     {
-        std::cerr << "Failed to launch okami.exe: "
-                  << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Failed to launch okami.exe: " << formatWindowsError(GetLastError()) << std::endl;
         return false;
     }
 
@@ -242,8 +217,7 @@ bool OkamiInjector::launchOkami(const std::wstring &exePath)
     {
         if (findOkamiProcess())
         {
-            std::this_thread::sleep_for(
-                std::chrono::seconds(1)); // Extra time for full init
+            std::this_thread::sleep_for(std::chrono::seconds(1)); // Extra time for full init
             return true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(500));

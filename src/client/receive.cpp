@@ -22,8 +22,7 @@ bool receiveAPItem(int ItemID)
     {
         if (okami::ItemTable.count(ItemID) != 0)
         {
-            logDebug("[receive] Receiving %s (0x%X)",
-                     okami::ItemTable.at(ItemID).Name, ItemID);
+            logDebug("[receive] Receiving %s (0x%X)", okami::ItemTable.at(ItemID).Name, ItemID);
 #ifdef _WIN32
             GameHooks::giveItem(ItemID, 1);
 #endif
