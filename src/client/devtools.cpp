@@ -423,9 +423,25 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     if (ImGui::CollapsingHeader("Flags"))
     {
-        ImGui::Text(
-            "Brushes: 0x%X",
-            okami::AmmyCollections->world.usableBrushTechniques.word(1));
+        if (ImGui::CollapsingHeader("Usable Brushes"))
+        {
+            for (unsigned i = 0; i < 32; i++)
+            {
+                ImGui::Text("Brush %u: %s", i,
+                            okami::AmmyUsableBrushes->IsSet(i) ? "yes" : "no");
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Obtained Brushes"))
+        {
+            for (unsigned i = 0; i < 32; i++)
+            {
+                ImGui::Text("Brush %u: %s", i,
+                            okami::AmmyObtainedBrushes->IsSet(i) ? "yes"
+                                                                 : "no");
+            }
+        }
+
         if (ImGui::CollapsingHeader("Dojo"))
         {
             for (unsigned i = 0; i < 32; i++)

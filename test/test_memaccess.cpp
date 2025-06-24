@@ -46,3 +46,17 @@ TEST_CASE("MemoryAccessor::raw returns bound address", "[memory]")
     okami::MemoryAccessor<uint32_t> accessor(addr);
     REQUIRE(accessor.raw() == addr);
 }
+
+TEST_CASE("MemoryAccessor deals with BitFields", "[memory]")
+{
+    uint8_t dummy[4] = {0};
+    auto addr = reinterpret_cast<uintptr_t>(&dummy);
+
+    okami::MemoryAccessor<okami::BitField<32>> accessor(addr);
+
+    accessor->Set(0x4);
+
+    REQUIRE(accessor->HasAnySet() == true);
+    REQUIRE(accessor->GetSetIndices().size() == 1);
+    REQUIRE(accessor->GetSetIndices()[0] == 0x4);
+}

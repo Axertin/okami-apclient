@@ -64,6 +64,9 @@ extern void *MainFlowerTreasurePickedUpPtr;
 extern void *MainFlowerItemPickupFnPtr;
 extern void *EditBrushesFnPtr;
 
+extern MemoryAccessor<BitField<32>> AmmyUsableBrushes;
+extern MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
+
 /**
  * @brief Initialize game variable pointers and overlays.
  * Must be called after `okami::MainBase` is assigned.

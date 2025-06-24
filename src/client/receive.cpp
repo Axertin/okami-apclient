@@ -37,7 +37,7 @@ bool receiveAPItem(int ItemID)
 
 bool giveBrush(int BrushIndex)
 {
-    okami::AmmyCollections->world.usableBrushTechniques.Set(BrushIndex);
-    okami::AmmyCollections->world.obtainedBrushTechniques.Set(BrushIndex);
+    okami::AmmyUsableBrushes->Set(BrushIndex);
+    okami::AmmyObtainedBrushes->Set(BrushIndex);
     return true;
 }

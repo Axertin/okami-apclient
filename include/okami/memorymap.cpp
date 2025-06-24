@@ -66,6 +66,9 @@ void *MainFlowerTreasurePickedUpPtr;
 void *MainFlowerItemPickupFnPtr;
 void *EditBrushesFnPtr;
 
+MemoryAccessor<BitField<32>> AmmyUsableBrushes;
+MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
+
 /**
  * @brief Initialize game variable pointers and overlays.
  * Must be called after `okami::MainBase` is assigned.
@@ -117,6 +120,9 @@ void initVariables()
     MaybeInventoryStructPtr =
         reinterpret_cast<void *>(okami::MainBase + 0xB66670);
     MaybePlayerClassPtr = reinterpret_cast<void *>(okami::MainBase + 0x8909C0);
+
+    AmmyUsableBrushes.bind(okami::MainBase + 0x890A30);
+    AmmyObtainedBrushes.bind(okami::MainBase + 0x890A38);
 }
 
 /**
