@@ -4,10 +4,11 @@ IndentWidth: 4
 TabWidth: 4
 UseTab: Never
 
-Standard: c++20
+Standard: c++23
 Cpp11BracedListStyle: true
 ConstructorInitializerIndentWidth: 4
 ContinuationIndentWidth: 4
+ColumnLimit: 160
 
 # Spacing
 SpaceAfterCStyleCast: false
@@ -51,15 +52,15 @@ BraceWrapping:
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '^<windows.h>'
+  - Regex: "^<windows.h>"
     Priority: 1
-  - Regex: '^<MinHook.h>'
+  - Regex: "^<MinHook.h>"
     Priority: 10
-  - Regex: '^<[[:alnum:]_]+>'
+  - Regex: "^<[[:alnum:]_]+>"
     Priority: 2
   - Regex: '^<.*\.h>'
     Priority: 3
-  - Regex: '^<.*>'
+  - Regex: "^<.*>"
     Priority: 4
   - Regex: '^".*"'
     Priority: 5
