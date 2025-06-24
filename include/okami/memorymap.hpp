@@ -63,10 +63,6 @@ namespace okami
     extern void *MainFlowerItemPickupFnPtr;
     extern void *EditBrushesFnPtr;
 
-    // Overlay structures
-    extern MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
-    extern MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyObtainedBrushTechniques;
-
     /**
      * @brief Initialize game variable pointers and overlays.
      * Must be called after `okami::MainBase` is assigned.

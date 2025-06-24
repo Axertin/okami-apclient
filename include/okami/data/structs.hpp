@@ -5,8 +5,10 @@
 #include "itemtype.hpp"
 #include "bitfield.hpp"
 
-namespace hx {
-  struct Texture {
+namespace hx
+{
+  struct Texture
+  {
     uint32_t type;
     uint32_t field_4;
     void *pTexture2D;
@@ -16,10 +18,12 @@ namespace hx {
   };
 }
 
-namespace okami {
+namespace okami
+{
 
   // singleton at +0xB4DF90
-  struct CharacterStats {
+  struct CharacterStats
+  {
     uint16_t currentHealth;
     uint16_t maxHealth;
     uint16_t currentFood;
@@ -48,15 +52,16 @@ namespace okami {
     uint16_t unk7;
     uint16_t __padding7;
 
-    float x, y, z;  // set from elsewhere
-    float u, v, w;  // set from elsewhere
+    float x, y, z; // set from elsewhere
+    float u, v, w; // set from elsewhere
   };
 
-  struct WorldStateData {
+  struct WorldStateData
+  {
     uint32_t timeOfDay;
     uint16_t day;
-    uint16_t unk1;  // set from +0xB6B242
-    uint16_t unk2;  // set from +0xB6B244
+    uint16_t unk1; // set from +0xB6B242
+    uint16_t unk2; // set from +0xB6B244
     uint16_t unk3;
     uint32_t unk4;
     BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
@@ -91,13 +96,14 @@ namespace okami {
   };
 
   // singleton at +0xB205D0
-  struct CollectionData {
+  struct CollectionData
+  {
     uint16_t numSaves;
-    uint16_t currentMapId;  // set from +0xB6B240
-    uint16_t lastMapId;     // set from +0xB6B248
+    uint16_t currentMapId; // set from +0xB6B240
+    uint16_t lastMapId;    // set from +0xB6B248
     uint8_t unk1;
     uint8_t unk2;
-    
+
     uint32_t currentInk;
     uint32_t maxInk;
     uint32_t currentMoney;
@@ -123,7 +129,8 @@ namespace okami {
   };
 
   // singleton at +0xB21780
-  struct TrackerData {
+  struct TrackerData
+  {
     BitField<256> firstTimeItem;
     BitField<96> logbookAvailable;
     BitField<32> animalTomeUnlocked;
@@ -145,8 +152,9 @@ namespace okami {
     uint32_t timePlayed;
   };
 
-  struct CustomTexture {
-    uint8_t textureBits[0x8000];  // 16 bits per pixel for 256x256 image
+  struct CustomTexture
+  {
+    uint8_t textureBits[0x8000]; // 16 bits per pixel for 256x256 image
     uint32_t colors1[16];
     uint32_t colors2[16];
     hx::Texture texture[2];
@@ -155,13 +163,15 @@ namespace okami {
   // singleton at +0xB21820
   // assuming this is specifically for the things you can free-draw in-game
   // i.e. the face mask for the Moon Cave
-  struct CustomTextures {
+  struct CustomTextures
+  {
     CustomTexture texture1;
     CustomTexture texture2;
   };
 
   // singleton at +0x8909C0
-  struct BrushState {
+  struct BrushState
+  {
     // TODO chonker
   };
 }

@@ -66,10 +66,6 @@ namespace okami
     void *MainFlowerItemPickupFnPtr;
     void *EditBrushesFnPtr;
 
-    // Overlay structures
-    MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyUsableBrushTechniques;
-    MemoryAccessor<BitfieldFlags<BrushOverlay>> AmmyObtainedBrushTechniques;
-
     /**
      * @brief Initialize game variable pointers and overlays.
      * Must be called after `okami::MainBase` is assigned.
@@ -113,10 +109,6 @@ namespace okami
         VestigialMapID1.bind(okami::MainBase + 0xB4F0B4);
         VestigialMapID2.bind(okami::MainBase + 0xB6B246);
 
-        // Overlay memory helpers
-        AmmyUsableBrushTechniques.bind<4>(okami::MainBase + 0x890A30);
-        AmmyObtainedBrushTechniques.bind<4>(okami::MainBase + 0x890A38);
-
         LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
         CameraFOV.bind(okami::MainBase + 0xB663B0);
 
@@ -142,13 +134,3 @@ namespace okami
         EditBrushesFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x17C270);
     }
 } // namespace okami
-
-// edit brushes function
-//      mainbase + 17C270
-//      void editBrushesFn(void* ammy class?, uint32_t bitindex, int op)
-//          ops
-//              1 = set in both fields
-//              2 = set in obtained only
-//              3 = clear in both fields
-//              4 = clear in available only
-//

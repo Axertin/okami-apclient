@@ -20,45 +20,6 @@ bool isChecksEnabled()
     return checksEnabled;
 }
 
-void checkBrushes(ISocket &socket)
-{
-    static okami::BitfieldFlagsStorage<okami::BrushOverlay, 4> PrevBrushes;
-    if (!checksEnabled)
-    {
-        PrevBrushes.copyFrom(okami::AmmyObtainedBrushTechniques.get());
-    }
-    else
-    {
-        if (!okami::AmmyObtainedBrushTechniques.isBound() || !okami::AmmyUsableBrushTechniques.isBound())
-        {
-            logWarning("[checks] Check must wait until brushes are bound!");
-            return;
-        }
-
-        auto CurrentBrushes = okami::AmmyObtainedBrushTechniques.get();
-
-        if (!PrevBrushes.isEqual(CurrentBrushes))
-        {
-            auto diff = PrevBrushes.diffBits(CurrentBrushes);
-            for (auto flag : diff)
-            {
-                if (flag != okami::BrushOverlay::sunrise_default)
-                {
-                    logDebug("[checks] Sending Brush Location 0x%X", (0x100 + static_cast<int>(flag)));
-
-                    if (socket.isConnected())
-                        socket.sendLocation(0x100 + static_cast<int>(flag));
-
-                    // Un-set the usable flag that the game has set
-                    okami::AmmyUsableBrushTechniques.clear(flag);
-                }
-            }
-        }
-
-        PrevBrushes.copyFrom(CurrentBrushes);
-    }
-}
-
 void checkBrushes(int index, ISocket &socket)
 {
     if (checksEnabled)
