@@ -43,7 +43,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     (void)OuterHeight;
     (void)UIScale;
 
-    if (!IsVisible || !OnTitleScreen)
+    if (!IsVisible)
         return;
 
     // Draw login window

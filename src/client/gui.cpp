@@ -30,6 +30,7 @@ static const unsigned long DEBOUNCE_MS = 200;
 
 static bool homePressed = false;
 static bool endPressed = false;
+static bool F2Pressed = false;
 
 static std::vector<std::unique_ptr<Window>> Windows;
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd,
@@ -220,6 +221,17 @@ HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
             LastToggleTime = currentTime;
         }
         endPressed = endDown;
+
+        // Check F2 Key - Toggle Login window
+        bool F2Down = (GetAsyncKeyState(VK_F2) & 0x8000) != 0;
+        if (F2Down && !F2Pressed)
+        {
+            Windows[0]->toggleVisibility();
+            LastToggleTime = currentTime;
+            logDebug("[gui] Login visibility toggled: %s",
+                     Windows[0]->IsVisible ? "ON" : "OFF");
+        }
+        F2Pressed = F2Down;
     }
 
     // Keep cursor visible when released
