@@ -50,6 +50,7 @@ jobs:
       id-token: write
       contents: read
       checks: write
+      pull-requests: read
 
     strategy:
       matrix: ${{ fromJson(needs.setup.outputs.matrix) }}
@@ -95,27 +96,29 @@ jobs:
             & $testExe --reporter JUnit --out out/build/${{ matrix.preset }}/Test.xml
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Tests failed with exit code $LASTEXITCODE"
+              exit 1  # Fail the step if tests fail
             }
           } else {
             Write-Host "Test executable not found at $testExe"
             exit 1
           }
-        continue-on-error: true
 
+      # Only publish test results for non-fork PRs and direct pushes
       - name: Publish Test Results
-        if: always() && matrix.run_tests
+        if: always() && matrix.run_tests && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
         uses: dorny/test-reporter@v1
         with:
           name: Unit Tests
           path: 'out/build/${{ matrix.preset }}/Test.xml'
           reporter: java-junit
 
+      # Always upload test results as artifacts
       - name: Upload JUnit Test Results
         if: always() && matrix.run_tests
         uses: actions/upload-artifact@v4
         with:
-          name: junit-test-results-${{ github.run_number }}
-          path: '**/Test.xml'
+          name: junit-test-results-${{ matrix.config }}-${{ github.run_number }}
+          path: 'out/build/${{ matrix.preset }}/Test.xml'
 
       - name: Read Version
         id: get_version
