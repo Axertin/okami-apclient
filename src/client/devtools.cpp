@@ -122,7 +122,7 @@ void checklistColsTome(const Fn &pNameFn, okami::BitField<N> &collected,
     ImGui::BeginTable(tableName.c_str(), 3);
     ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHeaderLabel);
     ImGui::TableSetupColumn("Col.");
-    ImGui::TableSetupColumn("Seen");
+    ImGui::TableSetupColumn("Read");
     ImGui::TableHeadersRow();
 
     for (unsigned i = 0; i < N; i++)
@@ -412,15 +412,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("field_50: %u", okami::AmmyTracker->field_50);
         ImGui::Text("field_52: %u", okami::AmmyTracker->field_52);
 
-        if (ImGui::CollapsingHeader("bestiary tome unlocked"))
+        if (ImGui::CollapsingHeader("Bestiary Tome"))
         {
-            checklistCols(2, okami::BestiaryTome::GetName,
-                          okami::AmmyTracker->bestiaryTomeUnlocked);
-        }
-        if (ImGui::CollapsingHeader("bestiary tome read"))
-        {
-            checklistCols(2, okami::BestiaryTome::GetName,
-                          okami::AmmyTracker->bestiaryTomeRead);
+            checklistColsTome(okami::BestiaryTome::GetName,
+                              okami::AmmyTracker->bestiaryTomeUnlocked,
+                              okami::AmmyTracker->bestiaryTomeRead);
         }
         ImGui::Text("unk2: %u", okami::AmmyTracker->unk2);
         ImGui::Text("field_6D: %u", okami::AmmyTracker->field_6D);
