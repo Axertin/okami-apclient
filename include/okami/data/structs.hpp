@@ -77,8 +77,8 @@ struct WorldStateData
     BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
     uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvinationBits; // set from BrushData (+0x8909C0 + 0x1F60)
-    uint32_t unk5[1];
-    uint32_t unk6[1];
+    uint32_t unk5;
+    uint32_t unk6;
     uint8_t unk7;
     uint8_t unk8;
     uint8_t unk9;
@@ -90,7 +90,7 @@ struct WorldStateData
                                   // world has been fed (globally)
     uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
     uint32_t unk15[10]; // wanted lists here
-    uint32_t unk16[1];
+    uint32_t unk16;
     uint32_t unk17[4];
     uint32_t unk18;
     uint32_t unk19;
