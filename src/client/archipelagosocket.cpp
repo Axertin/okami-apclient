@@ -23,7 +23,7 @@ std::string ArchipelagoSocket::uuid = "";
 bool ArchipelagoSocket::Connected = false;
 bool ArchipelagoSocket::APSyncQueued = false;
 
-std::chrono::steady_clock::time_point lastPollTime;
+static std::chrono::steady_clock::time_point lastPollTime;
 APClient *ArchipelagoSocket::Client = nullptr;
 
 ArchipelagoSocket &ArchipelagoSocket::instance()
