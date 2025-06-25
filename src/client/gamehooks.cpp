@@ -1,6 +1,7 @@
 #include "gamehooks.h"
 
 #include "checks.h"
+#include "devdatafinder.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
 
@@ -33,6 +34,7 @@ static FunctionType Main_FlowerTickOrigin = nullptr;
 /// @return void
 void __cdecl GameHooks::onGameTick()
 {
+    devDataFinder_OnGameTick();
     // checkBrushes();
     Main_FlowerTickOrigin();
 }

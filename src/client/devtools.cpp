@@ -269,8 +269,8 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk2: %u", okami::AmmyCollections->world.unk2);
         ImGui::Text("unk3: %u", okami::AmmyCollections->world.unk3);
         ImGui::Text("unk4: %u", okami::AmmyCollections->world.unk4);
-        ImGui::Text("unk5: %u", okami::AmmyCollections->world.unk5[0]);
-        ImGui::Text("unk6: %u", okami::AmmyCollections->world.unk6[0]);
+        ImGui::Text("unk5: %u", okami::AmmyCollections->world.unk5);
+        ImGui::Text("unk6: %u", okami::AmmyCollections->world.unk6);
         ImGui::Text("unk7: %u", okami::AmmyCollections->world.unk7);
         ImGui::Text("unk8: %u", okami::AmmyCollections->world.unk8);
         ImGui::Text("unk9: %u", okami::AmmyCollections->world.unk9);
@@ -308,7 +308,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             ImGui::Text("unk15[%u]: %u", i, okami::AmmyCollections->world.unk15[i]);
         }
-        ImGui::Text("unk16: %u", okami::AmmyCollections->world.unk16[0]);
+        ImGui::Text("unk16: %u", okami::AmmyCollections->world.unk16);
         ImGui::Text("unk17[0]: %u", okami::AmmyCollections->world.unk17[0]);
         ImGui::Text("unk17[1]: %u", okami::AmmyCollections->world.unk17[1]);
         ImGui::Text("unk17[2]: %u", okami::AmmyCollections->world.unk17[2]);
