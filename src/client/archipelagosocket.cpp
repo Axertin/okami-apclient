@@ -15,7 +15,7 @@ const std::string uuid_file = std::string(std::getenv("APPDATA")).append("\\uuid
 #pragma warning(pop)
 
 const std::string CertStore = "mods/apclient/cacert.pem";
-const std::string GameName = "Okami";
+const std::string GameName = "Ōkami HD";
 const int ItemHandlingVector = 0b111;
 const long long PollingIntervalMs = 1000;
 
