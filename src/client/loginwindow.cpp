@@ -61,7 +61,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
                 saveLoginData(JsonSavePath, Server, Slot, Password);
                 Socket.clientConnect(this);
                 setMessage("Connecting to " + std::string(Server) + "...");
-            }
+                        }
             else
             {
                 setMessage("Please enter Server and Slot name");
