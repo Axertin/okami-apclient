@@ -1,10 +1,12 @@
 #include "maptype.hpp"
 
+#include <unordered_map>
+
 namespace okami
 {
 namespace MapTypes
 {
-static const char *mapNames[MapTypes::NUM_MAP_TYPES] = {
+static const char *names[MapTypes::NUM_MAP_TYPES] = {
     "None",
     "Kamiki Village (Game Start)",
     "Cave of Nagi",
@@ -94,9 +96,105 @@ const char *GetName(unsigned value)
 {
     if (value < MapTypes::NUM_MAP_TYPES)
     {
-        return mapNames[value];
+        return names[value];
     }
     return "invalid";
+}
+
+const std::unordered_map<unsigned, unsigned> mapidToIndex{
+    {0x100, KamikiVillageGameStart},
+    {0x101, CaveOfNagi},
+    {0x102, KamikiVillage},
+    {0x112, KamikiVillage},
+    {0x103, HanaValley},
+    {0x104, TsutaRuins},
+    {0x105, CityCheckpoint},
+    {0x106, TsutaRuinsSpiderQueenArena},
+    {0x107, GaleShrine},
+    {0x108, KusaVillage},
+    {0x109, SasaSanctuary},
+    {0x10A, AgataForestMadameFawnsHouse},
+    {0x10B, DiggingMinigame},
+    {0x10C, OnigiriDojoLessonRoom},
+    {0x10D, GaleShrineCrimsonHelmArena},
+    {0x10E, CalcifiedCavern},
+    {0x110, MoonCaveInterior},
+    {0x111, MoonCaveStaircaseandOrochiArena},
+    {0x113, RyoshimaCoastBanditSpiderArena},
+    {0x114, TakaPassStrayBead26Cave},
+    {0x115, KamuiCherryBomb3Cave},
+    {0x116, NRyoshimaCoastPowerSlash2Cave},
+    {0x117, NRyoshimaCoastCherryBomb2Cave},
+    {0x118, KamuiEzofujiPowerSlash3Cave},
+    {0x119, KamuiBlockheadGrandeCave},
+    {0x11A, NRyoshimaCoastBanditSpiderArena},
+    {0x11B, KamuiBanditSpiderArena},
+    {0x11C, DragonPalaceStrayBead70Cave},
+    {0x11D, NRyoshimaCoastStrayBead63Cave},
+    {0x120, NewGameIntroCutsceneMap},
+    {0x122, RiverOftheHeavens},
+    {0x200, SeianCityAristocraticQtr},
+    {0x201, SeianCityCommonersQtr},
+    {0x202, SeianCityAristocraticQtrHimikosPalace},
+    {0x203, DragonPalace},
+    {0x204, InsidetheDragon},
+    {0x205, SunkenShip},
+    {0x206, ImperialPalaceAmmySize},
+    {0x207, ImperialPalaceIssunSize},
+    {0x208, OniIslandLowerInterior},
+    {0x209, OniIslandNinetailsArena},
+    {0x20A, CatcallTower},
+    {0x20B, ImperialPalaceBlightArena},
+    {0x20C, SeianCityCommonersQtrKimonoShop},
+    {0x20D, OniIslandExterior},
+    {0x20E, OniIslandUpperInterior},
+    {0x20F, OniIslandSidescroller},
+    {0x301, Wepkeer},
+    {0x302, KamikiVillage100yearsago},
+    {0x303, WawkuShrine},
+    {0x304, WawkuShrineNechkuArena},
+    {0x305, Ponctan},
+    {0x306, MoonCave100yearsago},
+    {0x307, ArkOfYamato},
+    {0x308, ArkOfYamatoSpiderQueenArena},
+    {0x309, ArkOfYamatoOrochiArena},
+    {0x30A, ArkOfYamatoBlightArena},
+    {0x30B, ArkOfYamatoNinetailsArena},
+    {0x30C, ArkOfYamatoCrimsonHelmArena},
+    {0x30D, PonctanMrsSealsHouse},
+    {0x310, Yoshpet},
+    {0x311, InnerYoshpet},
+    {0x312, ArkOfYamatoYamiArena},
+    {0x313, WepkeerSquare},
+    {0x314, WawkuShrineLechkuAndNechkuArena},
+    {0xE00, FishingwithBenkeionSeianBridge},
+    {0xE01, FishingwithBenkeinexttoHimikosPalace},
+    {0xE02, FishingwithKokariinAgata},
+    {0xE03, FishingwithKokariinKamui},
+    {0xE04, FishingwithFishermaninNRyo},
+    {0xF01, ShinshuField},
+    {0xF02, ShinshuField},
+    {0xF03, AgataForest},
+    {0xF04, AgataForest},
+    {0xF06, MoonCaveEntrance},
+    {0xF07, TakaPass},
+    {0xF08, TakaPass},
+    {0xF09, RyoshimaCoast},
+    {0xF0A, RyoshimaCoast},
+    {0xF0C, NRyoshimaCoast},
+    {0xF11, Kamui},
+    {0xF12, Kamui},
+    {0xF13, KamuiEzofuji},
+    {0xF20, ShinshuField100yearsago},
+    {0xF21, MoonCaveEntrance100yearsago},
+};
+unsigned FromMapId(unsigned id)
+{
+    if (mapidToIndex.contains(id))
+    {
+        return mapidToIndex.at(id);
+    }
+    return None;
 }
 } // namespace MapTypes
 } // namespace okami

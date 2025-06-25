@@ -92,6 +92,7 @@ enum Enum
     NUM_MAP_TYPES
 };
 
-extern const char *GetName(unsigned value);
+const char *GetName(unsigned value);
+unsigned FromMapId(unsigned id);
 } // namespace MapTypes
 } // namespace okami

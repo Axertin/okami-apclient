@@ -3,14 +3,150 @@
 #include "gamehooks.h"
 #include "gui.h"
 #include "imgui.h"
+#include "okami/animals.hpp"
+#include "okami/bestiarytome.hpp"
 #include "okami/data/itemtype.hpp"
 #include "okami/data/maptype.hpp"
+#include "okami/dojotech.hpp"
+#include "okami/fish.hpp"
 #include "okami/items.hpp"
 #include "okami/memorymap.hpp"
+#include "okami/movelisttome.hpp"
+#include "okami/straybeads.hpp"
+#include "okami/travelguides.hpp"
+#include "okami/treasures.hpp"
 
 void DevTools::toggleVisibility()
 {
     IsVisible = !IsVisible;
+}
+
+void drawStatPair(const char *name, int type, void *pCurrent, void *pTotal)
+{
+    ImGui::Text("%s:", name);
+    ImGui::SameLine();
+    std::string currentName = std::string("##") + name + "_current";
+    ImGui::InputScalar(currentName.c_str(), type, pCurrent);
+
+    ImGui::SameLine();
+    ImGui::Text("/");
+
+    ImGui::SameLine();
+    std::string totalName = std::string("##") + name + "_total";
+    ImGui::InputScalar(totalName.c_str(), type, pTotal);
+}
+
+void drawStat(const char *name, int type, void *pCurrent)
+{
+    ImGui::Text("%s:", name);
+    ImGui::SameLine();
+    std::string currentName = std::string("##") + name + "_current";
+    ImGui::InputScalar(currentName.c_str(), type, pCurrent);
+}
+
+template <unsigned int N> void checkboxBitField(const char *label, unsigned idx, okami::BitField<N> &bits)
+{
+    ImGui::CheckboxFlags(label, bits.GetIdxPtr(idx), bits.GetIdxMask(idx));
+}
+
+template <unsigned int N, class Fn> void checklistCols(unsigned numCols, const Fn &pNameFn, okami::BitField<N> &bits)
+{
+    if (ImGui::Button("All##Btn"))
+    {
+        bits.SetAll();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("None##Btn"))
+    {
+        bits.ClearAll();
+    }
+
+    std::string tableName = std::string("TblId") + pNameFn(0) + pNameFn(1); // should be unique enough?
+    ImGui::BeginTable(tableName.c_str(), numCols);
+
+    unsigned rows = (bits.count + numCols - 1) / numCols;
+    for (unsigned i = 0; i < rows; i++)
+    {
+        for (unsigned j = 0; j < numCols; j++)
+        {
+            ImGui::TableNextColumn();
+            unsigned index = i + j * rows;
+            if (index < bits.count)
+            {
+                checkboxBitField(pNameFn(index), index, bits);
+            }
+            else
+            {
+                ImGui::Text("");
+            }
+        }
+    }
+    ImGui::EndTable();
+}
+
+template <unsigned int N> void checklistColsUnnamed(unsigned numCols, const char *basename, okami::BitField<N> &bits)
+{
+    std::string mem;
+    auto NameFn = [&](unsigned id) -> const char *
+    {
+        mem = basename + std::to_string(id);
+        return mem.c_str();
+    };
+    checklistCols(numCols, NameFn, bits);
+}
+
+template <unsigned int N, class Fn> void checklistColsTome(const Fn &pNameFn, okami::BitField<N> &collected, okami::BitField<N> &viewed)
+{
+    if (ImGui::Button("All##Btn"))
+    {
+        collected.SetAll();
+        viewed.SetAll();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("None##Btn"))
+    {
+        collected.ClearAll();
+        viewed.ClearAll();
+    }
+
+    std::string tableName = std::string("TblId") + pNameFn(0) + pNameFn(1); // should be unique enough?
+    ImGui::BeginTable(tableName.c_str(), 3);
+    ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHeaderLabel);
+    ImGui::TableSetupColumn("Col.");
+    ImGui::TableSetupColumn("Read");
+    ImGui::TableHeadersRow();
+
+    for (unsigned i = 0; i < N; i++)
+    {
+        ImGui::TableNextRow();
+        const char *name = pNameFn(i);
+
+        ImGui::TableNextColumn();
+        ImGui::Text("%s", name);
+
+        ImGui::TableNextColumn();
+        std::string collectedName = std::string("##Collected") + name;
+        checkboxBitField(collectedName.c_str(), i, collected);
+
+        ImGui::TableNextColumn();
+        std::string viewedName = std::string("##Viewed") + name;
+        checkboxBitField(viewedName.c_str(), i, viewed);
+    }
+
+    ImGui::EndTable();
+}
+
+const char *getItemName(unsigned idx)
+{
+    static std::string mem;
+    if (okami::ItemTable.contains(idx))
+    {
+        mem = okami::ItemTable.at(idx).Name;
+    }
+    {
+        mem = std::string("Item") + std::to_string(idx);
+    }
+    return mem.c_str();
 }
 
 /**
@@ -38,13 +174,14 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     if (ImGui::CollapsingHeader("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen))
     {
         ImGui::Text("Pos: (%.2f,%.2f,%.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
-        ImGui::Text("Health: %d / %d", okami::AmmyStats->currentHealth, okami::AmmyStats->maxHealth);
-        ImGui::Text("Money: %d / %d", okami::AmmyCollections->currentMoney, okami::AmmyCollections->world.totalMoney);
-        ImGui::Text("Praise: %d / %d", okami::AmmyStats->currentPraise, okami::AmmyStats->totalPraise);
-        ImGui::Text("Ink: %d / %d", okami::AmmyCollections->currentInk, okami::AmmyCollections->maxInk);
-        ImGui::Text("Food: %d / %d", okami::AmmyStats->currentFood, okami::AmmyStats->maxFood);
-        ImGui::Text("Godhood: %d", okami::AmmyStats->godhood);
-        ImGui::Text("Demon Fangs: %d", okami::AmmyCollections->world.demonFangs);
+
+        drawStatPair("Health", ImGuiDataType_U16, &okami::AmmyStats->currentHealth, &okami::AmmyStats->maxHealth);
+        drawStatPair("Money", ImGuiDataType_U32, &okami::AmmyCollections->currentMoney, &okami::AmmyCollections->world.totalMoney);
+        drawStatPair("Praise", ImGuiDataType_U16, &okami::AmmyStats->currentPraise, &okami::AmmyStats->totalPraise);
+        drawStatPair("Ink", ImGuiDataType_U32, &okami::AmmyCollections->currentInk, &okami::AmmyCollections->maxInk);
+        drawStatPair("Food", ImGuiDataType_U16, &okami::AmmyStats->currentFood, &okami::AmmyStats->maxFood);
+        drawStat("Godhood", ImGuiDataType_U16, &okami::AmmyStats->godhood);
+        drawStat("Demon Fangs", ImGuiDataType_U32, &okami::AmmyCollections->world.demonFangs);
     }
 
     if (ImGui::CollapsingHeader("CharacterStats"))
@@ -55,22 +192,17 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("padding3: %d", okami::AmmyStats->__padding3);
         if (ImGui::CollapsingHeader("Dojo Techniques"))
         {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("Move %u: %s", i, okami::AmmyStats->dojoTechniquesUnlocked.IsSet(i) ? "yes" : "no");
-            }
+            checklistCols(2, okami::DojoTechs::GetName, okami::AmmyStats->dojoTechniquesUnlocked);
         }
+        ImGui::Text("unk1b: %d", okami::AmmyStats->unk1b);
         ImGui::Text("unk2: %d", okami::AmmyStats->unk2);
         ImGui::Text("unk3: %d", okami::AmmyStats->unk3);
         ImGui::Text("unk4: %d", okami::AmmyStats->unk4);
         ImGui::Text("padding4: %d", okami::AmmyStats->__padding4);
         ImGui::Text("padding5: %d", okami::AmmyStats->__padding5);
-        if (ImGui::CollapsingHeader("Weapons"))
+        if (ImGui::CollapsingHeader("Weapons??"))
         {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyStats->weaponsUnlocked.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(4, "Weapon", okami::AmmyStats->weaponsUnlocked);
         }
 
         ImGui::Text("unk5: %d", okami::AmmyStats->unk5);
@@ -90,103 +222,49 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk4: %d", okami::AmmyCollections->unk4);
         if (ImGui::CollapsingHeader("Stray Beads"))
         {
-            for (unsigned i = 0; i < 128; i++)
-            {
-                ImGui::Text("Bead %u: %s", i, okami::AmmyCollections->strayBeadsCollected.IsSet(i) ? "yes" : "no");
-            }
+            checklistCols(5, okami::StrayBeads::GetName, okami::AmmyCollections->strayBeadsCollected);
         }
-        if (ImGui::CollapsingHeader("Travel Guides Collected"))
+        if (ImGui::CollapsingHeader("Travel Guides"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->travelGuidesCollected.IsSet(i) ? "yes" : "no");
-            }
-        }
-        if (ImGui::CollapsingHeader("Travel Guides Viewed"))
-        {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->travelGuidesViewed.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::TravelGuides::GetName, okami::AmmyCollections->travelGuidesCollected, okami::AmmyCollections->travelGuidesViewed);
         }
 
-        if (ImGui::CollapsingHeader("Dojo Moves Collected"))
+        if (ImGui::CollapsingHeader("Move List"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->dojoMovesCollected.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::MoveListTome::GetName, okami::AmmyCollections->dojoMovesCollected, okami::AmmyCollections->dojoMovesViewed);
         }
 
-        if (ImGui::CollapsingHeader("Dojo Moves Viewed"))
+        if (ImGui::CollapsingHeader("Fish Tome"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->dojoMovesViewed.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::FishTome::GetName, okami::AmmyCollections->fishTomesCollected, okami::AmmyCollections->fishTomesViewed);
         }
 
-        if (ImGui::CollapsingHeader("Fish Tomes Collected"))
+        if (ImGui::CollapsingHeader("Animal Tome"))
         {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->fishTomesCollected.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::Animals::GetName, okami::AmmyCollections->animalTomesCollected, okami::AmmyCollections->animalTomesViewed);
         }
 
-        if (ImGui::CollapsingHeader("Fish Tomes Viewed"))
+        if (ImGui::CollapsingHeader("Treasure Tome"))
         {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->fishTomesViewed.IsSet(i) ? "yes" : "no");
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Animal Tomes Collected"))
-        {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->animalTomesCollected.IsSet(i) ? "yes" : "no");
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Animal Tomes Viewed"))
-        {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->animalTomesViewed.IsSet(i) ? "yes" : "no");
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Treasure Tomes Collected"))
-        {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->treasureTomesCollected.IsSet(i) ? "yes" : "no");
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Treasure Tomes Viewed"))
-        {
-            for (unsigned i = 0; i < 64; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->treasureTomesViewed.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::Treasures::GetName, okami::AmmyCollections->treasureTomesCollected, okami::AmmyCollections->treasureTomesViewed);
         }
 
         if (ImGui::CollapsingHeader("Inventory"))
         {
+            ImGui::BeginTable("InventoryTbl", 2);
             for (unsigned i = 0; i < okami::ItemTypes::NUM_ITEM_TYPES; i++)
             {
-                ImGui::Text("%s: %u", okami::ItemTable.contains(i) ? okami::ItemTable.at(i).Name.c_str() : "", okami::AmmyCollections->inventory[i]);
+                ImGui::TableNextColumn();
+                drawStat(getItemName(i), ImGuiDataType_U16, &okami::AmmyCollections->inventory[i]);
             }
+            ImGui::EndTable();
         }
     }
 
     if (ImGui::CollapsingHeader("World State"))
     {
-        ImGui::Text("timeOfDay: %u", okami::AmmyCollections->world.timeOfDay);
-        ImGui::Text("day: %u", okami::AmmyCollections->world.day);
+        drawStat("timeOfDay", ImGuiDataType_U32, &okami::AmmyCollections->world.timeOfDay);
+        drawStat("day", ImGuiDataType_U16, &okami::AmmyCollections->world.day);
         ImGui::Text("unk1: %u", okami::AmmyCollections->world.unk1);
         ImGui::Text("unk2: %u", okami::AmmyCollections->world.unk2);
         ImGui::Text("unk3: %u", okami::AmmyCollections->world.unk3);
@@ -197,9 +275,12 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk8: %u", okami::AmmyCollections->world.unk8);
         ImGui::Text("unk9: %u", okami::AmmyCollections->world.unk9);
         ImGui::Text("unk10: %u", okami::AmmyCollections->world.unk10);
-        for (unsigned i = 0; i < 56; i++)
+        if (ImGui::CollapsingHeader("unk11"))
         {
-            ImGui::Text("unk11[%u]: %u", i, okami::AmmyCollections->world.unk11[i]);
+            for (unsigned i = 0; i < 56; i++)
+            {
+                ImGui::Text("unk11[%u]: %u", i, okami::AmmyCollections->world.unk11[i]);
+            }
         }
         if (ImGui::CollapsingHeader("Map state bits"))
         {
@@ -207,25 +288,20 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             {
                 if (ImGui::CollapsingHeader(okami::MapTypes::GetName(i)))
                 {
-                    for (unsigned j = 0; j < 256; j++)
-                    {
-                        ImGui::Text("%u: %s", j, okami::AmmyCollections->world.mapStateBits[i].IsSet(j) ? "yes" : "no");
-                    }
+                    std::string name = std::string("Map") + std::to_string(i) + "State";
+                    checklistColsUnnamed(4, name.c_str(), okami::AmmyCollections->world.mapStateBits[i]);
                 }
             }
         }
         if (ImGui::CollapsingHeader("Animal fed bits"))
         {
-            for (unsigned i = 0; i < 256; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyCollections->world.animalsFedBits.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(4, "AnimalFed", okami::AmmyCollections->world.animalsFedBits);
         }
         if (ImGui::CollapsingHeader("Num animals fed"))
         {
-            for (unsigned i = 0; i < 20; i++)
+            for (unsigned i = 0; i < okami::Animals::NUM_ANIMALS; i++)
             {
-                ImGui::Text("%u: %u", i, okami::AmmyCollections->world.numAnimalsFed[i]);
+                drawStat(okami::Animals::GetName(i), ImGuiDataType_U16, &okami::AmmyCollections->world.numAnimalsFed[i]);
             }
         }
         for (unsigned i = 0; i < 10; i++)
@@ -265,25 +341,15 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::CollapsingHeader("first time item"))
         {
-            for (unsigned i = 0; i < okami::ItemTypes::NUM_ITEM_TYPES; i++)
-            {
-                ImGui::Text("%s: %s", okami::ItemTable.contains(i) ? okami::ItemTable.at(i).Name.c_str() : "",
-                            okami::AmmyTracker->firstTimeItem.IsSet(i) ? "yes" : "no");
-            }
+            checklistCols(2, getItemName, okami::AmmyTracker->firstTimeItem);
         }
         if (ImGui::CollapsingHeader("logbook available"))
         {
-            for (unsigned i = 0; i < 96; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->logbookAvailable.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(2, "LogBookBit", okami::AmmyTracker->logbookAvailable);
         }
-        if (ImGui::CollapsingHeader("animal tome unlocked"))
+        if (ImGui::CollapsingHeader("unknown"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->animalTomeUnlocked.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(2, "unknown", okami::AmmyTracker->unknown);
         }
         ImGui::Text("unk1[0]: %u", okami::AmmyTracker->unk1[0]);
         ImGui::Text("unk1[1]: %u", okami::AmmyTracker->unk1[1]);
@@ -297,19 +363,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("field_50: %u", okami::AmmyTracker->field_50);
         ImGui::Text("field_52: %u", okami::AmmyTracker->field_52);
 
-        if (ImGui::CollapsingHeader("bestiary tome unlocked"))
+        if (ImGui::CollapsingHeader("Bestiary Tome"))
         {
-            for (unsigned i = 0; i < 96; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->bestiaryTomeUnlocked.IsSet(i) ? "yes" : "no");
-            }
-        }
-        if (ImGui::CollapsingHeader("bestiary tome read"))
-        {
-            for (unsigned i = 0; i < 96; i++)
-            {
-                ImGui::Text("%u: %s", i, okami::AmmyTracker->bestiaryTomeRead.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsTome(okami::BestiaryTome::GetName, okami::AmmyTracker->bestiaryTomeUnlocked, okami::AmmyTracker->bestiaryTomeRead);
         }
         ImGui::Text("unk2: %u", okami::AmmyTracker->unk2);
         ImGui::Text("field_6D: %u", okami::AmmyTracker->field_6D);
@@ -339,26 +395,12 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::CollapsingHeader("Usable Brushes"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("Brush %u: %s", i, okami::AmmyUsableBrushes->IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(2, "Brush", *okami::AmmyUsableBrushes.get_ptr());
         }
 
         if (ImGui::CollapsingHeader("Obtained Brushes"))
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("Brush %u: %s", i, okami::AmmyObtainedBrushes->IsSet(i) ? "yes" : "no");
-            }
-        }
-
-        if (ImGui::CollapsingHeader("Dojo"))
-        {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::Text("Move %u: %s", i, okami::AmmyCollections->dojoMovesCollected.IsSet(i) ? "yes" : "no");
-            }
+            checklistColsUnnamed(2, "Brush", *okami::AmmyObtainedBrushes.get_ptr());
         }
     }
 
@@ -375,6 +417,20 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             okami::ExteriorMapID.set(MapID);
             okami::CurrentMapID.set(MapID);
             okami::LoadingZoneTrigger.set(0x2);
+        }
+
+        int mapIndex = okami::MapTypes::FromMapId(okami::CurrentMapID.get());
+        if (ImGui::CollapsingHeader("Current Map World Bits"))
+        {
+            checklistColsUnnamed(4, "MapWorldBit", okami::AmmyCollections->world.mapStateBits[mapIndex]);
+        }
+        if (ImGui::CollapsingHeader("Current Map Progress Bits"))
+        {
+            checklistColsUnnamed(4, "MapProgressBit", okami::MapBits->at(mapIndex));
+        }
+        if (ImGui::CollapsingHeader("Current Map Issun Bits"))
+        {
+            checklistColsUnnamed(4, "IssunBit", okami::IssunDialogBits->at(mapIndex));
         }
     }
 
