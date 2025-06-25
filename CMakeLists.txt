@@ -78,9 +78,23 @@ option(BUILD_TESTS_ONLY "Build only the test target, skip Windows-specific targe
 
 # Generate client source list if needed
 execute_process(
-  COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_sources.cmake
+  COMMAND ${CMAKE_COMMAND}
+  -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+  -DTARGET_NAME=client
+  -DSEARCH_DIR=src/client
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_sources.cmake
 )
 include(${CMAKE_CURRENT_SOURCE_DIR}/src/client/sources.cmake)
+
+# Generate library source list if needed
+execute_process(
+  COMMAND ${CMAKE_COMMAND}
+  -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+  -DTARGET_NAME=library
+  -DSEARCH_DIR=src/library
+  -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/generate_sources.cmake
+)
+include(${CMAKE_CURRENT_SOURCE_DIR}/src/library/sources.cmake)
 
 # Add GitVersion to cmake module path
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -130,18 +144,6 @@ endif()
 
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
-set(ADDITIONAL_COMMON_SOURCES 
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/dataverify.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/data/maptype.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/animals.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/bestiarytome.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/dojotech.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/fish.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/movelisttome.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/straybeads.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/travelguides.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/treasures.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/include/okami/memorymap.cpp)
 
 if(NOT BUILD_TESTS_ONLY)
   # imgui
@@ -157,8 +159,14 @@ if(NOT BUILD_TESTS_ONLY)
   target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
   target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
+  # Game library (memory structures and such)
+  add_library(okami-library STATIC ${library_SOURCES})
+  target_include_directories(okami-library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+  target_compile_features(okami-library PUBLIC ${STD_FEATURE})
+  enable_strict_warnings(okami-library)
+
   # Primary program
-  add_library(okami-apclient SHARED ${CLIENT_SOURCES} ${ADDITIONAL_COMMON_SOURCES})
+  add_library(okami-apclient SHARED ${client_SOURCES})
   target_precompile_headers(okami-apclient PRIVATE
     <algorithm>
     <array>
@@ -178,13 +186,12 @@ if(NOT BUILD_TESTS_ONLY)
   )
   target_compile_definitions(okami-apclient PRIVATE ASIO_STANDALONE AP_NO_SCHEMA _WIN32_WINNT=0x0601)
   target_include_directories(okami-apclient SYSTEM PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
     ${CMAKE_CURRENT_SOURCE_DIR}/external/websocketpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
-  target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32)
+  target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui d3d11 dxgi ws2_32 okami-library)
   target_compile_features(okami-apclient PRIVATE ${STD_FEATURE})
   enable_strict_warnings(okami-apclient)
   apply_release_optimizations(okami-apclient)
@@ -214,9 +221,9 @@ if(NOT BUILD_TESTS_ONLY)
 endif()
 
 if(WIN32)
-  set(TESTED_UNITS ${CLIENT_SOURCES} ${ADDITIONAL_COMMON_SOURCES})
+  set(TESTED_UNITS ${client_SOURCES} ${library_SOURCES})
 else()
-  set(TESTED_UNITS ${ADDITIONAL_COMMON_SOURCES}
+  set(TESTED_UNITS ${library_SOURCES}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp

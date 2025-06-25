@@ -1,21 +1,21 @@
-#include "memorymap.hpp"
+#include "okami/memorymap.hpp"
 
 #include <array>
 #include <cstdint>
 #include <iostream>
 
-#include "acquisition.hpp"
-#include "animals.hpp"
-#include "brushes.hpp"
-#include "data/structs.hpp"
-#include "dojotech.hpp"
-#include "fish.hpp"
-#include "items.hpp"
-#include "maps.hpp"
-#include "memoryaccessor.hpp"
-#include "straybeads.hpp"
-#include "travelguides.hpp"
-#include "treasures.hpp"
+#include "okami/acquisition.hpp"
+#include "okami/animals.hpp"
+#include "okami/brushes.hpp"
+#include "okami/data/structs.hpp"
+#include "okami/dojotech.hpp"
+#include "okami/fish.hpp"
+#include "okami/items.hpp"
+#include "okami/maps.hpp"
+#include "okami/memoryaccessor.hpp"
+#include "okami/straybeads.hpp"
+#include "okami/travelguides.hpp"
+#include "okami/treasures.hpp"
 
 namespace okami
 {
