@@ -30,7 +30,7 @@ struct SaveSlot
     BitField<1824> persistentMapBits[MapTypes::NUM_MAP_TYPES]; // mostly dialog
 
     // Loaded to +0xB36CF0
-    BitField<512> issunDialogBits[MapTypes::NUM_MAP_TYPES];
+    BitField<512> DialogBits[MapTypes::NUM_MAP_TYPES];
     uint32_t unk1; // padding?
 
     // Loaded to +0xB21820

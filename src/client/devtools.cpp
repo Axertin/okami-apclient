@@ -364,7 +364,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     }
 
     // TODO MapBits
-    // TODO IssunDialogBits
+    // TODO DialogBits
 
     if (ImGui::CollapsingHeader("Items"))
     {
@@ -415,9 +415,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             checklistColsUnnamed(4, "MapProgressBit", okami::MapBits->at(mapIndex));
         }
-        if (ImGui::CollapsingHeader("Current Map Issun Bits"))
+        if (ImGui::CollapsingHeader("Current Map Dialog Bits"))
         {
-            checklistColsUnnamed(4, "IssunBit", okami::IssunDialogBits->at(mapIndex));
+            checklistColsUnnamed(4, "Dialog", okami::DialogBits->at(mapIndex));
         }
     }
 

@@ -605,8 +605,7 @@ const std::unordered_map<unsigned, const char *> mapBitsDesc[okami::MapTypes::NU
     {},
 };
 
-// Also used for narrator and celestial dialogues
-const std::unordered_map<unsigned, const char *> issunBitsDesc[okami::MapTypes::NUM_MAP_TYPES] = {
+const std::unordered_map<unsigned, const char *> dialogBitsDesc[okami::MapTypes::NUM_MAP_TYPES] = {
     // None/Global
     {},
     // KamikiVillageGameStart

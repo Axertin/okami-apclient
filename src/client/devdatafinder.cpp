@@ -15,7 +15,7 @@ okami::CharacterStats previousStats;
 okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
 std::array<okami::BitField<1824>, okami::MapTypes::NUM_MAP_TYPES> previousMapBits;
-std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousIssunBits;
+std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousDialogBits;
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -170,15 +170,15 @@ void comparePreviousMapBits()
     }
 }
 
-void comparePreviousIssunBits()
+void comparePreviousDialogBits()
 {
-    auto &current = *okami::IssunDialogBits.get_ptr();
-    auto &old = previousIssunBits;
+    auto &current = *okami::DialogBits.get_ptr();
+    auto &old = previousDialogBits;
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
         std::string name = std::string("IssunBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old[i], current[i], issunBitsDesc[i]);
+        compareBitfield(name.c_str(), old[i], current[i], dialogBitsDesc[i]);
     }
 }
 
@@ -188,7 +188,7 @@ void saveData()
     previousCollection = *okami::AmmyCollections.get_ptr();
     previousTracker = *okami::AmmyTracker.get_ptr();
     previousMapBits = *okami::MapBits.get_ptr();
-    previousIssunBits = *okami::IssunDialogBits.get_ptr();
+    previousDialogBits = *okami::DialogBits.get_ptr();
 }
 } // namespace
 
@@ -204,7 +204,7 @@ void devDataFinder_OnGameTick()
     comparePreviousCollection();
     compareTrackerData();
     comparePreviousMapBits();
-    comparePreviousIssunBits();
+    comparePreviousDialogBits();
 
     saveData();
 }
