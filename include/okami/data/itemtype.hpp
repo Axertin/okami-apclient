@@ -266,5 +266,7 @@ enum Enum
     CutlassFish,
     NUM_ITEM_TYPES
 };
-}
+
+const char *GetName(unsigned value);
+} // namespace ItemTypes
 } // namespace okami

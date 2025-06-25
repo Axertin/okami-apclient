@@ -89,13 +89,17 @@ struct WorldStateData
     BitField<256> animalsFedBits; // Whether a specific animal group in the
                                   // world has been fed (globally)
     uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
+    // unk15[8] gets set when going to map screen first time with quest marker
     uint32_t unk15[10]; // wanted lists here
     uint32_t unk16;
     uint32_t unk17[4];
     uint32_t unk18;
-    uint32_t unk19;
+    uint32_t unk19; // Set to some value when first looking at the map in the menu
     uint32_t unk20;
     uint32_t unk21[4]; // logbook entry viewed
+    // unk21[0] 0x80000000 = Destroy the Boulder! viewed
+    // unk21[0] 0x40000000 = Guardian Sapling Trouble viewed
+    // unk21[2] 0x80 = Cut Down the Peach viewed
 
     uint8_t unk22[780];
 
@@ -145,9 +149,11 @@ struct TrackerData
     BitField<96> logbookAvailable;
     BitField<32> unknown;
     uint32_t unk1[4];
+    // unk1[1] 0x800 -> backstory finished, intro stage started
+
     uint32_t field_40;
     uint32_t field_44;
-    uint32_t field_48;
+    uint32_t field_48; // 0x40000000 = completed cut down peach journal?
     uint16_t field_4C;
     uint16_t field_4E;
     uint16_t field_50;
@@ -158,6 +164,7 @@ struct TrackerData
     uint8_t field_6D;
     uint8_t field_6E;
     uint8_t field_6F;
+    // field_70[2] 0x1000000 - entering shinshu field first time
     uint32_t field_70[3];
     uint32_t timePlayed;
 };

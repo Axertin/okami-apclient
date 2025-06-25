@@ -211,6 +211,12 @@ HRESULT __stdcall onRenderPresent(IDXGISwapChain *pSwapChain, UINT SyncInterval,
         }
         endPressed = endDown;
 
+        // Also just release the mouse if some other keys are pressed like Win or Alt
+        if (GetAsyncKeyState(VK_LWIN) || GetAsyncKeyState(VK_LMENU))
+        {
+            MouseIsReleased = true;
+        }
+
         // Check F2 Key - Toggle Login window
         bool F2Down = (GetAsyncKeyState(VK_F2) & 0x8000) != 0;
         if (F2Down && !F2Pressed)
