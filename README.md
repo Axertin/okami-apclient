@@ -56,19 +56,15 @@ If Ninja is already in your `PATH`, no setup is required. If you're using Visual
         "name": "my-local-debug",
         "inherits": "x64-clang-debug",
         "cacheVariables": {
-          "CMAKE_MAKE_PROGRAM": "D:/path/to/ninja/ninja.exe"
-        }
-      },
-      {
-        "name": "my-local-release",
-        "inherits": "x64-clang-release",
-        "cacheVariables": {
-          "CMAKE_MAKE_PROGRAM": "D:/path/to/ninja/ninja.exe"
+          "CMAKE_MAKE_PROGRAM": "C:/path/to/ninja/ninja.exe",
+          "CMAKE_INSTALL_PREFIX": "C:/path/to/Okami"
         }
       }
     ]
   }
   ```
+
+This example also shows how to override the install path to your own okami install directory so that cmake install targets work on your machine.
 
 To build:
 
@@ -95,6 +91,7 @@ Contributions are welcome! Please:
 ## Project Structure
 
 - `src/client/`: Main mod DLL
+- `src/library/`: Library for game memory offsets, types, and structures
 - `src/loader/`: Okami Injector and DLL loader
 - `include/okami/`: Game-specific helpers, memory structures, and initializations
 - `external/`: Dependency Git submodules
