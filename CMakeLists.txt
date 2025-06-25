@@ -223,7 +223,7 @@ endif()
 if(WIN32)
   set(TESTED_UNITS ${client_SOURCES} ${library_SOURCES})
 else()
-  set(TESTED_UNITS ${library_SOURCES}
+  set(TESTED_UNITS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
@@ -239,6 +239,7 @@ target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA)
 if(BUILD_TESTS_ONLY)
   # Linux-only test build - exclude Windows-specific libraries
   target_link_libraries(okami-tests PRIVATE
+    okami-library
     Catch2::Catch2WithMain
     nlohmann_json::nlohmann_json
     asio::asio
@@ -252,6 +253,7 @@ else()
   # Full Windows build
   target_compile_definitions(okami-tests PRIVATE _WIN32_WINNT=0x0601)
   target_link_libraries(okami-tests PRIVATE
+    okami-library
     Catch2::Catch2WithMain
     minhook::minhook
     nlohmann_json::nlohmann_json
@@ -267,7 +269,6 @@ else()
 endif()
 
 target_include_directories(okami-tests SYSTEM PRIVATE
-  ${CMAKE_CURRENT_SOURCE_DIR}/include
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client
   ${CMAKE_CURRENT_SOURCE_DIR}/external/apclientpp
   ${CMAKE_CURRENT_SOURCE_DIR}/external/wswrap/include
@@ -289,7 +290,7 @@ catch_discover_tests(okami-tests)
 # Install
 # TODO: Allow override of install_prefix
 if(NOT BUILD_TESTS_ONLY)
-  set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami")
+  set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami" CACHE PATH "Installation directory")
   install(TARGETS okami-loader DESTINATION .)
   install(TARGETS okami-apclient DESTINATION mods/apclient)
   install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
