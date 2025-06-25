@@ -18,13 +18,17 @@ const std::string CertStore = "mods/apclient/cacert.pem";
 const std::string GameName = "Ōkami HD";
 const int ItemHandlingVector = 0b111;
 const long long PollingIntervalMs = 1000;
+const long long connectionTimeout = 10;
 
 std::string ArchipelagoSocket::uuid = "";
 bool ArchipelagoSocket::Connected = false;
 bool ArchipelagoSocket::APSyncQueued = false;
 
 static std::chrono::steady_clock::time_point lastPollTime;
+static std::chrono::steady_clock::time_point connectionStartTime;
+
 APClient *ArchipelagoSocket::Client = nullptr;
+LoginWindow *ArchipelagoSocket::guiWindow = nullptr;
 
 ArchipelagoSocket &ArchipelagoSocket::instance()
 {
@@ -34,6 +38,7 @@ ArchipelagoSocket &ArchipelagoSocket::instance()
 
 void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
 {
+    guiWindow = LoginData;
     std::string serverInput = LoginData->Server;
     logInfo("[apsocket] Connecting to %s as %s", serverInput.c_str(), LoginData->Slot);
 
@@ -128,6 +133,7 @@ void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
         APSyncQueued = false;
         Connected = false;
         lastPollTime = std::chrono::steady_clock::now();
+        connectionStartTime = std::chrono::steady_clock::now();
 
         if (LoginData)
         {
@@ -254,12 +260,30 @@ void ArchipelagoSocket::poll()
     if (Client)
     {
         auto now = std::chrono::steady_clock::now();
-        auto elapsedTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count();
+        auto pollTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count();
 
         // Poll more frequently when not connected to establish connection faster
         auto interval = Connected ? PollingIntervalMs : 200LL;
 
-        if (elapsedTimeMs >= interval)
+        // Check for timeout during connection attempts
+        if (!Connected)
+        {
+            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(now - connectionStartTime).count();
+            if (elapsedTime >= connectionTimeout)
+            {
+                logError("[apsocket] Connection timed out after %d seconds", connectionTimeout);
+                delete Client;
+                Client = nullptr;
+                APSyncQueued = false;
+                if (guiWindow != nullptr)
+                {
+                    guiWindow->setMessage("Connection Timed Out");
+                }
+                return;
+            }
+        }
+
+        if (pollTimeMs >= interval)
         {
             try
             {
@@ -272,6 +296,17 @@ void ArchipelagoSocket::poll()
             }
             lastPollTime = now;
         }
+    }
+}
+
+void ArchipelagoSocket::cancelConnection()
+{
+    if (Client && !Connected)
+    {
+        logInfo("[apsocket] Canceling connection attempt");
+        delete Client;
+        Client = nullptr;
+        Connected = false;
     }
 }
 
