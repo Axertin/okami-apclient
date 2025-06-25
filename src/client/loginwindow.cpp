@@ -7,10 +7,6 @@
 #include "imgui.h"
 #endif
 
-/**
- * @brief Background thread that periodically checks if the login window should
- * be visible.
- */
 void LoginWindow::checkIfShouldBeVisible()
 {
     while (CheckingVisibility)
@@ -20,22 +16,17 @@ void LoginWindow::checkIfShouldBeVisible()
         for (int i = 0; i < 25 && CheckingVisibility; ++i)
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-
-    return;
 }
 
 void LoginWindow::toggleVisibility()
 {
     IsVisible = !IsVisible;
+    if (IsVisible)
+    {
+        manuallyShown = true; // User explicitly opened it
+    }
 }
 
-/**
- * @brief Renders the login window UI using ImGui.
- *
- * @param OuterWidth Width of the outer container (currently unused).
- * @param OuterHeight Height of the outer container (currently unused).
- * @param UIScale UI scaling factor (currently unused).
- */
 void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
 {
 #ifdef _WIN32
@@ -43,62 +34,101 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     (void)OuterHeight;
     (void)UIScale;
 
-    if (!IsVisible)
+    // Auto-hide when connected and in-game, unless manually shown
+    if (!IsVisible && !manuallyShown && Socket.isConnected() && !OnTitleScreen)
+    {
         return;
+    }
 
-    // Draw login window
+    if (!IsVisible)
+    {
+        return;
+    }
+
     ImGui::Begin(name.c_str(), &IsVisible, ImGuiWindowFlags_AlwaysAutoResize);
+
+    // Simple connection status
+    if (Socket.isConnected())
+    {
+        ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
+    }
+    else
+    {
+        ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Disconnected");
+    }
+
+    ImGui::Separator();
+
     ImGui::InputText("Server", Server, IM_ARRAYSIZE(Server));
-    ImGui::InputText("Password", Password, IM_ARRAYSIZE(Password), ImGuiInputTextFlags_Password);
     ImGui::InputText("Slot Name", Slot, IM_ARRAYSIZE(Slot));
+    ImGui::InputText("Password", Password, IM_ARRAYSIZE(Password), ImGuiInputTextFlags_Password);
 
     if (!Socket.isConnected())
     {
+        bool canConnect = strlen(Server) > 0 && strlen(Slot) > 0;
+
+        if (!canConnect)
+        {
+            ImGui::BeginDisabled();
+        }
+
         if (ImGui::Button("Connect"))
         {
-            if (strlen(Server) > 0 && strlen(Slot) > 0)
-            {
-                saveLoginData(JsonSavePath, Server, Slot, Password);
-                Socket.clientConnect(this);
-                setMessage("Connecting to " + std::string(Server) + "...");
-            }
-            else
-            {
-                setMessage("Please enter Server and Slot name");
-            }
+            saveLoginData(JsonSavePath, Server, Slot, Password);
+            Socket.clientConnect(this);
+            setMessage("Connecting...");
+        }
+
+        if (!canConnect)
+        {
+            ImGui::EndDisabled();
         }
     }
-    // else
-    // {
-    //     if (ImGui::Button("Disconnect"))
-    //     {
-    //         ArchipelagoSocket::disconnect();
-    //         SetMessage("");
-    //     }
-    // }
+    else
+    {
+        if (ImGui::Button("Disconnect"))
+        {
+            // TODO: Implement disconnect
+            setMessage("Disconnect not implemented");
+        }
+    }
 
-    ImGui::TextWrapped("%s", message.c_str());
+    // Simple message display with colors
+    if (!message.empty())
+    {
+        ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default white
+
+        if (message.find("Connected") != std::string::npos)
+        {
+            color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green
+        }
+        else if (message.find("refused") != std::string::npos || message.find("failed") != std::string::npos)
+        {
+            color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); // Red
+        }
+        else if (message.find("Connecting") != std::string::npos)
+        {
+            color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
+        }
+
+        ImGui::TextColored(color, "%s", message.c_str());
+    }
+
+    // Reset manual flag when window is closed and we should auto-hide
+    if (!IsVisible && Socket.isConnected() && !OnTitleScreen)
+    {
+        manuallyShown = false;
+    }
+
     ImGui::End();
 #endif
 }
 
-/**
- * @brief Sets the login window message
- *
- * @param newMessage The message string to display.
- */
-void LoginWindow::setMessage(std::string newMessage)
+void LoginWindow::setMessage(const std::string &newMessage)
 {
     message = newMessage;
 }
 
-/**
- * @brief Saves login data (server, slot name, password) to a JSON file.
- *
- * @param oServer The server address.
- * @param oSlot The slot (player name).
- * @param oPassword The password used for authentication.
- */
 void LoginWindow::saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword)
 {
     nlohmann::json jsonData;
@@ -106,29 +136,21 @@ void LoginWindow::saveLoginData(const std::string &path, const std::string &oSer
     jsonData["Slot"] = oSlot;
     jsonData["Password"] = oPassword;
 
-    // Save the JSON data to a file
     std::ofstream file(path);
-    file << jsonData.dump(4); // Pretty print with an indentation of 4
-    file.close();
+    if (file.is_open())
+    {
+        file << jsonData.dump(4);
+        file.close();
+    }
 }
 
-/**
- * @brief Loads login data (server, slot name, password) from a JSON file.
- *
- * @param oServer Reference to store the loaded server address.
- * @param oSlot Reference to store the loaded slot name.
- * @param oPassword Reference to store the loaded password.
- * @return true If data was loaded successfully.
- * @return false If the file was not found or loading failed.
- */
 bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword)
 {
     std::ifstream file(path);
-
     if (!file.is_open())
     {
-        logWarning("[login] Failed to open file: %s", path);
-        return false; // Return false if the file doesn't exist
+        logWarning("[login] Failed to open file: %s", path.c_str());
+        return false;
     }
 
     nlohmann::json jsonData;
@@ -138,15 +160,14 @@ bool LoginWindow::loadLoginData(const std::string &path, std::string &oServer, s
     }
     catch (const std::exception &e)
     {
-        logError("[login] JSON parse failed: %e", e.what());
-        return false; // Invalid JSON format
+        logError("[login] JSON parse failed: %s", e.what());
+        return false;
     }
     file.close();
 
-    // Retrieve data from the JSON object
     oServer = jsonData.value("Server", "");
     oSlot = jsonData.value("Slot", "");
     oPassword = jsonData.value("Password", "");
 
-    return true; // Return true if loading was successful
+    return true;
 }

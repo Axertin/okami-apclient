@@ -1,5 +1,6 @@
 #include "gamehooks.h"
 
+#include "archipelagosocket.h"
 #include "checks.h"
 #include "devdatafinder.h"
 #include "logger.h"
@@ -36,6 +37,7 @@ void __cdecl GameHooks::onGameTick()
 {
     devDataFinder_OnGameTick();
     // checkBrushes();
+    ArchipelagoSocket::instance().poll();
     Main_FlowerTickOrigin();
 }
 
