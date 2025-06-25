@@ -288,9 +288,10 @@ include(Catch)
 catch_discover_tests(okami-tests)
 
 # Install
-# TODO: Allow override of install_prefix
+if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "d:/SteamLibrary/steamapps/common/Okami")
+endif()
 if(NOT BUILD_TESTS_ONLY)
-  set(CMAKE_INSTALL_PREFIX "d:/SteamLibrary/steamapps/common/Okami" CACHE PATH "Installation directory")
   install(TARGETS okami-loader DESTINATION .)
   install(TARGETS okami-apclient DESTINATION mods/apclient)
   install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
