@@ -26,9 +26,11 @@ class ArchipelagoSocket : public ISocket
   private:
     static bool APSyncQueued;
     static APClient *Client;
+    static LoginWindow *guiWindow;
 
     static std::string uuid;
     static bool Connected;
 
+    static void cancelConnection();
     ArchipelagoSocket() = default;
 };
