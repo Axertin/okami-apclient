@@ -61,6 +61,8 @@ bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex,
     logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
     checkBrushes(BitIndex);
 
+    // return oEditBrushes(MaybeInventoryStruct, BitIndex, Operation);
+
     return true;
 }
 

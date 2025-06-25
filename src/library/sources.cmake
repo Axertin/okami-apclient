@@ -5,6 +5,7 @@ set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dataverify.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dojotech.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/fish.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/itemtype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/maptype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/memorymap.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/movelisttome.cpp

@@ -136,19 +136,6 @@ template <unsigned int N, class Fn> void checklistColsTome(const Fn &pNameFn, ok
     ImGui::EndTable();
 }
 
-const char *getItemName(unsigned idx)
-{
-    static std::string mem;
-    if (okami::ItemTable.contains(idx))
-    {
-        mem = okami::ItemTable.at(idx).Name;
-    }
-    {
-        mem = std::string("Item") + std::to_string(idx);
-    }
-    return mem.c_str();
-}
-
 /**
  * @brief Renders the Developer Tools window UI using ImGui.
  *
@@ -255,7 +242,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             for (unsigned i = 0; i < okami::ItemTypes::NUM_ITEM_TYPES; i++)
             {
                 ImGui::TableNextColumn();
-                drawStat(getItemName(i), ImGuiDataType_U16, &okami::AmmyCollections->inventory[i]);
+                drawStat(okami::ItemTypes::GetName(i), ImGuiDataType_U16, &okami::AmmyCollections->inventory[i]);
             }
             ImGui::EndTable();
         }
@@ -341,7 +328,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::CollapsingHeader("first time item"))
         {
-            checklistCols(2, getItemName, okami::AmmyTracker->firstTimeItem);
+            checklistCols(2, okami::ItemTypes::GetName, okami::AmmyTracker->firstTimeItem);
         }
         if (ImGui::CollapsingHeader("logbook available"))
         {
