@@ -14,10 +14,8 @@ bool initialized = false;
 okami::CharacterStats previousStats;
 okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
-std::array<okami::BitField<1824>, okami::MapTypes::NUM_MAP_TYPES>
-    previousMapBits;
-std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES>
-    previousIssunBits;
+std::array<okami::BitField<1824>, okami::MapTypes::NUM_MAP_TYPES> previousMapBits;
+std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousIssunBits;
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -26,9 +24,7 @@ template <typename... Args> void warn(const char *format, Args... args)
 }
 
 template <unsigned N>
-void compareBitfield(
-    const char *name, okami::BitField<N> &old, okami::BitField<N> &current,
-    const std::unordered_map<unsigned, const char *> &documentation)
+void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, const char *> &documentation)
 {
     okami::BitField<N> diff = current ^ old;
     std::vector<unsigned> diffIndices = diff.GetSetIndices();
@@ -36,8 +32,7 @@ void compareBitfield(
     {
         if (!documentation.contains(idx))
         {
-            warn("BitField %s index %u was changed from %d to %d", name, idx,
-                 old.IsSet(idx), current.IsSet(idx));
+            warn("BitField %s index %u was changed from %d to %d", name, idx, old.IsSet(idx), current.IsSet(idx));
         }
     }
 }
@@ -87,35 +82,27 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk10", old.world.unk10, current.world.unk10);
     for (unsigned i = 0; i < 56; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk11[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk11[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk11[i], current.world.unk11[i]);
     }
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
-        std::string name = std::string("WorldStateData::mapStateBits[") +
-                           std::to_string(i) + "] (" +
-                           okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i],
-                        current.world.mapStateBits[i],
-                        worldStateMapBitsDesc[i]);
+        std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], worldStateMapBitsDesc[i]);
     }
-    compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits,
-                    current.world.animalsFedBits, animalsFedDesc);
+    compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
     for (unsigned i = 0; i < 10; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk15[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk15[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk15[i], current.world.unk15[i]);
     }
 
     compareInt("WorldStateData::unk16", old.world.unk16, current.world.unk16);
     for (unsigned i = 0; i < 4; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk17[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk17[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk17[i], current.world.unk17[i]);
     }
     compareInt("WorldStateData::unk18", old.world.unk18, current.world.unk18);
@@ -123,21 +110,18 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk20", old.world.unk20, current.world.unk20);
     for (unsigned i = 0; i < 4; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk21[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk21[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk21[i], current.world.unk21[i]);
     }
     for (unsigned i = 0; i < 780; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk22[i], current.world.unk22[i]);
     }
 
     for (unsigned i = 0; i < 28; i++)
     {
-        std::string name =
-            std::string("WorldStateData::unk24[") + std::to_string(i) + "]";
+        std::string name = std::string("WorldStateData::unk24[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk24[i], current.world.unk24[i]);
     }
 }
@@ -147,15 +131,12 @@ void compareTrackerData()
     okami::TrackerData &current = *okami::AmmyTracker.get_ptr();
     okami::TrackerData &old = previousTracker;
 
-    compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable,
-                    current.logbookAvailable, tracker1Desc);
-    compareBitfield("TrackerData::unknown", old.unknown, current.unknown,
-                    tracker2Desc);
+    compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable, current.logbookAvailable, tracker1Desc);
+    compareBitfield("TrackerData::unknown", old.unknown, current.unknown, tracker2Desc);
 
     for (unsigned i = 0; i < 4; i++)
     {
-        std::string name =
-            std::string("TrackerData::unk1[") + std::to_string(i) + "]";
+        std::string name = std::string("TrackerData::unk1[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.unk1[i], current.unk1[i]);
     }
     compareInt("TrackerData::field_40", old.field_40, current.field_40);
@@ -172,8 +153,7 @@ void compareTrackerData()
 
     for (unsigned i = 0; i < 3; i++)
     {
-        std::string name =
-            std::string("TrackerData::field_70[") + std::to_string(i) + "]";
+        std::string name = std::string("TrackerData::field_70[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.field_70[i], current.field_70[i]);
     }
 }
@@ -185,8 +165,7 @@ void comparePreviousMapBits()
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
-        std::string name = std::string("MapBits[") + std::to_string(i) + "] (" +
-                           okami::MapTypes::GetName(i) + ")";
+        std::string name = std::string("MapBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
         compareBitfield(name.c_str(), old[i], current[i], mapBitsDesc[i]);
     }
 }
@@ -198,8 +177,7 @@ void comparePreviousIssunBits()
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
-        std::string name = std::string("IssunBits[") + std::to_string(i) +
-                           "] (" + okami::MapTypes::GetName(i) + ")";
+        std::string name = std::string("IssunBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
         compareBitfield(name.c_str(), old[i], current[i], issunBitsDesc[i]);
     }
 }
