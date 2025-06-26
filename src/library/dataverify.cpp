@@ -67,7 +67,7 @@ COLLECT_CHECK(world.day, 0x260 + 0x04);
 COLLECT_CHECK(world.usableBrushTechniques, 0x260 + 0x10);
 COLLECT_CHECK(world.obtainedBrushTechniques, 0x260 + 0x18);
 COLLECT_CHECK(world.brushUpgrades, 0x260 + 0x20);
-COLLECT_CHECK(world.riverOfHeavensRejuvinationBits, 0x260 + 0x60);
+COLLECT_CHECK(world.riverOfHeavensRejuvenationBits, 0x260 + 0x60);
 COLLECT_CHECK(world.mapStateBits, 0x260 + 0xFC);
 COLLECT_CHECK(world.animalsFedBits, 0x260 + 0xB7C);
 COLLECT_CHECK(world.numAnimalsFed, 0x260 + 0xB9C);
@@ -77,3 +77,13 @@ COLLECT_CHECK(world.enemiesKilled, 0x260 + 0xF30);
 
 SIZECHECK(hx::Texture, 0x18);
 SIZECHECK(CustomTextures, 0x10160);
+
+#define MAP_CHECK(member, offset) OFFCHECK(MapState, member, offset)
+
+SIZECHECK(MapState, 0xE4);
+MAP_CHECK(user, 0x00);
+MAP_CHECK(buriedObjects, 0x80);
+MAP_CHECK(collectedObjects, 0x8C);
+MAP_CHECK(timeOfDay, 0x9C);
+MAP_CHECK(areasRestored, 0xA0);
+MAP_CHECK(npcHasMoreToSay, 0xC4);

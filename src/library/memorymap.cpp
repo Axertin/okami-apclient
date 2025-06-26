@@ -26,8 +26,8 @@ uintptr_t FlowerBase;
 MemoryAccessor<CharacterStats> AmmyStats;
 MemoryAccessor<CollectionData> AmmyCollections;
 MemoryAccessor<TrackerData> AmmyTracker;
-MemoryAccessor<std::array<BitField<1824>, MapTypes::NUM_MAP_TYPES>> MapBits;
-MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> IssunDialogBits;
+MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
+MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
 
 MemoryAccessor<float> AmmyPosX;
 MemoryAccessor<float> AmmyPosY;
@@ -82,8 +82,8 @@ void initVariables()
     AmmyStats.bind(okami::MainBase + 0xB4DF90);
     AmmyCollections.bind(okami::MainBase + 0xB205D0);
     AmmyTracker.bind(okami::MainBase + 0xB21780);
-    MapBits.bind(okami::MainBase + 0xB322B0);
-    IssunDialogBits.bind(okami::MainBase + 0xB36CF0);
+    MapData.bind(okami::MainBase + 0xB322B0);
+    DialogBits.bind(okami::MainBase + 0xB36CF0);
     // everything needed for a save file ^^^^^^^^
 
     BrushTargetInk.bind(okami::MainBase + 0x8928A4);

@@ -7,6 +7,8 @@
 #include "okami/data/structs.hpp"
 #include "okami/memorymap.hpp"
 
+namespace okami
+{
 namespace
 {
 bool initialized = false;
@@ -14,8 +16,8 @@ bool initialized = false;
 okami::CharacterStats previousStats;
 okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
-std::array<okami::BitField<1824>, okami::MapTypes::NUM_MAP_TYPES> previousMapBits;
-std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousIssunBits;
+std::array<okami::MapState, okami::MapTypes::NUM_MAP_TYPES> previousMapData;
+std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousDialogBits;
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -37,11 +39,29 @@ void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<
     }
 }
 
-void compareInt(const char *name, int old, int current)
+template <class T> void compareInt(const char *name, T old, T current);
+
+template <> void compareInt<uint32_t>(const char *name, uint32_t old, uint32_t current)
 {
     if (current != old)
     {
-        warn("%s was changed from %d to %d", name, old, current);
+        warn("%s was changed from %08X to %08X", name, old, current);
+    }
+}
+
+template <> void compareInt<uint16_t>(const char *name, uint16_t old, uint16_t current)
+{
+    if (current != old)
+    {
+        warn("%s was changed from %04X to %04X", name, old, current);
+    }
+}
+
+template <> void compareInt<uint8_t>(const char *name, uint8_t old, uint8_t current)
+{
+    if (current != old)
+    {
+        warn("%s was changed from %02X to %02X", name, old, current);
     }
 }
 
@@ -89,7 +109,7 @@ void comparePreviousCollection()
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
         std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], worldStateMapBitsDesc[i]);
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits);
     }
     compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
@@ -134,7 +154,7 @@ void compareTrackerData()
     compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable, current.logbookAvailable, tracker1Desc);
     compareBitfield("TrackerData::unknown", old.unknown, current.unknown, tracker2Desc);
 
-    for (unsigned i = 0; i < 4; i++)
+    for (unsigned i = 0; i < 3; i++)
     {
         std::string name = std::string("TrackerData::unk1[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.unk1[i], current.unk1[i]);
@@ -158,37 +178,83 @@ void compareTrackerData()
     }
 }
 
-void comparePreviousMapBits()
+void comparePreviousMapData()
 {
-    auto &current = *okami::MapBits.get_ptr();
-    auto &old = previousMapBits;
+    auto &current = *okami::MapData.get_ptr();
+    auto &old = previousMapData;
+    std::string name;
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
-        std::string name = std::string("MapBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old[i], current[i], mapBitsDesc[i]);
+        std::string mapNamePrefix = std::string("(") + okami::MapTypes::GetName(i) + ") ";
+        for (unsigned j = 0; j < 32; j++)
+        {
+            if (mapDataDesc.at(i).userIndices.contains(j))
+                continue;
+
+            name = mapNamePrefix + std::string("MapState::user[") + std::to_string(j) + "]";
+            compareInt(name.c_str(), old[i].user[j], current[i].user[j]);
+        }
+
+        name = mapNamePrefix + std::string("MapState::buriedObjects");
+        compareBitfield(name.c_str(), old[i].buriedObjects, current[i].buriedObjects, mapDataDesc.at(i).buriedObjects);
+
+        name = mapNamePrefix + std::string("MapState::collectedObjects");
+        compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapDataDesc.at(i).collectedObjects);
+
+        name = mapNamePrefix + std::string("MapState::field_98");
+        compareBitfield(name.c_str(), old[i].field_98, current[i].field_98, mapDataDesc.at(i).field_98);
+
+        name = mapNamePrefix + std::string("MapState::areasRestored");
+        compareBitfield(name.c_str(), old[i].areasRestored, current[i].areasRestored, mapDataDesc.at(i).areasRestored);
+
+        name = mapNamePrefix + std::string("MapState::treesBloomed");
+        compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapDataDesc.at(i).treesBloomed);
+
+        name = mapNamePrefix + std::string("MapState::field_B0");
+        compareBitfield(name.c_str(), old[i].field_B0, current[i].field_B0, mapDataDesc.at(i).field_B0);
+
+        name = mapNamePrefix + std::string("MapState::hellGatesCleared");
+        compareBitfield(name.c_str(), old[i].hellGatesCleared, current[i].hellGatesCleared, mapDataDesc.at(i).hellGatesCleared);
+
+        name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
+        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcHasMoreToSay);
+
+        name = mapNamePrefix + std::string("MapState::npcUnknown");
+        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcUnknown);
+
+        name = mapNamePrefix + std::string("MapState::field_D4");
+        compareBitfield(name.c_str(), old[i].field_D4, current[i].field_D4, mapDataDesc.at(i).field_D4);
+
+        name = mapNamePrefix + std::string("MapState::field_DC");
+        compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapDataDesc.at(i).field_DC);
+
+        name = mapNamePrefix + std::string("MapState::field_E0");
+        compareBitfield(name.c_str(), old[i].field_E0, current[i].field_E0, mapDataDesc.at(i).field_E0);
     }
 }
 
-void comparePreviousIssunBits()
+/*
+// an actual chore, takes forever
+void comparePreviousDialogBits()
 {
-    auto &current = *okami::IssunDialogBits.get_ptr();
-    auto &old = previousIssunBits;
+    auto &current = *okami::DialogBits.get_ptr();
+    auto &old = previousDialogBits;
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
         std::string name = std::string("IssunBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old[i], current[i], issunBitsDesc[i]);
+        compareBitfield(name.c_str(), old[i], current[i], mapDataDesc.at(i).dialogBits);
     }
 }
-
+*/
 void saveData()
 {
     previousStats = *okami::AmmyStats.get_ptr();
     previousCollection = *okami::AmmyCollections.get_ptr();
     previousTracker = *okami::AmmyTracker.get_ptr();
-    previousMapBits = *okami::MapBits.get_ptr();
-    previousIssunBits = *okami::IssunDialogBits.get_ptr();
+    previousMapData = *okami::MapData.get_ptr();
+    previousDialogBits = *okami::DialogBits.get_ptr();
 }
 } // namespace
 
@@ -203,8 +269,9 @@ void devDataFinder_OnGameTick()
     comparePreviousStats();
     comparePreviousCollection();
     compareTrackerData();
-    comparePreviousMapBits();
-    comparePreviousIssunBits();
+    comparePreviousMapData();
+    // comparePreviousDialogBits();
 
     saveData();
 }
+} // namespace okami

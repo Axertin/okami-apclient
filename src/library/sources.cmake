@@ -2,6 +2,7 @@
 set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/animals.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/bestiarytome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/brushtype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dataverify.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dojotech.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/fish.cpp

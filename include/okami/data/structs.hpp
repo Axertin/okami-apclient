@@ -76,7 +76,7 @@ struct WorldStateData
     BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
     BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
     uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
-    BitField<256> riverOfHeavensRejuvinationBits; // set from BrushData (+0x8909C0 + 0x1F60)
+    BitField<256> riverOfHeavensRejuvenationBits; // set from BrushData (+0x8909C0 + 0x1F60)
     uint32_t unk5;
     uint32_t unk6;
     uint8_t unk7;
@@ -99,6 +99,10 @@ struct WorldStateData
     uint32_t unk21[4]; // logbook entry viewed
     // unk21[0] 0x80000000 = Destroy the Boulder! viewed
     // unk21[0] 0x40000000 = Guardian Sapling Trouble viewed
+    // unk21[0] 0x20000000 = Secret of Hana Valley viewed
+    // unk21[0] 0x10000000 = Revive the Guardian Saplings viewed
+    // unk21[0] 0x8000000 = Sacred Tree Reborn viewed
+    // unk21[0] 0x4000000 = Shinshu Adventure viewed
     // unk21[2] 0x80 = Cut Down the Peach viewed
 
     uint8_t unk22[780];
@@ -147,13 +151,17 @@ struct TrackerData
 {
     BitField<ItemTypes::NUM_ITEM_TYPES> firstTimeItem;
     BitField<96> logbookAvailable;
-    BitField<32> unknown;
-    uint32_t unk1[4];
-    // unk1[1] 0x800 -> backstory finished, intro stage started
+    BitField<64> unknown;
+    uint32_t unk1[3];
+    // unk1[0] 0x800 -> backstory finished, intro stage started
 
     uint32_t field_40;
-    uint32_t field_44;
-    uint32_t field_48; // 0x40000000 = completed cut down peach journal?
+    uint32_t field_44; // changed in save menu
+
+    // 0x40000000 = completed cut down peach journal?
+    // 0x20000000 = completed Secret of Hana Valley / started Revive the Guardian Saplings
+    // 0x10000000 = completed Revive the Guardian Saplings
+    uint32_t field_48;
     uint16_t field_4C;
     uint16_t field_4E;
     uint16_t field_50;
@@ -165,6 +173,7 @@ struct TrackerData
     uint8_t field_6E;
     uint8_t field_6F;
     // field_70[2] 0x1000000 - entering shinshu field first time
+    // field_70[0] 0x08000000 - Secret of Hana Valley added
     uint32_t field_70[3];
     uint32_t timePlayed;
 };
@@ -190,5 +199,23 @@ struct CustomTextures
 struct BrushState
 {
     // TODO chonker
+};
+
+struct MapState
+{
+    uint32_t user[32];             // custom data differs per map
+    BitField<96> buriedObjects;    // set if dug up
+    BitField<96> collectedObjects; // set if chest or other object collected
+    BitField<32> field_98;
+    uint32_t timeOfDay;         // Usually synced with world time
+    BitField<96> areasRestored; // whether certain map areas are restored
+    BitField<32> treesBloomed;
+    BitField<32> field_B0;
+    BitField<128> hellGatesCleared;
+    BitField<64> npcHasMoreToSay;
+    BitField<64> npcUnknown; // Related to MoreToSay but never seen it set
+    BitField<64> field_D4;
+    BitField<32> field_DC;
+    BitField<32> field_E0;
 };
 } // namespace okami

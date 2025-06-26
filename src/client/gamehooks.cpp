@@ -35,7 +35,7 @@ static FunctionType Main_FlowerTickOrigin = nullptr;
 /// @return void
 void __cdecl GameHooks::onGameTick()
 {
-    devDataFinder_OnGameTick();
+    okami::devDataFinder_OnGameTick();
     // checkBrushes();
     ArchipelagoSocket::instance().poll();
     Main_FlowerTickOrigin();
