@@ -5,6 +5,7 @@
 #include "imgui.h"
 #include "okami/animals.hpp"
 #include "okami/bestiarytome.hpp"
+#include "okami/data/brushtype.hpp"
 #include "okami/data/itemtype.hpp"
 #include "okami/data/maptype.hpp"
 #include "okami/dojotech.hpp"
@@ -341,7 +342,6 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk1[0]: %u", okami::AmmyTracker->unk1[0]);
         ImGui::Text("unk1[1]: %u", okami::AmmyTracker->unk1[1]);
         ImGui::Text("unk1[2]: %u", okami::AmmyTracker->unk1[2]);
-        ImGui::Text("unk1[3]: %u", okami::AmmyTracker->unk1[3]);
         ImGui::Text("field_40: %u", okami::AmmyTracker->field_40);
         ImGui::Text("field_44: %u", okami::AmmyTracker->field_44);
         ImGui::Text("field_48: %u", okami::AmmyTracker->field_48);
@@ -363,7 +363,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("field_70[2]: %u", okami::AmmyTracker->field_70[2]);
     }
 
-    // TODO MapBits
+    // TODO MapData
     // TODO DialogBits
 
     if (ImGui::CollapsingHeader("Items"))
@@ -382,12 +382,12 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::CollapsingHeader("Usable Brushes"))
         {
-            checklistColsUnnamed(2, "Brush", *okami::AmmyUsableBrushes.get_ptr());
+            checklistCols(2, okami::BrushTypes::GetName, *okami::AmmyUsableBrushes.get_ptr());
         }
 
         if (ImGui::CollapsingHeader("Obtained Brushes"))
         {
-            checklistColsUnnamed(2, "Brush", *okami::AmmyObtainedBrushes.get_ptr());
+            checklistCols(2, okami::BrushTypes::GetName, *okami::AmmyObtainedBrushes.get_ptr());
         }
     }
 
@@ -413,7 +413,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         }
         if (ImGui::CollapsingHeader("Current Map Progress Bits"))
         {
-            checklistColsUnnamed(4, "MapProgressBit", okami::MapBits->at(mapIndex));
+            // checklistColsUnnamed(4, "MapProgressBit", okami::MapData->at(mapIndex));
         }
         if (ImGui::CollapsingHeader("Current Map Dialog Bits"))
         {

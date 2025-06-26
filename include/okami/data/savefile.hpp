@@ -27,7 +27,7 @@ struct SaveSlot
     CollectionData collection;
 
     // Loaded to +0xB322B0
-    BitField<1824> persistentMapBits[MapTypes::NUM_MAP_TYPES]; // mostly dialog
+    MapState MapData[MapTypes::NUM_MAP_TYPES];
 
     // Loaded to +0xB36CF0
     BitField<512> DialogBits[MapTypes::NUM_MAP_TYPES];

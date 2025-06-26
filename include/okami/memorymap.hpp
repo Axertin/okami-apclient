@@ -25,7 +25,7 @@ extern uintptr_t FlowerBase;
 extern MemoryAccessor<CharacterStats> AmmyStats;
 extern MemoryAccessor<CollectionData> AmmyCollections;
 extern MemoryAccessor<TrackerData> AmmyTracker;
-extern MemoryAccessor<std::array<BitField<1824>, MapTypes::NUM_MAP_TYPES>> MapBits;
+extern MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 extern MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
 
 extern MemoryAccessor<float> AmmyPosX;
