@@ -145,6 +145,12 @@ endif()
 # Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
+# Game library (memory structures and such)
+add_library(okami-library STATIC ${library_SOURCES})
+target_include_directories(okami-library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_compile_features(okami-library PUBLIC ${STD_FEATURE})
+enable_strict_warnings(okami-library)
+
 if(NOT BUILD_TESTS_ONLY)
   # imgui
   add_library(imgui STATIC
@@ -158,12 +164,6 @@ if(NOT BUILD_TESTS_ONLY)
 
   target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
   target_compile_features(imgui PRIVATE ${STD_FEATURE})
-
-  # Game library (memory structures and such)
-  add_library(okami-library STATIC ${library_SOURCES})
-  target_include_directories(okami-library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-  target_compile_features(okami-library PUBLIC ${STD_FEATURE})
-  enable_strict_warnings(okami-library)
 
   # Primary program
   add_library(okami-apclient SHARED ${client_SOURCES})
