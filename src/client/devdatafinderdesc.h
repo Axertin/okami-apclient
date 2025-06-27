@@ -11,17 +11,35 @@ const std::unordered_map<unsigned, const char *> animalsFedDesc = {
     {2, "Hana Valley mural - Boar Piglet"},
     {3, "Kamiki village - Chicken"},
     {4, "Kamiki village entrance - Hare"},
-    {5, "Kamiki village - Dog (Hayabusa)"},
+    {5, "Kamiki village Hayabusa - Dog"},
     {6, "Kamiki village hill - Sparrow"},
     {7, "Kamiki village pond - Sparrow"},
     {8, "Kamiki village farm - Sparrow"},
     {10, "Shinshu Field gate area by guardian tree - Hare"},
     {11, "Shinshu Field kiln - Hare"},
     {14, "Shinshu Field grass patch by entrance - Boar Piglet"},
+    {19, "Agata Forest Ume - Dog"},
+    {20, "Agata Forest grass patch in front of forest hut - Hare"},
+    {22, "Agata Forest by waterfall - Monkey"},
+    {23, "Agata Forest Hitoshio Spring - Deer"},
+    {25, "Agata Forest Taka Pass exit - Hare"},
+    {26, "Agata Forest forest hut - Nightingale"},
+    {33, "Taka Pass sapling field path by cave - Horse"},
     {37, "Shinshu Field Agata Forest Port - Boar"},
     {38, "Shinshu Field dojo - Pig"},
     {39, "Shinshu Field east path - Hare"},
+    {40, "Shinshu Field near Tama's - Sparrow"},
     {41, "Shinshu Field near dojo - Horse"},
+    {42, "Agata Forest dungeon entrance - Deer"},
+    {43, "Agata Forest in front of dungeon entrance by water - Deer"},
+    {44, "Agata Forest path to dungeon from Kiba closer to dungeon - Deer"},
+    {45, "Agata Forest path to dungeon from Kiba closer to Kiba - Deer"},
+    {46, "Agata Forest Madame Fawn's house - Hare"},
+    {47, "Agata Forest by Kiba - Sparrow"},
+    {48, "Agata Forest sapling - Hare"},
+    {54, "Taka Pass path near sapling - Deer"},
+    {56, "Taka Pass in sapling cave - Fox"},
+    {90, "Taka Pass sapling - Nightingale"},
 };
 
 // logbookAvailable
@@ -32,43 +50,62 @@ const std::unordered_map<unsigned, const char *> tracker1Desc = {
     // 6 - After gaining sunrise and entering battle
     // 7 - After picking up susano first time
     // 9 - Guardian Sapling Trouble journal added
+    // 10 - Konohana shuffle started
+    // 11 - Sakuya tree bloomed
+    // 12 - lily pad constellation appears
+    // 13 - finished lily pad constellation
+    // 14 - finished lily pad tutorial
+    // 15 - spider queen defeated
     // 16 - spoke with susano after mural battle in Hana Valley
     // 17 - mural battle (new enemy) in Hana Valley
     // 18 - restored mural in Hana Valley
     // 19 - restored sapling and shown constellation Hana Valley
     // 20 - greensprout obtained
     // 24 - revived Shinshu sapling
+    // 26 - Vine constellation shown
+    // 27 - Vine constellation completed
+    // 28 - Bud Ogre enemy introduced
+    // 29 - Spider queen combat started
+    // 30 - tsuta ruins pond room battle triggered
+    // 31 - cherry bomb constellation
+    // 32 - received cherry bomb
     // 36 - river of heavens stars twinkling sets this
     // 37 - boulder slash minigame failed
     // 41 - Mrs Orange gave Cherry Cake for quest
     // 42 - cave of nagi constellation sets this
     // 45 - boulder removed
+    // 46 - waka fight
+    // 47 - waka story time
+    // 50 - log minigame started
+    // 51 - got ruins key
+    // 52 - Ume rescued from spider queen, post-dialogue
     // 53 - Hana Valley bear defeated
+    // 60 - first fish demon encountered
+    // 61 - waka 2 fight started
+    // 62 - waka 2 fight finished
 };
 
-// unknown
-const std::unordered_map<unsigned, const char *> tracker2Desc = {
+const std::unordered_map<unsigned, const char *> animalsFedFirstTimeDesc = {
     {16, "First hare fed"}, {19, "First sparrow fed"}, {20, "First monkey fed"}, {21, "First boar piglet fed"},
-    {22, "First boar fed"}, {23, "First dog fed"},     {34, "First pig fed"},    {38, "First horse fed"},
+    {22, "First boar fed"}, {23, "Hayabusa fed"},      {24, "Ume fed"},          {31, "First deer fed"},
+    {31, "First fox fed"},  {34, "First pig fed"},     {38, "First horse fed"},  {43, "First nightingale fed"},
 };
 
 struct MapDesc
 {
     std::unordered_map<unsigned, const char *> worldStateBits;
     std::unordered_map<unsigned, const char *> userIndices;
-    std::unordered_map<unsigned, const char *> buriedObjects;
     std::unordered_map<unsigned, const char *> collectedObjects;
     std::unordered_map<unsigned, const char *> field_98;
     std::unordered_map<unsigned, const char *> areasRestored;
     std::unordered_map<unsigned, const char *> treesBloomed;
-    std::unordered_map<unsigned, const char *> field_B0;
-    std::unordered_map<unsigned, const char *> hellGatesCleared;
+    std::unordered_map<unsigned, const char *> cursedTreesBloomed;
+    std::unordered_map<unsigned, const char *> fightsCleared;
     std::unordered_map<unsigned, const char *> npcHasMoreToSay;
     std::unordered_map<unsigned, const char *> npcUnknown;
-    std::unordered_map<unsigned, const char *> field_D4;
+    std::unordered_map<unsigned, const char *> mapsExplored;
     std::unordered_map<unsigned, const char *> field_DC;
     std::unordered_map<unsigned, const char *> field_E0;
-    std::unordered_map<unsigned, const char *> dialogBits;
 };
 
 const std::unordered_map<unsigned, MapDesc>
@@ -83,8 +120,24 @@ const std::unordered_map<unsigned, MapDesc>
                          // 7 - battle paused, or tutorial about vulnerable enemies?
                          // 8 - in battle? tutorial battle?
                          // 9 - carrying susano
+                         {22, "Taka Pass restored"},
+                         // 38 = ??
                          {41, "Shinshu Field restored"},
+
+                         {46, "Shinshu Field mermaid spring unlocked"},
+                         {47, "Agata Forest mermaid spring unlocked"},
+                         {48, "Taka Pass mermaid spring unlocked"},
+                         {49, "Sasa Sanctuary mermaid spring unlocked"},
+                         {50, "Ryoshima Coast mermaid spring unlocked"},
+                         {51, "N.Ryoshima Coast mermaid spring unlocked"},
+                         {52, "Dragon Palace mermaid spring unlocked"},
+                         {53, "Kamui mermaid spring unlocked"},
+
+                         //{62, "Waka 1 defeated"}, // gets cleared after story time
+                         // 65 - Agata fishing related, caught big fish?
+                         {64, "Fishing in Agata Forest"},
                          {84, "First dojo cutscene trigger"},
+                         {97, "Fishing tutorial shown"},
                      },
              }},
             {MapTypes::KamikiVillageGameStart,
@@ -95,13 +148,6 @@ const std::unordered_map<unsigned, MapDesc>
                          // 15 and 17 get set when Issun starts conversation, 15 16 and 17 all get cleared after the convo
                          {18, "Identified invisible forcefield towards Kamiki"},
                          // 43, 44 - peach was cut down
-                     },
-                 .dialogBits =
-                     {
-                         {2, "Ammy awakened by Sakuya"},
-                         {7, "Informed about the impenetrable barrier"},
-                         {8, "Second dialogue after hitting barrier"},
-                         {11, "Examined the fruit"},
                      },
              }},
             {MapTypes::CaveOfNagi,
@@ -121,36 +167,12 @@ const std::unordered_map<unsigned, MapDesc>
                      {
                          {0, "Chest on the other side of the river (Stray Bead)"},
                      },
-                 .dialogBits =
-                     {
-                         {1, "Failed to use celestial brush"},
-                         {3, "Introduction on cave statue"},
-                         {4, "Mentions the broken sword"},
-                         {5, "Second mention of broken sword"},
-                         {6, "Issun comments when you use celestial brush but do nothing"},
-                         {7, "Second comment when not completing the sword with the brush"},
-                         {8, "Comment about handling the celestial brush outside of Nagi statue range"},
-                         {9, "Second comment about celestial brush outside of Nagi statue range"},
-                         {11, "Third comment about celestial brush outside of Nagi statue range"},
-                         {12, "Third comment about failing to draw the sword"},
-                         {14, "Finished commenting on constellation"},
-                         {15, "Tachigami dialogue"},
-                         {16, "Issun talks about using power slash"},
-                         {17, "Comments if you don't use power slash after time limit"},
-                         {21, "Discussion after slicing the rock"},
-                         {22, "Second part of discussion after slicing the rock"},
-                         {28, "Introduced to tutorial battle"},
-                         {29, "Introduced to enemy vulnerable state"},
-                         {40, "Examined fountain of Nagi sign"},
-                         {43, "Comment on completed Nagi statue"},
-                         {44, "Interacting with the closed wooden blockade"},
-                         {45, "Interact with blockade after getting power slash"},
-                     },
              }},
             {MapTypes::KamikiVillage,
              {
                  .worldStateBits =
                      {
+                         {1, "In god zone by the tree"},
                          {2, "Farm digging minigame is active"},
                          {3, "Laundry pole restored"},
                          {4, "Farm digging minigame was triggered at least once"},
@@ -166,9 +188,11 @@ const std::unordered_map<unsigned, MapDesc>
                          {18, "Water wheel rejuvenation applied"},
                          {19, "Water wheel repaired"},
                          {20, "Trigger convo near Susano's house snoring"},
+                         {21, "All trees bloomed"},
                          {23, "Went to lookout while cursed"},
                          {24, "Went to lookout after interacting with statues"},
                          {25, "Expecting to draw the sun"},
+                         {27, "Issun calls out to Sakuya trigger (bloom-fest)"},
                          {29, "Interacted with Mr Orange at night"},
                          {30, "Interacted with Mr Orange at night 2"},
                          {31, "Interacted with Mr Orange at night 3"},
@@ -176,6 +200,10 @@ const std::unordered_map<unsigned, MapDesc>
                          {33, "Interacted with Mr Orange first time"},
                          {34, "Interacted with Mr Orange second time"},
                          {35, "Interacted with Mr Orange third time"},
+                         {36, "Returned to Kamiki after leaving post-bloom"},
+                         {38, "Spoke with Mr Orange at night (bloom-fest) 1"},
+                         {39, "Spoke with Mr Orange at night (bloom-fest) 2"},
+                         {40, "Spoke with Mr Orange at night (bloom-fest) 3"},
                          // 51, 52 - set after restoring laundry pole
                          // 53, 54 - set after drying the laundry
                          {57, "Interacted with Mrs Orange at night"},
@@ -183,6 +211,8 @@ const std::unordered_map<unsigned, MapDesc>
                          {59, "Interacted with Mrs Orange second time"},
                          {60, "Interacted with Mrs Orange post-laundry pole 1"},
                          {61, "Interacted with Mrs Orange at night post-quest"},
+                         {62, "Spoke with Mrs Orange at night (bloom-fest)"},
+                         {64, "Spoke with Mrs Orange post-bloom"},
                          {72, "Interacted with Susano sleeping first time"},
                          {73, "Interacted with Susano sleeping boulder quest 1"},
                          {74, "Interacted with Susano sleeping boulder quest 2"},
@@ -200,19 +230,33 @@ const std::unordered_map<unsigned, MapDesc>
                          {90, "Interacted with Kushi after repair"},
                          {91, "Interacted with Kushi first time"},
                          {92, "Interacted with Kushi second time"},
+                         {93, "Spoke with Kushi (bloom-fest) 1"},
+                         {94, "Spoke with Kushi (bloom-fest) 2"},
+                         {96, "Spoke with Kushi post-bloom"},
                          {99, "Interacted with Mushi first time"},
                          {101, "Interacted with Mushi at night"},
+                         {102, "Spoke with Mushi (bloom-fest)"},
                          {111, "Interacted with Mushi's Mama first time"},
                          {112, "Interacted with Mushi's Mama second time"},
                          {114, "Interacted with Mushi's Mama at night"},
                          {120, "Merchant post-battle state"},
                          {127, "Beat komuso enemies within 10s"},
+                         {128, "Komuso tells how many trees remaining"},
+                         {129, "Spoke with Komuso post-bloom"},
                          {134, "Interacted with Camille"},
                          {135, "Interacted with Camille 2"},
+                         {136, "Spoke with Camille post-bloom"},
+                         {149, "Spoke with Sakuya post-bloom"},
                          {153, "Iron training rock slashed"},
+                         // 154 - slash minigame missed 1st dummy
                          {155, "Boulder removed"},
                          {156, "Slash big boulder attempt made"},
-                         // 154 - slash minigame missed 1st dummy
+                         {157, "Konohana shuffle succeeded"},
+                         {158, "Konohana shuffle attempt 2"},
+                         {160, "Hasugami constellation completed"},
+                         {161, "Left Kamiki after bloom"},
+                         {162, "Hasugami constellation completed"},
+                         {163, "Lily pad tutorial complete"},
                          {165, "First seedback acquired"},
                      },
                  .userIndices =
@@ -232,13 +276,6 @@ const std::unordered_map<unsigned, MapDesc>
                          {7, "Digging minigame timer"},
 
                          // 31 - {1023, "Chest on the ledge opened"},
-                     },
-                 .buriedObjects =
-                     {
-                         {0, "Chest on hill dug up"},
-                         {6, "Chest on farm dug up"},
-                         {8, "Chest in Mr Orange's house dug up"},
-                         {37, "Buried Chest on island dug up"},
                      },
                  .collectedObjects =
                      {
@@ -262,19 +299,42 @@ const std::unordered_map<unsigned, MapDesc>
                          {22, "Kushi's House Bale of Rice 1"},
                          {23, "Kushi's House Bale of Rice 1"},
                          {24, "Kushi's House Bale of Rice 1"},
+                         {28, "Small lily pad island chest (Sun Fragment)"},
                          {29, "Solar orb in the pond 1"},
                          {30, "Solar orb in the pond 2"},
                          {31, "Solar orb in the pond 3"},
                          {32, "Solar orb in the pond 4"},
+                         {33, "Clover on vine cliff"},
                          {34, "Chest behind rock on island opened (Dragonfly Bead)"},
+                         {35, "Clover on big lily pad island"},
                          {37, "Buried chest on island opened (Wooden Bear)"},
                          {38, "Chest by pond opened (Feedbag (Seeds))"},
                          {80, "Vista of the Gods given to Susano"}, // does this belong here?
+                         {81, "First sapling reward fruit cut down (Bull Horn)"},
                      },
                  .areasRestored =
                      {
-                         {16, "Pond by lookout restored"},
-                         {17, "Merchant battle/Entrance area restored"},
+                         {16, "Pond by lookout"},
+                         {17, "Merchant battle/Entrance area"},
+                         {31, "Kamiki Village"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Lookout pond tree 3"},
+                         {1, "Lookout pond tree 1"},
+                         {2, "Lookout pond tree 4"},
+                         {3, "Lookout pond tree 2"},
+                         {4, "Ramp tree 1"},
+                         {5, "Front of Kushi's"},
+                         {6, "Behind Kushi's"},
+                         {7, "Mr Orange's house"},
+                         {8, "By Mrs Orange clothes line"},
+                         {9, "Bridge entrance side"},
+                         {10, "Ramp tree 2"},
+                         {11, "Ramp tree 3"},
+                         {12, "Ramp tree 4"},
+                         {13, "Bridg village side"},
+                         {14, "Susano's house"},
                      },
                  .npcHasMoreToSay =
                      {
@@ -283,145 +343,6 @@ const std::unordered_map<unsigned, MapDesc>
                          {2, "Susano"},
                          {3, "Kushi"},
                          {4, "Mushi"},
-                     },
-                 .dialogBits =
-                     {
-                         // 1 - gets set when pond gets restored
-                         {4, "Mr Orange initial convo 1"},
-                         {5, "Mr Orange initial convo 2"},
-                         {6, "Mr Orange initial convo 3"},
-                         {7, "Bashed Mr Orange"},
-                         {11, "Mr Orange initial night convo 1"},
-                         {12, "Mr Orange initial night convo 2"},
-                         {13, "Mr Orange initial night convo 3"},
-                         {14, "Mr Orange initial night convo 4"},
-                         {16, "Mr Orange second night convo 1"},
-                         {17, "Mr Orange second night convo nothing left"},
-                         {38, "Mrs Orange initial night convo 1"},
-                         {39, "Mrs Orange initial night convo 2"},
-                         {40, "Bashed Mrs Orange"},
-                         {41, "Mrs Orange initial convo 1"},
-                         {43, "Mrs Orange initial convo 2"},
-                         {44, "Mrs Orange initial convo 3"},
-                         {45, "Mrs Orange response to laundry pole restored"},
-                         {47, "Mrs Orange post-laundry pole convo 1"},
-                         {48, "Mrs Orange post-laundry pole convo 2"},
-                         {49, "Mrs Orange response to dry laundry"},
-                         {50, "Mrs Orange post-dry laundry convo"},
-                         {55, "Mrs Orange reward night time convo part 1"},
-                         {56, "Mrs Orange reward night time convo part 2"},
-                         {59, "Mrs Orange post quest night convo"},
-                         {65, "Susano sleeping convo 1"},
-                         {66, "Susano sleeping convo 2"},
-                         {67, "Sleeping Susano bashed"},
-                         {68, "Susano snores too loud convo (triggered near house)"},
-                         {69, "Susano sleeping boulder quest convo 1"},
-                         {70, "Susano sleeping boulder quest convo 2"},
-                         {71, "Susano sleeping boulder quest bashed"},
-                         {91, "Susano convo after brought to Merchant"},
-                         {92, "Convo after Susano runs off from Merchant"},
-                         {93, "Susano post-merchant convo 1"},
-                         {94, "Susano post-merchant convo 1 part 2"},
-                         {95, "Susano post-merchant convo 1 part 3"},
-                         {98, "Susano wants sake convo"},
-                         {99, "Lazy Susano night time convo"},
-                         {100, "Bashed lazy Susano at night"},
-                         {101, "Bashed lazy Susano"},
-                         {102, "Gave sake to Susano convo"},
-                         {103, "Susano pre-boulder minigame convo"},
-                         {105, "Susano pre-boulder minigame convo 2 (after failed attempt)"},
-                         {106, "Bashed Susano post-sake"},
-                         {109, "Issun tells you NPCs can have more to say (Kushi first time)"},
-                         {110, "Talked with Kushi second time"},
-                         {111, "Kushi third time"},
-                         {112, "Bashed Kushi"},
-                         {114, "Kushi sleeping at night"},
-                         {115, "Bashed Kushi sleeping at night"},
-                         {118, "Kushi response to water wheel repair"},
-                         {120, "Kushi post-mill repair convo 1"},
-                         {123, "Kushi post-mill repair convo 2"},
-                         {132, "Merchant auto comment post-battle"},
-                         {137, "Bashed Merchant pushing rock"},
-                         {138, "Bashed Merchant"},
-                         {139, "Merchant initial convo"},
-                         {141, "Merchant repeat convo after bringing Susano"},
-                         {143, "Merchant shop convo 1"},
-                         {144, "Merchant shop convo 2"},
-                         {146, "Bashed Merchant shop"},
-                         {154, "Mushi initial convo 1"},
-                         {155, "Mushi initial convo 2"},
-                         {158, "Bashed Mushi"},
-                         {159, "Mushi acknowledges you completing digging minigame"},
-                         {160, "Mushi post-minigame convo"},
-                         {164, "Mushi initial night convo 1"},
-                         {165, "Mushi initial night convo 2"},
-                         {171, "Mushi's Mama initial convo 1"},
-                         {172, "Mushi's Mama initial convo 2"},
-                         {175, "Mushi's Mama bashed"},
-                         {180, "Mushi's Mama initial night convo 1"},
-                         {181, "Mushi's Mama initial night convo 2"},
-                         {187, "Interact with monument while cursed"},
-                         {188, "Interact with monument"},
-                         {189, "Interact with sign while cursed"},
-                         {190, "Sign in front of Mr Orange's house"},
-                         {191, "Sign in front of Mushi's house"},
-                         {192, "Sign in front of Kushi's house"},
-                         {193, "Sign in front of Susano's house"},
-                         {194, "Interact with objects while cursed"},
-                         {195, "Interact with Kushi's storefront (nobody home)"},
-                         {197, "Interact with Kushi's house (drinking sake)"},
-                         {200, "Interact with boulder while cursed"},
-                         {201, "Bash too many times dialogue"},
-                         {206, "Interact with iron training rock"},
-                         {207, "Nothing to eat here - object interaction"},
-                         {208, "Mr Orange house Interact with stew"},
-                         {209, "Smelling Kushi's bedroll"},
-                         {210, "Kushi's house interact with barrel of sake"},
-                         {211, "Interact with Susano's jug blocker"},
-                         {212, "Interact with Susano's Kushi portrait"},
-                         {213, "Interact with Susano's bed"},
-                         {215, "Interact with sacred tree while cursed"},
-                         {216, "Mushi's house pot of stew"},
-                         {217, "Interact with millstone when waterwheel is broken"},
-                         {218, "Interact with millstone when waterwheel is repaired"},
-                         {221, "Interacted with statue of nagi in tree"},
-                         {227, "Interact with training swords"},
-                         {228, "Spoke with Camille"},
-                         {229, "Spoke with Camille 2"},
-                         {230, "Spoke with Camille 3"},
-                         {231, "Bashed Camellia"},
-                         {232, "Bashed Camille"},
-                         {239, "Intro to Kamiki"},
-                         {247, "Komuso first talk"},
-                         {248, "Komuso talk after defeating enemies"},
-                         {249, "Komuso talk after defeating enemies in 10s"},
-                         {250, "Komuso talk after monsters defeated"},
-                         {251, "Bash komuso"},
-                         {258, "First statue dialogue"},
-                         {259, "Second statue dialogue"},
-                         {260, "Interact with same statue dialogue"},
-                         {261, "Interact with same statue dialogue 2"},
-                         {262, "Third statue dialogue"},
-                         {264, "Tells you to go to the sacred deck after talking with 3 statues"},
-                         {265, "Bashing into a statue"},
-                         {267, "Interaction at lookout while cursed"},
-                         {268, "Dialogue at lookout after talking to statues"},
-                         {270, "Issun telling you to draw a big circle in the sky"},
-                         {273, "Dialogue after drawing the sun"},
-                         {281, "Intro to using praise"},
-                         {283, "Used praise after intro"},
-                         {284, "Skipped using praise after intro"},
-                         {285, "Intro to seedbags"},
-                         {286, "Talking about the monsters attacking Mr orange"},
-                         {287, "Susano introduction convo"},
-                         {288, "Big convo after removing boulder"},
-                         {307, "Issun hints what to do for boulder slash minigame"},
-                         {308, "Boulder slash minigame convo after slashing the 2 dummies"},
-                         {309, "Issun hints boulder slash minigame iron rock"},
-                         {310, "Susano tried Exploding Implosion first time"},
-                         {311, "Susano surprised at exploding implosion convo"},
-                         {312, "Pre-slash big boulder convo"},
-                         {313, "Second attempt to slash big boulder"},
                      },
              }},
             {MapTypes::HanaValley,
@@ -486,13 +407,6 @@ const std::unordered_map<unsigned, MapDesc>
                          {83, "cursed tree related"},
                          {85, "Interacting with constellation"},
                      },
-                 .buriedObjects =
-                     {
-                         {0, "Clover on cliff"},
-                         {1, "Buried chest just after campfire"},
-                         {3, "Clover by entrance"},
-                         {4, "Island clover"},
-                     },
                  .collectedObjects =
                      {
                          {0, "Clover on cliff bloomed"},
@@ -525,7 +439,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {10, "Campfire left side 2"},
                          {11, "Campfire left side 3"},
                      },
-                 .field_B0 =
+                 .cursedTreesBloomed =
                      {
                          {0, "Cursed tree closest to mural"},
                          {1, "Cursed tree closest to campfire"},
@@ -533,13 +447,163 @@ const std::unordered_map<unsigned, MapDesc>
                          {3, "Cursed tree by bridge"},
                      },
              }},
-            {MapTypes::TsutaRuins, {}},
+            {MapTypes::TsutaRuins,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Ball in greenway room de-petrified"},
+                         {2, "Triggered battle for enemy bud ogre"},
+                         {3, "Ball in greenway room placed in slot"},
+                         {4, "Pond room battle triggered"},
+                         {5, "Pond room battle cleared"},
+                         {6, "Pond room sunshine added"},
+                         {7, "Issun trigger at entrance path 2F"},
+                         {8, "Blockhead defeated"},
+                         {9, "Blockhead defeated"},
+                         {10, "Blockhead defeated"},
+                         {11, "Left room 2F door unlocked"},
+                         {12, "Bridge above entrance restored"},
+                         {13, "Hell gates room defeated"},
+                         {14, "Hell gates room sunshine added"},
+                         {15, "Poison pots destroyed"},
+                         {16, "Center room right side cursed grass restored"},
+                         {17, "Center room back side cursed grass restored"},
+                         {18, "Center room left side cursed grass restored"},
+                         {19, "Center room right side cursed grass restored"},
+                         {20, "Center room back side cursed grass restored"},
+                         {21, "Center room left side cursed grass restored"},
+                         {22, "Vine tutorial completed"},
+                         {23, "Constellation completed"},
+                         {25, "Entrance 4F lid lifted"},
+                         {26, "Issun pre-boss room trigger"},
+                         {30, "Constellation completed"},
+                         {31, "Vine tutorial brush hint overlay"},
+                         {32, "Vine used first time"},
+                         {33, "Entrance room path 2F collapsing"},
+                         {34, "Entered inner ruins"},
+                         {35, "Blockhead introduced"},
+                         {36, "Issun asks if you really want to leave"},
+                         {48, "Issun commented on ruins restoration"},
+                         {56, "Pond room 2F crack bombed"},
+                         {57, "Pond room 2F hidden wall bombed"},
+                         {64, "Bud ogre stunned tutorial"},
+                         {67, "Bud ogre stunned tutorial"},
+                         {80, "Intro triggered"},
+                         {81, "View scene triggered in greenway room by waterfall"},
+                         {82, "View scene triggered at entrance path 2F"},
+                         {83, "View scene triggered post-vine at entrance 2F center"},
+                         {84, "View scene triggered at hell gates room"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Greenway room bulb lower level (Incense Burner)"},
+                         {2, "Pond room bulb (Vengeance Slip)"},
+                         {3, "Clover pond room 2F ledge"},
+                         {4, "Gloomy room bulb (Exorcism Slip S)"},
+                         {5, "Clover entrance room 2F just outside origin mirror room"},
+                         {6, "Clover entrance room middle"},
+                         {7, "Clover entrance room left side island"},
+                         {8, "Entrance bulb (Traveler's Charm)"},
+                         {9, "Entrance room bulb right side (Steel Soul Sake)"},
+                         {10, "Clover right side room on island"},
+                         {11, "Clover above greenway room entrance"},
+                         {12, "Greenway room bulb by stone ball (Steel Fist Sake)"},
+                         {13, "Entrance room bulb left side (Exorcism Slip S)"},
+                         {14, "Clover at greenway room's highest point"},
+                         {15, "Bulb at greenway room's highest point"},
+                         {17, "Entrance chest ([Enhancing Divinity])"},
+                         {18, "Blockhead room 2F bulb (Golden Peach)"},
+                         {19, "Clover blockhead room 2F left"},
+                         {20, "Clover blockhead room 2F right"},
+                         {21, "Boss hallway chest left ([Godhood Tips])"},
+                         {22, "Boss hallway chest right (Holy Bone S)"},
+                         {23, "Hell gates room bulb left (Lacquerware Set)"},
+                         {24, "Hell gates room bulb right (Holy Bone S)"},
+                         {26, "Entrance room chest right side (Vase)"},
+                         {27, "Hell gates room chest (Tsuta Ruins Map)"},
+                     },
+
+                 .areasRestored =
+                     {
+                         {16, "Hell gates room"},
+                         {17, "Pond room restored"},
+                         {18, "Center room right side cursed grass"},
+                         {19, "Center room back side cursed grass"},
+                         {20, "Center room left side cursed grass"},
+                         {21, "Tsuta Ruins restored"},
+                         {22, "Hell gates room mushrooms"},
+                         {23, "Left room"},
+                         {26, "Center room fully"},
+                     },
+                 .cursedTreesBloomed =
+                     {
+                         {0, "Cursed tree by entrance right side bloomed"},
+                         {1, "First cursed tree in right side room"},
+                         {2, "Second cursed tree in right side room"},
+                         {3, "Cursed tree entrance room left side island bloomed"},
+                     },
+                 .fightsCleared =
+                     {
+                         {1, "Gloomy room slip defeated"},
+                     },
+                 .mapsExplored =
+                     {
+                         {1, "Entrance"},
+                         {2, "Right side room"},
+                         {3, "Greenway room 1F"},
+                         {4, "Pond room 1F"},
+                         {5, "Hallway room 2F"},
+                         {6, "Left side room"},
+                         {7, "Gloomy room 2F"},
+                         {8, "Hell gates room 2F"},
+                         {9, "Center room"},
+                         {10, "Deep mirror room 3F"},
+                         {11, "Boss room 3F"},
+                         {12, "Origin mirror room 2F"},
+                     },
+             }},
             {MapTypes::CityCheckpoint, {}},
-            {MapTypes::TsutaRuinsSpiderQueenArena, {}},
+            {MapTypes::TsutaRuinsSpiderQueenArena,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Post-defeat ask to save"},
+                         {2, "Fall area triggered"},
+                         {3, "Spider Queen defeated"},
+                         {4, "Golden gate tutorial trigger"},
+                     },
+                 .mapsExplored =
+                     {
+                         {1, "Entrance"},
+                         {2, "Right side room"},
+                         {3, "Greenway room 1F"},
+                         {4, "Pond room 1F"},
+                         {5, "Hallway room 2F"},
+                         {6, "Left side room"},
+                         {7, "Gloomy room 2F"},
+                         {8, "Hell gates room 2F"},
+                         {9, "Center room"},
+                         {10, "Deep mirror room 3F"},
+                         {11, "Boss room 3F"},
+                         {12, "Origin mirror room 2F"},
+                     },
+             }},
             {MapTypes::GaleShrine, {}},
             {MapTypes::KusaVillage, {}},
             {MapTypes::SasaSanctuary, {}},
-            {MapTypes::AgataForestMadameFawnsHouse, {}},
+            {MapTypes::AgataForestMadameFawnsHouse,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Spoke with Madame Fawn 1"},
+                         {2, "Spoke with Madame Fawn 2"},
+                         {3, "First fortune told"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Chest (Stray Bead)"},
+                     },
+             }},
             {MapTypes::DiggingMinigame, {}},
             {MapTypes::OnigiriDojoLessonRoom, {}},
             {MapTypes::GaleShrineCrimsonHelmArena, {}},
@@ -563,10 +627,6 @@ const std::unordered_map<unsigned, MapDesc>
                      {
                          {2, "Transitioned from backstory dialogue to level"},
                          {3, "Orochi finished speaking to Susano"},
-                     },
-                 .dialogBits =
-                     {
-                         {2, "Backstory dialogue completed"},
                      },
              }},
             {MapTypes::RiverOftheHeavens,
@@ -595,36 +655,6 @@ const std::unordered_map<unsigned, MapDesc>
                      {
                          {0, "First chest (Holy Bone S)"},
                          {1, "Second chest (Astral Pouch)"},
-                     },
-                 .dialogBits =
-                     {
-                         {2, "Breaking pots introduced"},
-                         {3, "Extra tip for Breaking pots (same dialogue)"},
-                         {4, "Dialog after breaking your first pot"},
-                         {5, "Introduction to wall jump"},
-                         {6, "Extra tip for wall jump (same dialogue)"},
-                         {7, "Wall jump tutorial completed, congrats"},
-                         {8, "Wall jump tutorial skipped (different dialogue)"},
-                         {9, "Intro to astral pouch"},
-                         {10, "Comment if you try to ignore the astral pouch chest"},
-                         {11, "Finished intro to broken bridge convo"},
-                         {12, "Finished second part of broken bridge convo"},
-                         {13, "Finished entire broken bridge convo"},
-                         // 14 River of heavens introduction skipped?
-                         {15, "Issun comments about the celestial river after getting rejuvenation"},
-                         {16, "Comments on your first successful use of rejuvenation"},
-                         {17, "Issun comment when attempting to use celestial brush"},
-                         {18, "Finished intro about the stars twinkling"},
-                         {19, "Finished second part of constellation dialogue"},
-                         {20, "Issun failed at drawing constellation"},
-                         {21, "Waited too long to draw constellation, more button tutorial"},
-                         {22, "Complains that you didn't do anything for the constellation"},
-                         {23, "Issun's second attempt at finishing the constellation"},
-                         {28, "River of Heavens area introduced"},
-                         {29, "Post-constellation, comments about receiving rejuvenation"},
-                         {30, "Camera controls introduced"},
-                         {31, "Save points introduced"},
-                         {36, "River of Heavens area second conversation"},
                      },
              }},
             {MapTypes::SeianCityAristocraticQtr, {}},
@@ -663,8 +693,15 @@ const std::unordered_map<unsigned, MapDesc>
             {MapTypes::WawkuShrineLechkuAndNechkuArena, {}},
             {MapTypes::FishingwithBenkeionSeianBridge, {}},
             {MapTypes::FishingwithBenkeinexttoHimikosPalace, {}},
-            {MapTypes::FishingwithKokariinAgata, {}},
-            {MapTypes::FishingwithKokariinKamui, {}},
+            {MapTypes::FishingwithKokariInAgata,
+             {
+                 .worldStateBits =
+                     {
+                         {2, "Set on first entry"},
+                         {4, "First ever bite tutorial triggered"},
+                     },
+             }},
+            {MapTypes::FishingwithKokariInKamui, {}},
             {MapTypes::Unknown70, {}},
             {MapTypes::FishingwithFishermaninNRyo, {}},
             {MapTypes::ShinshuField,
@@ -678,17 +715,39 @@ const std::unordered_map<unsigned, MapDesc>
                          {6, "Dialog trigger for distant guardian sapling"},
                          {8, "Lifted curse zone"},
                          {9, "Lifted curse zone"},
+                         {11, "Spoke to Mika second time (bountry trigger enabled)"},
+                         {12, "Encountered bounty tutorial"},
                          {13, "Cursed grass by Agata Port restored"},
                          {14, "Cursed grass by entrance restored"},
                          {15, "Nameless Man's Kiln restored"},
+                         {18, "Crack by cat statue blown up"},
+                         {19, "Crack by Agata Forest Port blown up"},
+                         {20, "Crack to Agata Forest blown up"},
                          {21, "Issun stops you from going back to Kamiki"},
                          {22, "You choose to leave Shinshu"},
+                         {23, "Read notice to return to Tama's at night"},
+                         {24, "Read notice to return to Tama's at night"},
                          {25, "Inspected Agata Forest Port sign"},
+                         {26, "Encountered bounty tutorial"},
+                         {28, "Trigger for first fish demon fight"},
                          {29, "Gate tutorial trigger"},
                          {30, "First gate cleared, finish tutorial trigger"},
+                         {31, "Tama failed first time"},
+                         {32, "Tama failed second time"},
+                         {33, "Finished cherry bomb crack tutorial"},
+                         {35, "Triggered constellation"},
+                         {36, "Completed constellation"},
+                         {39, "Cherry bomb crack tutorial started"},
+                         {40, "Crack by Tama's house blown up"},
+                         {42, "Issun re-explaining we should help Tama out"},
+                         {44, "Brush assist for cherry bomb crack tutorial triggered"},
+                         {45, "Crack by Tama's house blown up"},
                          {46, "Dojo gate cleared"},
+                         {50, "Interacted with crack in the wall"},
+                         {51, "Crack by Tama's house blown up"},
                          {52, "Nameless Man's Kiln restored"},
                          {66, "Ida ran off"},
+                         {92, "Encountered bounty tutorial"},
                          {93, "Spoke to Ida first time"},
                          {94, "Ida ran off"},
                          {97, "Spoke to Nameless Man intro (cursed) 1"},
@@ -698,29 +757,39 @@ const std::unordered_map<unsigned, MapDesc>
                          {102, "Spoke to Nameless Man at night 2"},
                          {103, "Nameless Man finished giving rice (resets next day)"},
                          {104, "Spoke to Nameless Man post-kiln 1"},
+                         {107, "Spoke to Mika intro"},
+                         {108, "Spoke to Mika second time"},
+                         {109, "Cleared bounty tutorial"},
+                         {121, "Talked with Tama 1"},
+                         {122, "Talked with Tama 2"},
+                         {123, "Finished talking with Tama"},
+                         {133, "Spoke to Onigiri Sensei first time"},
+                         {135, "Dojo opened"},
                          {138, "Spoke to Merchant"},
                      },
                  .userIndices =
                      {
                          {0, "Number of times Nameless Man gave you rice"},
                      },
-                 .buriedObjects =
-                     {
-                         {0, "Buried chest between 3 bushes behind merchant"},
-                         {7, "Chest buried between 3 bushes near sapling"},
-                         {8, "Chest buried between bushes behind kiln"},
-                         {11, "Clover behind merchant"},
-                     },
                  .collectedObjects =
                      {
                          {0, "Buried chest between 3 bushes behind merchant (Wooden Bear)"},
                          {1, "Chest behind tree (Traveler's Charm)"},
+                         {2, "Buried chest by dock near Tama's (Vase)"},
+                         {3, "Buried chest right side of ramp to moon cave (Stray Bead)"},
+                         {4, "Chest hidden by crack near Agata Forest Port (Coral Fragment)"},
                          {6, "Chest near entrance from cursed gate (Vengeance Slip)"},
                          {7, "Chest buried between 3 bushes near sapling (Stray Bead)"},
                          {8, "Chest buried between bushes behind kiln (Stray Bead)"},
+                         {9, "Chest behind crack at Tama's (Rat Statue)"},
+                         {10, "Chest behind crack at cat statue (Exorcism Slip S)"},
                          {11, "Clover behind merchant"},
+                         {12, "Clover east side off cliff from path"},
+                         {13, "Buried chest under leaves at Yama's house (Bull Horn)"},
                          {19, "Tree chest ([Fleeing Battle])"},
                          {20, "Agata Forest port chest ([Feeding])"},
+                         {25, "Outside Tama's house ([Legend of Orochi])"},
+                         {26, "Buried chest under burning leaves at dojo (Godly Charm)"},
                      },
                  .areasRestored =
                      {
@@ -739,27 +808,183 @@ const std::unordered_map<unsigned, MapDesc>
                          {3, "Right side from entrance tree 1"},
                          {4, "Right side from entrance tree 2"},
                          {5, "Right side from entrance tree 3"},
+                         {6, "Outside Tama's house"},
+                         {7, "Near stairs by Tama's house"},
+                         {8, "Right side of ramp to moon cave 1"},
+                         {9, "Right side of ramp to moon cave 2"},
                          {10, "Left side from entrance tree 3"},
                      },
-                 .hellGatesCleared =
+                 .fightsCleared =
                      {
                          {0, "Gate by tree cleared"},
                          {1, "Gate by Nameless Man"},
                          {2, "Cursed gate by entrance cleared"},
                          {3, "Dojo gate cleared"},
+                         {71, "Izo the String Cutter (bounty)"},
+                         {74, "Fish demon fight cleared"},
                      },
                  .npcHasMoreToSay =
                      {
                          {1, "Nameless Man"},
+                         {2, "Mika"},
                      },
-                 .dialogBits =
+                 .npcUnknown =
                      {
-                         {188, "First entrance conversation"},
+                         {2, "Mika first time"},
+                         {3, "Talked with Tama first time, cleared third time"},
                      },
              }},
-            {MapTypes::AgataForest, {}},
+            {MapTypes::AgataForest,
+             {
+                 .worldStateBits =
+                     {
+                         {3, "Restored sapling"},
+                         {4, "Triggered hut dialogue"},
+                         {8, "Crack to sapling blown up"},
+                         {10, "Area restored"},
+                         {11, "Divine instrument tutorial triggered"},
+                         {12, "Waka cutscene triggered"},
+                         {15, "Dungeon entrance cutscene triggered"},
+                         {16, "Dungeon entrance opened"},
+                         {17, "Sleepy bear gave praise for giant seed"},
+                         {18, "Sleepy bear now standing on giant seed"},
+                         {19, "Sleepy bear gave praise for giant cabbage"},
+                         {20, "Sleepy bear now standing on giant cabbage"},
+                         {21, "Sleepy bear now standing on giant hive (completed)"},
+                         {22, "Cursed grass behind Hitoshio Spring rejuvenated"},
+                         {23, "Rejuvenated cursed grass by forest hut"},
+                         {24, "Kokari stole ruins key"},
+                         {26, "Spoke with Kokari while he's got ruins key"},
+                         {27, "Ume is rescued"},
+                         {28, "Log minigame started"},
+                         {29, "Log bridge placed"},
+                         {38, "Set when near Hitoshio Spring"},
+                         {47, "Crack on dungeon side cliff blown up"},
+                         {48, "Spoke with Karude intro 1"},
+                         {49, "Spoke with Karude intro 2"},
+                         {50, "Spoke with Karude post-rescue 1"},
+                         {55, "Spoke with Kokari first time"},
+                         {56, "Spoke with Kokari second time"},
+                         {57, "Spoke with Kokari third time"},
+                         {58, "Spoke with Kokari at night"},
+                         {59, "Bashed Kokari while crying"},
+                         {63, "Ruins key spawns"},
+                         {64, "Spoke with Kokari post-log minigame"},
+                         {71, "Spoke with Susano first time"},
+                         {73, "Susano has no more food"},
+                         {75, "Spoke with merchant"},
+                         {77, "Spoke with Kiba"},
+                         {78, "Spoke with Kiba 2"},
+                         {86, "Interacted with sleepy bear first time"},
+                         {87, "Interacted with sapling"},
+                         {88, "Interacted with dungeon entrance first time"},
+                         {90, "Interacted with rapids first time"},
+                     },
+                 .userIndices =
+                     {
+                         // 0 - upper word = flags, lower byte = number of times susano gave food
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Bulb on giant rock island sapling side (Holy Bone S)"},
+                         {1, "Bulb on northwstern most island (Glass Beads)"},
+                         {2, "Bulb on giant rock island other side (Lacquerware Set)"},
+                         {3, "Bulb on island closest to waterfall (Steel Fist Sake)"},
+                         {4, "Bulb by forest hut closer (Wooden Bear)"},
+                         {5, "Bulb by forest hut further (Exorcism Slip S)"},
+                         {6, "Bulb by waterfall (Inkfinity Stone)"},
+                         {7, "Bulb by fortune cave entrance (Traveler's Charm)"},
+                         {8, "Bulb on middle island (Coral Fragment)"},
+                         {10, "Bulb at grass behind Hitoshio Spring waterfall (Incense Burner)"},
+                         {11, "Sapling chest (Devout Beads)"},
+                         {12, "Buried chest on dungeon side cliff (Stray Bead)"},
+                         {13, "Cave fire chest left (Bull Horn)"},
+                         {14, "Cave fire chest middle (Stray Bead)"},
+                         {15, "Cave fire chest right (Holy Bone M)"},
+                         {16, "Chest at Hitoshio Spring vine (Stray Bead)"},
+                         {17, "Vine to tree above island by waterfall (Stray Bead)"},
+                         {18, "Vine to tree above rock island (Bull Horn)"},
+                         {20, "Clover behind sapling"},
+                         {22, "Buried chest behind forest hut (Stray Bead)"},
+                         {23, "Buried chest on middle island (Steel Soul Sake)"},
+                         {29, "Buried chest under leaf pile on entrance ramp (Exorcism Slip M)"},
+                         {30, "Buried chest under leaves by upper Shinshu exit (Pearl)"},
+                         {31, "Buried chest under leaves by Taka Pass exit (Holy Bone M)"},
+                         {33, "Chest by Taka Pass exit ([Ink BUllet Tips])"},
+                         {35, "Chest by Kiba ([Battle Tips])"},
+                         {36, "Chest at dungeon entrance ([Enhancing Weapons])"},
+                     },
+                 .areasRestored =
+                     {
+                         {16, "Cursed grass behind Hitoshio Spring waterfall"},
+                         {17, "Cursed grass by forest hut"},
+                         {18, "Hell gate in front of dungeon"},
+                         {19, "Hell gate area near waterfall (releases nut)"},
+                         {31, "Main area"},
+                     },
+                 .fightsCleared =
+                     {
+                         {0, "Gate in front of dungeon"},
+                         {8, "Gate near waterfall"},
+                     },
+                 .npcHasMoreToSay =
+                     {
+                         {0, "Karude"},
+                         {1, "Kokari"},
+                     },
+                 .npcUnknown =
+                     {
+                         {0, "Karude"},
+                     },
+             }},
             {MapTypes::MoonCaveEntrance, {}},
-            {MapTypes::TakaPass, {}},
+            {MapTypes::TakaPass,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Entered first time"},
+                         {2, "Crack to tree bombed"},
+                         {3, "Crack to tree bombed"},
+                         {4, "Waka 2 triggered"},
+                         {5, "Waka 2 fight triggered"},
+                         {6, "Waka 2 defeated"},
+                         {19, "Sapling bloomed"},
+                         {20, "Sapling bloomed"},
+                         {22, "Sapling finished restoring area dialogue"},
+                         {24, "Sapling bridge repaired"},
+                         {25, "Spoke to Tea Master first time"},
+                         {28, "Spoke to Tea Customer first time"},
+                         {48, "Spoke to Merchant first time"},
+                     },
+                 .collectedObjects =
+                     {
+                         {4, "Second fire chest in sapling path (Stray Bead)"},
+                         {5, "Fire chest in sapling path (Crystal)"},
+                         {6, "Clover in sapling cave"},
+                         {15, "Leaf buried chest in sapling field by cave (Incense Burner)"},
+                         {16, "Leaf buried chest by sapling (Vengeance Slip)"},
+                         {25, "Leaf buried chest just off sapling field path bottom of ledge (Pearl)"},
+                     },
+                 .areasRestored =
+                     {
+                         {31, "Taka Pass"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Path from sapling 1"},
+                         {1, "Path from sapling 2"},
+                         {2, "Path from sapling 3"},
+                     },
+                 .npcHasMoreToSay =
+                     {
+                         {3, "Tea Master"},
+                         {4, "Tea Customer"},
+                     },
+                 .mapsExplored =
+                     {
+                         {1, "Cave to tree"},
+                     },
+             }},
             {MapTypes::RyoshimaCoast, {}},
             {MapTypes::Unknown76, {}},
             {MapTypes::NRyoshimaCoast, {}},
