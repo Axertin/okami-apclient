@@ -17,7 +17,8 @@ okami::CharacterStats previousStats;
 okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
 std::array<okami::MapState, okami::MapTypes::NUM_MAP_TYPES> previousMapData;
-std::array<okami::BitField<512>, okami::MapTypes::NUM_MAP_TYPES> previousDialogBits;
+
+const std::unordered_map<unsigned int, const char *> emptyMapDesc{};
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -72,12 +73,9 @@ void comparePreviousStats()
 
     compareInt("CharacterStats::unk1", old.unk1, current.unk1);
     compareInt("CharacterStats::unk1b", old.unk1b, current.unk1b);
-    compareInt("CharacterStats::unk2", old.unk2, current.unk2);
-    compareInt("CharacterStats::unk3", old.unk3, current.unk3);
+    compareInt("CharacterStats::mainWeapon", old.mainWeapon, current.mainWeapon);
+    compareInt("CharacterStats::unk3", old.subWeapon, current.subWeapon);
     compareInt("CharacterStats::unk4", old.unk4, current.unk4);
-    compareInt("CharacterStats::unk5", old.unk5, current.unk5);
-    compareInt("CharacterStats::unk6", old.unk6, current.unk6);
-    compareInt("CharacterStats::unk7", old.unk7, current.unk7);
 }
 
 void comparePreviousCollection()
@@ -95,10 +93,7 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk3", old.world.unk3, current.world.unk3);
     compareInt("WorldStateData::unk4", old.world.unk4, current.world.unk4);
     compareInt("WorldStateData::unk5", old.world.unk5, current.world.unk5);
-    compareInt("WorldStateData::unk6", old.world.unk6, current.world.unk6);
-    compareInt("WorldStateData::unk7", old.world.unk7, current.world.unk7);
-    compareInt("WorldStateData::unk8", old.world.unk8, current.world.unk8);
-    compareInt("WorldStateData::unk9", old.world.unk9, current.world.unk9);
+    compareBitfield("WorldStateData::goldDustsAcquired", old.world.goldDustsAcquired, current.world.goldDustsAcquired, emptyMapDesc);
     compareInt("WorldStateData::unk10", old.world.unk10, current.world.unk10);
     for (unsigned i = 0; i < 56; i++)
     {
@@ -113,7 +108,7 @@ void comparePreviousCollection()
     }
     compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
-    for (unsigned i = 0; i < 10; i++)
+    for (unsigned i = 0; i < 5; i++)
     {
         std::string name = std::string("WorldStateData::unk15[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk15[i], current.world.unk15[i]);
@@ -128,18 +123,16 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk18", old.world.unk18, current.world.unk18);
     compareInt("WorldStateData::unk19", old.world.unk19, current.world.unk19);
     compareInt("WorldStateData::unk20", old.world.unk20, current.world.unk20);
-    for (unsigned i = 0; i < 4; i++)
-    {
-        std::string name = std::string("WorldStateData::unk21[") + std::to_string(i) + "]";
-        compareInt(name.c_str(), old.world.unk21[i], current.world.unk21[i]);
-    }
-    for (unsigned i = 0; i < 780; i++)
+
+    compareBitfield("WorldStateData::logbookViewed", old.world.logbookViewed, current.world.logbookViewed, emptyMapDesc);
+
+    for (unsigned i = 0; i < 195; i++)
     {
         std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk22[i], current.world.unk22[i]);
     }
 
-    for (unsigned i = 0; i < 28; i++)
+    for (unsigned i = 0; i < 7; i++)
     {
         std::string name = std::string("WorldStateData::unk24[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk24[i], current.world.unk24[i]);
@@ -152,7 +145,7 @@ void compareTrackerData()
     okami::TrackerData &old = previousTracker;
 
     compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable, current.logbookAvailable, tracker1Desc);
-    compareBitfield("TrackerData::unknown", old.unknown, current.unknown, tracker2Desc);
+    compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTimeDesc);
 
     for (unsigned i = 0; i < 3; i++)
     {
@@ -171,7 +164,7 @@ void compareTrackerData()
     compareInt("TrackerData::field_6E", old.field_6E, current.field_6E);
     compareInt("TrackerData::field_6F", old.field_6F, current.field_6F);
 
-    for (unsigned i = 0; i < 3; i++)
+    for (unsigned i = 0; i < 2; i++)
     {
         std::string name = std::string("TrackerData::field_70[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.field_70[i], current.field_70[i]);
@@ -196,9 +189,6 @@ void comparePreviousMapData()
             compareInt(name.c_str(), old[i].user[j], current[i].user[j]);
         }
 
-        name = mapNamePrefix + std::string("MapState::buriedObjects");
-        compareBitfield(name.c_str(), old[i].buriedObjects, current[i].buriedObjects, mapDataDesc.at(i).buriedObjects);
-
         name = mapNamePrefix + std::string("MapState::collectedObjects");
         compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapDataDesc.at(i).collectedObjects);
 
@@ -211,11 +201,11 @@ void comparePreviousMapData()
         name = mapNamePrefix + std::string("MapState::treesBloomed");
         compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapDataDesc.at(i).treesBloomed);
 
-        name = mapNamePrefix + std::string("MapState::field_B0");
-        compareBitfield(name.c_str(), old[i].field_B0, current[i].field_B0, mapDataDesc.at(i).field_B0);
+        name = mapNamePrefix + std::string("MapState::cursedTreesBloomed");
+        compareBitfield(name.c_str(), old[i].cursedTreesBloomed, current[i].cursedTreesBloomed, mapDataDesc.at(i).cursedTreesBloomed);
 
-        name = mapNamePrefix + std::string("MapState::hellGatesCleared");
-        compareBitfield(name.c_str(), old[i].hellGatesCleared, current[i].hellGatesCleared, mapDataDesc.at(i).hellGatesCleared);
+        name = mapNamePrefix + std::string("MapState::fightsCleared");
+        compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapDataDesc.at(i).fightsCleared);
 
         name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
         compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcHasMoreToSay);
@@ -223,8 +213,8 @@ void comparePreviousMapData()
         name = mapNamePrefix + std::string("MapState::npcUnknown");
         compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcUnknown);
 
-        name = mapNamePrefix + std::string("MapState::field_D4");
-        compareBitfield(name.c_str(), old[i].field_D4, current[i].field_D4, mapDataDesc.at(i).field_D4);
+        name = mapNamePrefix + std::string("MapState::mapsExplored");
+        compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapDataDesc.at(i).mapsExplored);
 
         name = mapNamePrefix + std::string("MapState::field_DC");
         compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapDataDesc.at(i).field_DC);
@@ -234,27 +224,12 @@ void comparePreviousMapData()
     }
 }
 
-/*
-// an actual chore, takes forever
-void comparePreviousDialogBits()
-{
-    auto &current = *okami::DialogBits.get_ptr();
-    auto &old = previousDialogBits;
-
-    for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
-    {
-        std::string name = std::string("IssunBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old[i], current[i], mapDataDesc.at(i).dialogBits);
-    }
-}
-*/
 void saveData()
 {
     previousStats = *okami::AmmyStats.get_ptr();
     previousCollection = *okami::AmmyCollections.get_ptr();
     previousTracker = *okami::AmmyTracker.get_ptr();
     previousMapData = *okami::MapData.get_ptr();
-    previousDialogBits = *okami::DialogBits.get_ptr();
 }
 } // namespace
 
@@ -270,7 +245,6 @@ void devDataFinder_OnGameTick()
     comparePreviousCollection();
     compareTrackerData();
     comparePreviousMapData();
-    // comparePreviousDialogBits();
 
     saveData();
 }
