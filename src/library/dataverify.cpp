@@ -77,7 +77,7 @@ COLLECT_CHECK(world.timeOfDay, 0x260 + 0x00);
 COLLECT_CHECK(world.day, 0x260 + 0x04);
 COLLECT_CHECK(world.usableBrushTechniques, 0x260 + 0x10);
 COLLECT_CHECK(world.obtainedBrushTechniques, 0x260 + 0x18);
-COLLECT_CHECK(world.brushUpgrades, 0x260 + 0x20);
+COLLECT_CHECK(world.brushUnknown, 0x260 + 0x20);
 COLLECT_CHECK(world.riverOfHeavensRejuvenationBits, 0x260 + 0x60);
 COLLECT_CHECK(world.goldDustsAcquired, 0x260 + 0x84);
 COLLECT_CHECK(world.holyArtifactsEquipped, 0x260 + 0x88);

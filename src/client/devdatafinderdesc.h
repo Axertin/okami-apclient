@@ -17,9 +17,12 @@ const std::unordered_map<unsigned, const char *> animalsFedDesc = {
     {8, "Kamiki village farm - Sparrow"},
     {10, "Shinshu Field gate area by guardian tree - Hare"},
     {11, "Shinshu Field kiln - Hare"},
+    {12, "Shinshu Field north catwalk field - Hare"},
+    {13, "Shinshu Field east catwalk field - Hare"},
     {14, "Shinshu Field grass patch by entrance - Boar Piglet"},
     {19, "Agata Forest Ume - Dog"},
     {20, "Agata Forest grass patch in front of forest hut - Hare"},
+    {21, "Agata Forest near dungeon entrance along path - Sparrow"},
     {22, "Agata Forest by waterfall - Monkey"},
     {23, "Agata Forest Hitoshio Spring - Deer"},
     {25, "Agata Forest Taka Pass exit - Hare"},
@@ -39,7 +42,63 @@ const std::unordered_map<unsigned, const char *> animalsFedDesc = {
     {48, "Agata Forest sapling - Hare"},
     {54, "Taka Pass path near sapling - Deer"},
     {56, "Taka Pass in sapling cave - Fox"},
+    {79, "Ryoshima Coast front of water cave - Cow"},
+    {81, "Ryoshima Coast by graveyard - Fox"},
+    {82, "Ryoshima Coast by entrance origin mirror - Dog"},
+    {84, "Ryoshima Coast right tri-cursed grass - Boar"},
+    {85, "Ryoshima Coast beach front right of merchant - Monkey"},
+    {86, "Ryoshima Coast north ryoshima gate - Horse"},
+    {86, "Ryoshima Coast outside Seian gate - Hare"},
+    {88, "Ryoshima Coast behind bell - Hare"},
+    {89, "Ryoshima Coast dojo island - Monkey"},
     {90, "Taka Pass sapling - Nightingale"},
+    {100, "Ryoshima Coast Inaba - Hare"},
+    {106, "Kamui in front of Wali's house - Sheep"},
+    {107, "Kamui bottom of sapling ledge - Bear"},
+    {112, "Kamui north area under the bridge - Hare"},
+    {114, "Kamui (Ezofuji) lower north ledge - Sheep"},
+    {116, "Kamui (Ezofuji) outside power slash 3 cave - Monkey"},
+    {117, "Kamui (Ezofuji) west part along path - Bear"},
+    {119, "Kamui (Ezofuji) southwest part along path - Raccoon"},
+    {137, "Ryoshima Coast middle tri-cursed grass - Boar"},
+    {138, "Ryoshima Coast nook by entrance to Seian - Cow"},
+    {139, "Ryoshima Coast end of dock - Cat"},
+    {140, "Ryoshima Coast sapling - Nightingale"},
+    {141, "Ryoshima Coast left tri-cursed grass - Pig"},
+    {160, "Taka Pass Stray Bead 26 cave - Monkey"},
+};
+
+const std::unordered_map<unsigned, const char *> keyItemsFoundDesc = {
+    {6, "Pinwheel"},
+};
+
+const std::unordered_map<unsigned, const char *> goldDustsFoundDesc = {
+    {0, "Agata Forest Merchant 1"},
+    {1, "Agata Forest Merchant 2"},
+    {2, "Kusa Village Merchant 1"},
+    {3, "Kusa Village Merchant 2"},
+};
+
+const std::unordered_map<unsigned, const char *> logbookViewedDesc = {
+    {0, "Destroy the Boulder!"}, {1, "Guardian Sapling Trouble"}, {2, "Secret of Hana Valley"},    {3, "Revive the Guardian Saplings"},
+    {4, "Sacred Tree Reborn"},   {5, "Shinshu Adventure"},        {10, "Sapling of Agata Forest"}, {11, "Hard Working Son"},
+    {12, "Ume is Lost"},         {14, "A Son's Determination"},   {15, "Mysterious Windmill"},     {19, "Animal Hating Couple"},
+    {63, "Icy Wep'keer"},        {88, "Cut Down the Peach"},
+};
+
+const std::unordered_map<unsigned, const char *> brushUpgradesDesc = {
+    {0, "Power Slash 2"},
+    {6, "Cherry Bomb 2"},
+    {10, "Power Slash 3"},
+    {11, "Cherry Bomb 3"},
+};
+
+const std::unordered_map<unsigned, const char *> commonStatesDesc = {
+    {30, "All trees bloomed"},
+    {31, "Visited"},
+};
+const std::unordered_map<unsigned, const char *> areasRestoredDesc = {
+    {1, "Kamiki Village"}, {2, "Hana Valley"}, {3, "Shinshu Field"}, {4, "Tsuta Ruins"}, {5, "Agata Forest"}, {6, "Taka Pass"},
 };
 
 // logbookAvailable
@@ -86,9 +145,9 @@ const std::unordered_map<unsigned, const char *> tracker1Desc = {
 };
 
 const std::unordered_map<unsigned, const char *> animalsFedFirstTimeDesc = {
-    {16, "First hare fed"}, {19, "First sparrow fed"}, {20, "First monkey fed"}, {21, "First boar piglet fed"},
-    {22, "First boar fed"}, {23, "Hayabusa fed"},      {24, "Ume fed"},          {31, "First deer fed"},
-    {31, "First fox fed"},  {34, "First pig fed"},     {38, "First horse fed"},  {43, "First nightingale fed"},
+    {16, "Hare"},      {17, "Dog"},     {19, "Sparrow"},     {20, "Monkey"},       {21, "Boar Piglet"}, {22, "Boar"}, {23, "Hayabusa (dog)"},
+    {24, "Ume (dog)"}, {31, "Deer"},    {33, "Bear"},        {34, "Pig"},          {38, "Horse"},       {39, "Cat"},  {40, "Cow"},
+    {41, "Sheep"},     {42, "Raccoon"}, {43, "Nightingale"}, {44, "Inaba (hare)"},
 };
 
 struct MapDesc
@@ -96,7 +155,6 @@ struct MapDesc
     std::unordered_map<unsigned, const char *> worldStateBits;
     std::unordered_map<unsigned, const char *> userIndices;
     std::unordered_map<unsigned, const char *> collectedObjects;
-    std::unordered_map<unsigned, const char *> field_98;
     std::unordered_map<unsigned, const char *> areasRestored;
     std::unordered_map<unsigned, const char *> treesBloomed;
     std::unordered_map<unsigned, const char *> cursedTreesBloomed;
@@ -120,10 +178,17 @@ const std::unordered_map<unsigned, MapDesc>
                          // 7 - battle paused, or tutorial about vulnerable enemies?
                          // 8 - in battle? tutorial battle?
                          // 9 - carrying susano
-                         {22, "Taka Pass restored"},
-                         // 38 = ??
-                         {41, "Shinshu Field restored"},
+                         // 19 - entered a cave map
+                         {22, "Taka Pass sapling bloomed"},
+                         {38, "Near a mermaid warp"},
 
+                         // Saplings bloomed
+                         {40, "Hana Valley sapling bloomed"},
+                         {41, "Shinshu Field sapling bloomed"},
+                         {42, "Agata Forest sapling bloomed"},
+                         {44, "Ryoshima Coast sapling bloomed"},
+
+                         // Mermaid springs
                          {46, "Shinshu Field mermaid spring unlocked"},
                          {47, "Agata Forest mermaid spring unlocked"},
                          {48, "Taka Pass mermaid spring unlocked"},
@@ -136,6 +201,9 @@ const std::unordered_map<unsigned, MapDesc>
                          //{62, "Waka 1 defeated"}, // gets cleared after story time
                          // 65 - Agata fishing related, caught big fish?
                          {64, "Fishing in Agata Forest"},
+                         {70, "Divine Springs tutorial (Power slash 2)"},
+                         {71, "Donated to Divine Spring first time (Power slash 2)"},
+                         {72, "Bandit Spider defeated"},
                          {84, "First dojo cutscene trigger"},
                          {97, "Fishing tutorial shown"},
                      },
@@ -275,14 +343,16 @@ const std::unordered_map<unsigned, MapDesc>
                          {6, "Number of cursed statues interacted with"},
                          {7, "Digging minigame timer"},
 
-                         // 31 - {1023, "Chest on the ledge opened"},
+                         // 31 - {1023, "Chest on the ledge behind Mrs Orange (Exorcism Slip S)"},
                      },
                  .collectedObjects =
                      {
-                         {0, "Chest on hill opened (Traveler's Charm)"},
-                         {6, "Chest on farm opened (Dragonfly Bead)"},
-                         {7, "Chest in river by bridge (further) opened (Rabbit Statue)"},
-                         {8, "Chest in Mr Orange's house opened (Coral Fragment)"},
+                         {0, "Chest on hill (Traveler's Charm)"},
+                         {4, "Chest on lookout scaffold upper (Glass Beads)"},
+                         {5, "Chest on lookout scaffold lower (Stray Bead)"},
+                         {6, "Chest on farm (Dragonfly Bead)"},
+                         {7, "Chest in river by bridge (further) (Rabbit Statue)"},
+                         {8, "Chest in Mr Orange's house (Coral Fragment)"},
                          {9, "Mill Bale of Rice 1"},
                          {10, "Mill Bale of Rice 2"},
                          {11, "Mill Bale of Rice 3"},
@@ -294,8 +364,8 @@ const std::unordered_map<unsigned, MapDesc>
                          {17, "Mr Orange's House Orange 3"},
                          {18, "Mr Orange's House Orange 4"},
                          {19, "Mr Orange's House Orange 5"},
-                         {20, "Chest in water by waterfall opened (Vase)"},
-                         {21, "Chest in river by bridge (closer) opened (Glass Beads)"},
+                         {20, "Chest in water by waterfall (Vase)"},
+                         {21, "Chest in river by bridge (closer) (Glass Beads)"},
                          {22, "Kushi's House Bale of Rice 1"},
                          {23, "Kushi's House Bale of Rice 1"},
                          {24, "Kushi's House Bale of Rice 1"},
@@ -305,12 +375,13 @@ const std::unordered_map<unsigned, MapDesc>
                          {31, "Solar orb in the pond 3"},
                          {32, "Solar orb in the pond 4"},
                          {33, "Clover on vine cliff"},
-                         {34, "Chest behind rock on island opened (Dragonfly Bead)"},
+                         {34, "Chest behind rock on island (Dragonfly Bead)"},
                          {35, "Clover on big lily pad island"},
-                         {37, "Buried chest on island opened (Wooden Bear)"},
-                         {38, "Chest by pond opened (Feedbag (Seeds))"},
+                         {37, "Buried chest on island (Wooden Bear)"},
+                         {38, "Chest by pond (Feedbag (Seeds))"},
                          {80, "Vista of the Gods given to Susano"}, // does this belong here?
-                         {81, "First sapling reward fruit cut down (Bull Horn)"},
+                         {81, "Sapling reward fruit cut down 1 (Bull Horn)"},
+                         {83, "Sapling reward fruit cut down 3 (Golden Peach)"},
                      },
                  .areasRestored =
                      {
@@ -409,7 +480,7 @@ const std::unordered_map<unsigned, MapDesc>
                      },
                  .collectedObjects =
                      {
-                         {0, "Clover on cliff bloomed"},
+                         {0, "Clover on cliff"},
                          {1, "Buried chest just after campfire (Stray Bead)"},
                          {3, "Clover by entrance"},
                          {4, "Island clover"},
@@ -510,7 +581,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {12, "Greenway room bulb by stone ball (Steel Fist Sake)"},
                          {13, "Entrance room bulb left side (Exorcism Slip S)"},
                          {14, "Clover at greenway room's highest point"},
-                         {15, "Bulb at greenway room's highest point"},
+                         {15, "Bulb at greenway room's highest point (Stray Bead)"},
                          {17, "Entrance chest ([Enhancing Divinity])"},
                          {18, "Blockhead room 2F bulb (Golden Peach)"},
                          {19, "Clover blockhead room 2F left"},
@@ -544,7 +615,7 @@ const std::unordered_map<unsigned, MapDesc>
                      },
                  .fightsCleared =
                      {
-                         {1, "Gloomy room slip defeated"},
+                         {1, "Gloomy room slip"},
                      },
                  .mapsExplored =
                      {
@@ -589,8 +660,26 @@ const std::unordered_map<unsigned, MapDesc>
                      },
              }},
             {MapTypes::GaleShrine, {}},
-            {MapTypes::KusaVillage, {}},
-            {MapTypes::SasaSanctuary, {}},
+            {MapTypes::KusaVillage,
+             {
+                 .worldStateBits =
+                     {
+                         {28, "Spoke to Gourd Farmer"},
+                         {29, "Spoke to Gourd Farmer part 2"},
+                         {41, "Spoke to Merchant"},
+                     },
+                 .npcHasMoreToSay =
+                     {
+                         {0, "Gourd Farmer"},
+                     },
+             }},
+            {MapTypes::SasaSanctuary,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Entry dialogue trigger"},
+                     },
+             }},
             {MapTypes::AgataForestMadameFawnsHouse,
              {
                  .worldStateBits =
@@ -598,6 +687,8 @@ const std::unordered_map<unsigned, MapDesc>
                          {1, "Spoke with Madame Fawn 1"},
                          {2, "Spoke with Madame Fawn 2"},
                          {3, "First fortune told"},
+                         {5, "Came in from back door"},
+                         {6, "Came in from back door"},
                      },
                  .collectedObjects =
                      {
@@ -610,12 +701,146 @@ const std::unordered_map<unsigned, MapDesc>
             {MapTypes::CalcifiedCavern, {}},
             {MapTypes::MoonCaveInterior, {}},
             {MapTypes::MoonCaveStaircaseandOrochiArena, {}},
-            {MapTypes::RyoshimaCoastBanditSpiderArena, {}},
-            {MapTypes::TakaPassStrayBead26Cave, {}},
-            {MapTypes::KamuiCherryBomb3Cave, {}},
-            {MapTypes::NRyoshimaCoastPowerSlash2Cave, {}},
-            {MapTypes::NRyoshimaCoastCherryBomb2Cave, {}},
-            {MapTypes::KamuiEzofujiPowerSlash3Cave, {}},
+            {MapTypes::RyoshimaCoastBanditSpiderArena,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Area restored"},
+                         {2, "Spider defeated"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Area chest (Sun Fragment)"},
+                     },
+                 .areasRestored =
+                     {
+                         {16, "Area restored"},
+                     },
+             }},
+            {MapTypes::TakaPassStrayBead26Cave,
+             {
+
+                 .collectedObjects =
+                     {
+                         {0, "Middle chest (Stray Bead)"},
+                         {1, "Left chest (Godly Charm)"},
+                         {2, "Right chest (Crystal)"},
+                         {3, "Clover right"},
+                         {4, "Clover left"},
+                         {5, "Clover middle"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Left near"},
+                         {1, "Right near"},
+                         {2, "Left far"},
+                         {3, "Right far"},
+                     },
+             }},
+            {MapTypes::KamuiCherryBomb3Cave,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Interacted with pool"},
+                         {2, "Obtained Cherry Bomb 3"},
+                     },
+                 .userIndices =
+                     {
+                         {0, "Money donated"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Post-donation chest ([Cherry Bomb 3])"},
+                         {1, "Clover middle"},
+                         {2, "Clover right"},
+                         {3, "Clover left"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Left near"},
+                         {1, "Right near"},
+                         {2, "Left far"},
+                         {3, "Right far"},
+                     },
+             }},
+            {MapTypes::NRyoshimaCoastPowerSlash2Cave,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Interacted with pool"},
+                         {2, "Obtained Power Slash 2"},
+                     },
+                 .userIndices =
+                     {
+                         {0, "Money donated"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Post-donation chest ([Power Slash 2])"},
+                         {1, "Clover middle"},
+                         {2, "Clover right"},
+                         {3, "Clover left"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Left near"},
+                         {1, "Right near"},
+                         {2, "Left far"},
+                         {3, "Right far"},
+                     },
+             }},
+            {MapTypes::NRyoshimaCoastCherryBomb2Cave,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Interacted with pool"},
+                         {2, "Obtained Cherry Bomb 2"},
+                     },
+                 .userIndices =
+                     {
+                         {0, "Money donated"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Post-donation chest ([Cherry Bomb 2])"},
+                         {1, "Clover middle"},
+                         {2, "Clover right"},
+                         {3, "Clover left"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Left near"},
+                         {1, "Right near"},
+                         {2, "Left far"},
+                         {3, "Right far"},
+                     },
+             }},
+            {MapTypes::KamuiEzofujiPowerSlash3Cave,
+             {
+                 .worldStateBits =
+                     {
+                         {1, "Interacted with pool"},
+                         {2, "Obtained Power Slash 3"},
+                     },
+                 .userIndices =
+                     {
+                         {0, "Money donated"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Post-donation chest ([Power Slash 3])"},
+                         {1, "Clover middle"},
+                         {2, "Clover right"},
+                         {3, "Clover left"},
+                     },
+                 .treesBloomed =
+                     {
+                         {0, "Left near"},
+                         {1, "Right near"},
+                         {2, "Left far"},
+                         {3, "Right far"},
+                     },
+             }},
             {MapTypes::KamuiBlockheadGrandeCave, {}},
             {MapTypes::NRyoshimaCoastBanditSpiderArena, {}},
             {MapTypes::KamuiBanditSpiderArena, {}},
@@ -747,6 +972,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {51, "Crack by Tama's house blown up"},
                          {52, "Nameless Man's Kiln restored"},
                          {66, "Ida ran off"},
+                         {90, "Monument cutscene in catwalk field"},
                          {92, "Encountered bounty tutorial"},
                          {93, "Spoke to Ida first time"},
                          {94, "Ida ran off"},
@@ -763,6 +989,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {121, "Talked with Tama 1"},
                          {122, "Talked with Tama 2"},
                          {123, "Finished talking with Tama"},
+                         {124, "Spoke to Tama post-bomb"},
                          {133, "Spoke to Onigiri Sensei first time"},
                          {135, "Dojo opened"},
                          {138, "Spoke to Merchant"},
@@ -774,7 +1001,7 @@ const std::unordered_map<unsigned, MapDesc>
                  .collectedObjects =
                      {
                          {0, "Buried chest between 3 bushes behind merchant (Wooden Bear)"},
-                         {1, "Chest behind tree (Traveler's Charm)"},
+                         {1, "Chest behind sapling (Traveler's Charm)"},
                          {2, "Buried chest by dock near Tama's (Vase)"},
                          {3, "Buried chest right side of ramp to moon cave (Stray Bead)"},
                          {4, "Chest hidden by crack near Agata Forest Port (Coral Fragment)"},
@@ -786,9 +1013,16 @@ const std::unordered_map<unsigned, MapDesc>
                          {11, "Clover behind merchant"},
                          {12, "Clover east side off cliff from path"},
                          {13, "Buried chest under leaves at Yama's house (Bull Horn)"},
-                         {19, "Tree chest ([Fleeing Battle])"},
+                         {14, "Clover in hard ground near entrance"},
+                         {16, "Chest top of moon shrine arch right side (Golden Peach)"},
+                         {17, "Clover in east catwalk field"},
+                         {18, "Buried chest between bushes in east catwalk field (Kutani Pottery)"},
+                         {19, "Sapling chest ([Fleeing Battle])"},
                          {20, "Agata Forest port chest ([Feeding])"},
-                         {25, "Outside Tama's house ([Legend of Orochi])"},
+                         {21, "Catwalk field monument chest (Crystal)"},
+                         {22, "Clover in north catwalk field"},
+                         {24, "Buried chest between bushes in north catwalk field (Pearl)"},
+                         {25, "Chest outside Tama's house ([Legend of Orochi])"},
                          {26, "Buried chest under burning leaves at dojo (Godly Charm)"},
                      },
                  .areasRestored =
@@ -797,6 +1031,8 @@ const std::unordered_map<unsigned, MapDesc>
                          {17, "Nameless Man's Kiln"},
                          {18, "Cursed gate by entrance"},
                          {19, "Dojo"},
+                         {20, "North catwalk field"},
+                         {21, "East catwalk field"},
                          {22, "Cursed grass by entrance"},
                          {23, "Cursed grass by Agata Port"},
                          {31, "Main area restored"},
@@ -816,12 +1052,14 @@ const std::unordered_map<unsigned, MapDesc>
                      },
                  .fightsCleared =
                      {
-                         {0, "Gate by tree cleared"},
+                         {0, "Gate by sapling"},
                          {1, "Gate by Nameless Man"},
-                         {2, "Cursed gate by entrance cleared"},
-                         {3, "Dojo gate cleared"},
+                         {2, "Cursed gate by entrance"},
+                         {3, "Dojo gate"},
+                         {4, "North catwalk field gate"},
+                         {5, "East catwalk field gate"},
                          {71, "Izo the String Cutter (bounty)"},
-                         {74, "Fish demon fight cleared"},
+                         {74, "Fish demon fight"},
                      },
                  .npcHasMoreToSay =
                      {
@@ -844,6 +1082,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {10, "Area restored"},
                          {11, "Divine instrument tutorial triggered"},
                          {12, "Waka cutscene triggered"},
+                         {14, "Interacted with giant bud"},
                          {15, "Dungeon entrance cutscene triggered"},
                          {16, "Dungeon entrance opened"},
                          {17, "Sleepy bear gave praise for giant seed"},
@@ -863,6 +1102,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {48, "Spoke with Karude intro 1"},
                          {49, "Spoke with Karude intro 2"},
                          {50, "Spoke with Karude post-rescue 1"},
+                         {51, "Spoke with Karude post-rapids"},
                          {55, "Spoke with Kokari first time"},
                          {56, "Spoke with Kokari second time"},
                          {57, "Spoke with Kokari third time"},
@@ -870,6 +1110,8 @@ const std::unordered_map<unsigned, MapDesc>
                          {59, "Bashed Kokari while crying"},
                          {63, "Ruins key spawns"},
                          {64, "Spoke with Kokari post-log minigame"},
+                         {65, "Spoke with Kokari post-Taka Pass"},
+                         {66, "End fishing without catching any fish"},
                          {71, "Spoke with Susano first time"},
                          {73, "Susano has no more food"},
                          {75, "Spoke with merchant"},
@@ -895,6 +1137,7 @@ const std::unordered_map<unsigned, MapDesc>
                          {6, "Bulb by waterfall (Inkfinity Stone)"},
                          {7, "Bulb by fortune cave entrance (Traveler's Charm)"},
                          {8, "Bulb on middle island (Coral Fragment)"},
+                         {9, "Clover at Hitoshio Spring hard digging spot"},
                          {10, "Bulb at grass behind Hitoshio Spring waterfall (Incense Burner)"},
                          {11, "Sapling chest (Devout Beads)"},
                          {12, "Buried chest on dungeon side cliff (Stray Bead)"},
@@ -904,12 +1147,19 @@ const std::unordered_map<unsigned, MapDesc>
                          {16, "Chest at Hitoshio Spring vine (Stray Bead)"},
                          {17, "Vine to tree above island by waterfall (Stray Bead)"},
                          {18, "Vine to tree above rock island (Bull Horn)"},
+                         {19, "Chest above spout in cave (Lacquerware Set)"},
                          {20, "Clover behind sapling"},
                          {22, "Buried chest behind forest hut (Stray Bead)"},
                          {23, "Buried chest on middle island (Steel Soul Sake)"},
+                         {24, "Iron rock by rapids destroyed"},
+                         {25, "Clover under iron rock by rapids"},
+                         {26, "Clover under diamond rock in cave"},
+                         {27, "Diamond rock in cave destroyed"},
+                         {28, "Clover in dungeon side cliff cave"},
                          {29, "Buried chest under leaf pile on entrance ramp (Exorcism Slip M)"},
                          {30, "Buried chest under leaves by upper Shinshu exit (Pearl)"},
                          {31, "Buried chest under leaves by Taka Pass exit (Holy Bone M)"},
+                         {32, "Buried chest in hard ground in front of Tsuta Ruins (Bull Statue)"},
                          {33, "Chest by Taka Pass exit ([Ink BUllet Tips])"},
                          {35, "Chest by Kiba ([Battle Tips])"},
                          {36, "Chest at dungeon entrance ([Enhancing Weapons])"},
@@ -953,16 +1203,21 @@ const std::unordered_map<unsigned, MapDesc>
                          {22, "Sapling finished restoring area dialogue"},
                          {24, "Sapling bridge repaired"},
                          {25, "Spoke to Tea Master first time"},
+                         {26, "Spoke to Tea Master post-restoration"},
                          {28, "Spoke to Tea Customer first time"},
+                         {29, "Spoke to Tea Customer post-restoration"},
                          {48, "Spoke to Merchant first time"},
+                         {61, "Barrier to stray bead cave dug out"},
                      },
                  .collectedObjects =
                      {
                          {4, "Second fire chest in sapling path (Stray Bead)"},
                          {5, "Fire chest in sapling path (Crystal)"},
                          {6, "Clover in sapling cave"},
+                         {12, "Buried chest by Tea Master stall"},
                          {15, "Leaf buried chest in sapling field by cave (Incense Burner)"},
                          {16, "Leaf buried chest by sapling (Vengeance Slip)"},
+                         {22, "Buried chest under leaf pile by entrance (Vase)"},
                          {25, "Leaf buried chest just off sapling field path bottom of ledge (Pearl)"},
                      },
                  .areasRestored =
@@ -985,11 +1240,111 @@ const std::unordered_map<unsigned, MapDesc>
                          {1, "Cave to tree"},
                      },
              }},
-            {MapTypes::RyoshimaCoast, {}},
+            {MapTypes::RyoshimaCoast,
+             {
+                 .worldStateBits =
+                     {
+                         {2, "First entrance dialogue"},
+                         {3, "Sapling bloomed"},
+                         {4, "Triggered Headless Guardian fight"},
+                         {5, "Crack to water cave in cursed Ryoshima bombed"},
+                         {6, "Water cave second pond filled"},
+                         {7, "Water cave third pond filled"},
+                         {8, "Sapling pond filled"},
+                         {9, "Triggered sapling view cutscene"},
+                         {10, "Sapling grown"},
+                         {11, "Triggered restoring right tri-cursed grass"},
+                         {12, "Triggered restoring left tri-cursed grass"},
+                         {13, "Triggered restoring middle tri-cursed grass"},
+                         {15, "Post-restoration"},
+                         {16, "Post-restoration"},
+                         {18, "Triggered Ubume fight"},
+                         {20, "Inaba returned to Animal Lover (Stray Bead)"},
+                         {33, "Lookout tower climb attempt"},
+                         {35, "Lookout tower climb attempt"},
+                         {53, "Spoke with Animal Lover first time"},
+                         {55, "Spoke with large soldier at N Ryo gate"},
+                         {59, "Spoke with skinny soldier at N Ryo gate"},
+                         {70, "Spoke with merchant"},
+                         {73, "Hard ground to Bandit Spider arena broken"},
+                     },
+                 .collectedObjects =
+                     {
+                         {1, "Clover in front of Madame Fawn's cave"},
+                         {3, "Clover at lookout by sunken ship"},
+                         {6, "Buried chest on dojo island hard ground (Stray Bead)"},
+                         {12, "Clover by entrance to Seian hard ground"},
+                         {19, "Chest on dojo island (Exorcism Slip S)"},
+                         {20, "Chest at end of dock (Dragonfly Bead)"},
+                         {21, "Clover right of dock shore"},
+                         {22, "Buried chest at entrance to Seian (Crystal)"},
+                         {23, "Chest outside entrance to Seian (Steel Fist Sake)"},
+                         {38, "Clam in front of merchant (Holy Bone S)"},                 // bashable
+                         {40, "Clam at outermost part of beach (Coral Fragment)"},        // bombable
+                         {41, "Clam between dock and outermost part (Traveler's Charm)"}, // bombable
+                         {42, "Clam left of dock shore (Dragonfly Bead)"},                // bombable
+                         {43, "Clam right of dock shore (Pearl)"},                        // bombable
+                         {44, "Clam to right of lookout (Glass Beads)"},                  // bashable
+                         {45, "Clam below lookout (Mermaid Coin)"},                       // deep
+                     },
+                 .areasRestored =
+                     {
+                         {16, "Right tri-cursed grass"},
+                         {17, "Left tri-cursed grass"},
+                         {18, "Middle tri-cursed grass"},
+                         {19, "Gate area just outside Seian exit"},
+                         {20, "N Ryoshima exit mermaid pond"},
+                         {31, "Ryoshima Coast"},
+                     },
+                 .fightsCleared =
+                     {
+                         {0, "Gate outside Seian exit"}, // also used for Headless Guardian intro (cursed)
+                         {1, "Gate by N Ryoshima exit"},
+                         {18, "Ubume intro"},
+                     },
+             }},
             {MapTypes::Unknown76, {}},
-            {MapTypes::NRyoshimaCoast, {}},
-            {MapTypes::Kamui, {}},
-            {MapTypes::KamuiEzofuji, {}},
+            {MapTypes::NRyoshimaCoast,
+             {
+                 .worldStateBits =
+                     {
+                         {91, "Cherry bomb 2 cave crack bombed"},
+                     },
+             }},
+            {MapTypes::Kamui,
+             {
+                 .worldStateBits =
+                     {
+                         {60, "Spoke to Merchant"},
+                     },
+                 .collectedObjects =
+                     {
+                         {18, "Clover on sapling ledge"},
+                         {42, "Bombed cracked rock on sapling ledge"},
+                         {43, "Bombed double-crack to cherry bomb 3 cave"},
+                     },
+             }},
+            {MapTypes::KamuiEzofuji,
+             {
+                 .worldStateBits =
+                     {
+                         {52, "Examined altar by entrance"},
+                     },
+                 .collectedObjects =
+                     {
+                         {0, "Power slash 3 cave rock broken"},
+                         {1, "Clover outside power slash 3 cave"},
+                         {2, "Diamond rock outside power slash 3 cave cut"},
+                         {6, "Chest by entrance ([Another Civilization])"},
+                         {10, "Buried chest east part of high north ledge (Stray Bead)"},
+                         {11, "Clover east part of high north ledge"},
+                         {12, "Clover in hard ground on north ledge left"},
+                         {13, "Buried chest in hard ground on north ledge (Stray Bead)"},
+                         {14, "Clover in hard ground on north ledge right"},
+                         {15, "Clover on lower north ledge"},
+                         {16, "Chest on high north ledge (Sun Fragment)"},
+                     },
+             }},
             {MapTypes::ShinshuField100yearsago, {}},
             {MapTypes::MoonCaveEntrance100yearsago, {}},
             {MapTypes::Unk82, {}},

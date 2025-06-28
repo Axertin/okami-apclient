@@ -75,16 +75,15 @@ struct WorldStateData
     uint16_t unk2; // set from +0xB6B244
     uint16_t unk3;
     uint32_t unk4;
-    BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
-    BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
-    uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
+    BitField<64> usableBrushTechniques;   // set from BrushData (+0x8909C0 + 0x70)
+    BitField<64> obtainedBrushTechniques; // set from BrushData (+0x8909C0 + 0x78)
+    // All entries are 1 by default.
+    // Indices 12 and 25 match number of cherry bombs that can be created.
+    // Nothing changes for power slash 2.
+    uint8_t brushUnknown[64];                     // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvenationBits; // set from BrushData (+0x8909C0 + 0x1F60)
-    uint32_t unk5;
 
-    // gold dust acquired bits
-    // 1 - Agata Forest Merchant 1
-    // 2 - Agata Forest Merchant 2
-    // Only used to determine which ones you can no longer acquire in the world
+    BitField<32> keyItemsAcquired;
     BitField<32> goldDustsAcquired;
 
     uint8_t holyArtifactsEquipped[3]; // item id
@@ -111,28 +110,6 @@ struct WorldStateData
     uint32_t unk20;
 
     BitField<128> logbookViewed;
-    /*
-    {
-    "Destroy the Boulder!",
-    "Guardian Sapling Trouble"
-    "Secret of Hana Valley",
-    "Revive the Guardian Saplings",
-    "Sacred Tree Reborn",
-    "Shinshu Adventure",
-    "",
-    "",
-    "",
-    "",
-    "Sapling of Agata Forest",
-    "Hard Working Son",
-    "Ume is Lost",
-    "",
-    "A Son's Determination",
-    "Mysterious Windmill",
-    ...
-    88 = "Cut Down the Peach",
-    }
-    */
 
     //
     // unk22[0] 0x80000000 - first fortune viewed
@@ -185,18 +162,22 @@ struct TrackerData
     BitField<ItemTypes::NUM_ITEM_TYPES> firstTimeItem;
     BitField<96> logbookAvailable;
     BitField<64> animalsFedFirstTime;
-    uint32_t unk1[3];
+
     // unk1[0] 0x800 -> backstory finished, intro stage started
+    BitField<32> field_34;
+
+    // unk1[1] 0x10000000 -> first Headless Guardian fight
+    // unk1[1] 0x04000000 -> bandit spider fight
+    // unk1[1] 0x08000000 -> first Ubume fight
+    // unk1[1] 0x00000040 -> swallowed by giant fish in N Ryoshima
+    BitField<32> field_38;
+
+    BitField<32> brushUpgrades;
 
     uint32_t field_40;
     uint32_t field_44; // changed in save menu
 
-    // 0x40000000 = completed cut down peach journal?
-    // 0x20000000 = completed Secret of Hana Valley / started Revive the Guardian Saplings
-    // 0x10000000 = completed Revive the Guardian Saplings
-    // 0x08000000 = Tsuta ruins restored (no logbook)
-    // 0x02000000 = taka pass restored (no logbook)
-    uint32_t field_48;
+    BitField<32> areasRestored;
     uint16_t field_4C;
     uint16_t field_4E;
     uint16_t field_50;
@@ -207,10 +188,9 @@ struct TrackerData
     uint8_t field_6D;
     uint8_t field_6E;
     uint8_t field_6F;
-    // field_70[0] 0x04000000 - triggered Tsuta ruins intro
-    // field_70[0] 0x08000000 - Secret of Hana Valley added
-    uint32_t field_70[2];
-    BitField<32> mirrorsUnlocked; // not accurate?
+
+    // Bits marking visited map locations
+    BitField<MapTypes::NUM_MAP_TYPES> mapLocationsRevealed;
     uint32_t timePlayed;
 };
 
@@ -234,7 +214,7 @@ struct CustomTextures
 // singleton at +0x8909C0
 struct BrushState
 {
-    // TODO chonker
+    // not worth doing for this mod, but contains the active brush related elements such as unlocked and upgraded brushes
 };
 
 struct MapState
@@ -242,14 +222,16 @@ struct MapState
     uint32_t user[32];             // custom data differs per map
     BitField<96> unburiedObjects;  // set if dug up, same id as collectedObjects
     BitField<96> collectedObjects; // set if chest or other object collected
-    BitField<32> field_98;
+
+    BitField<32> commonStates; // Commonly used flags for all maps
+
     uint32_t timeOfDay;         // Usually synced with world time
-    BitField<96> areasRestored; // whether certain map areas are restored
+    BitField<96> areasRestored; // whether certain map areas are restored, 31 = entire map restored
     BitField<32> treesBloomed;
     BitField<32> cursedTreesBloomed;
     BitField<128> fightsCleared;
     BitField<64> npcHasMoreToSay;
-    BitField<64> npcUnknown; // Related to MoreToSay but never seen it set
+    BitField<64> npcUnknown; // Related to MoreToSay
     BitField<64> mapsExplored;
     BitField<32> field_DC;
     BitField<32> field_E0;
