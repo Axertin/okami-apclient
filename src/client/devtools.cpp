@@ -242,15 +242,22 @@ void drawInventory(const char *categoryName, const std::vector<uint16_t> &items)
     ImGui::EndTable();
 }
 
-static std::array<const char *, 4> notebookNames = {"Mika's Monster Notebook", "Haruka's Revenge Contract", "Masu's Monster Manifest",
-                                                    "Wali's Record of Penance"};
+static const std::array<const char *, 4> notebookNames = {"Mika's Monster Notebook", "Haruka's Revenge Contract", "Masu's Monster Manifest",
+                                                          "Wali's Record of Penance"};
 
-static std::array<std::array<const char *, 5>, 4> bountyNames = {
+static const std::array<const std::array<const char *, 5>, 4> bountyNames = {
     std::array<const char *, 5>{"Onimaru the Incorrigible", "Bitwamaru the Vandal", "Akuzo the Interloper", "Izo the String Cutter",
                                 "Toya of the Short Temper"},
     {"Bulging Eyes the Despised", "Weirdo the ABhorrent", "Death Fin the Repugnant", "Red Devil the Detested", "Curse Gill the Repulsive"},
     {"Dishonorable Tempest", "Foul Thunder", "Petulant Lightning", "Storm of Degradation", "Shame Flasher"},
     {"Creeping Igloo", "Snowy Stigma", "Stalking Blizzard", "Cold Remorse", "Frozen Penitence"},
+};
+
+static const std::unordered_map<uint8_t, const char *> weaponSlotNames = {
+    {0x00, "Divine Retribution"}, {0x01, "Snarling Beast"},     {0x02, "Infinity Judge"}, {0x03, "Trinity Mirror"},
+    {0x04, "Solar Flare"},        {0x10, "Tsumugari"},          {0x11, "Seven Strike"},   {0x12, "Blade of Kusanagi"},
+    {0x13, "Eighth Wonder"},      {0x14, "Thunder Edge"},       {0x20, "Devout Beads"},   {0x21, "Life Beads"},
+    {0x22, "Exorcism Beads"},     {0x23, "Resurrection Beads"}, {0x24, "Tundra Beads"},   {0xFF, "None"},
 };
 
 /**
@@ -319,13 +326,27 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         checklistCols("Dojo Techniques", 2, okami::DojoTechs::GetName, okami::AmmyStats->dojoTechniquesUnlocked);
 
         ImGui::Text("unk1b: %d", okami::AmmyStats->unk1b);
-        ImGui::Text("Main Weapon: %d", okami::AmmyStats->mainWeapon);
-        ImGui::Text("Sub Weapon: %d", okami::AmmyStats->subWeapon);
-        ImGui::Text("unk4: %d", okami::AmmyStats->unk4);
+        if (weaponSlotNames.count(okami::AmmyStats->mainWeapon))
+        {
+            ImGui::Text("Main Weapon: %s", weaponSlotNames.at(okami::AmmyStats->mainWeapon));
+        }
+        else
+        {
+            ImGui::Text("Main Weapon: %d", okami::AmmyStats->mainWeapon);
+        }
+        if (weaponSlotNames.count(okami::AmmyStats->subWeapon))
+        {
+            ImGui::Text("Sub Weapon: %s", weaponSlotNames.at(okami::AmmyStats->subWeapon));
+        }
+        else
+        {
+            ImGui::Text("Sub Weapon: %d", okami::AmmyStats->subWeapon);
+        }
+        drawStat("Transformation", ImGuiDataType_U8, &okami::AmmyStats->currentTransformation);
         ImGui::Text("padding4: %d", okami::AmmyStats->__padding4);
         ImGui::Text("padding5: %d", okami::AmmyStats->__padding5);
 
-        checklistColsUnnamed("Weapons upgraded", 4, "Weapon", okami::AmmyStats->weaponsUpgraded);
+        // checklistColsUnnamed("Weapons upgraded", 4, "Weapon", okami::AmmyStats->weaponsUpgraded);
 
         ImGui::Text("vengeanceSlipTimer: %d", okami::AmmyStats->vengeanceSlipTimer);
         ImGui::Text("attackIncreaseTimer: %d", okami::AmmyStats->attackIncreaseTimer);
@@ -416,7 +437,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             }
             ImGui::Separator();
         }
-        for (unsigned i = 0; i < 5; i++)
+        for (unsigned i = 0; i < 3; i++)
         {
             ImGui::Text("unk15[%u]: %08X", i, okami::AmmyCollections->world.unk15[i]);
         }
@@ -432,7 +453,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         checklistColsUnnamed("Logbook Viewed", 2, "LogbookViewed", okami::AmmyCollections->world.logbookViewed);
         if (ImGui::CollapsingHeader("unk22"))
         {
-            for (unsigned i = 0; i < 195; i++)
+            for (unsigned i = 0; i < 194; i++)
             {
                 ImGui::Text("unk22[%u]: %08X", i, okami::AmmyCollections->world.unk22[i]);
             }
@@ -457,13 +478,13 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         checklistColsUnnamed("field_34", 2, "f34_", okami::AmmyTracker->field_34);
         checklistColsUnnamed("field_38", 2, "f38_", okami::AmmyTracker->field_38);
         checklistColsUnnamed("brushUpgrades", 2, "brushUpg", okami::AmmyTracker->brushUpgrades);
-        ImGui::Text("field_40: %08X", okami::AmmyTracker->field_40);
-        ImGui::Text("field_44: %08X", okami::AmmyTracker->field_44);
+        ImGui::Text("gameOverCount: %d", okami::AmmyTracker->gameOverCount);
+        checklistColsUnnamed("optionFlags", 2, "opt", okami::AmmyTracker->optionFlags);
 
         checklistColsUnnamed("areasRestored", 2, "AreaRest", okami::AmmyTracker->areasRestored);
-        ImGui::Text("field_4C: %04X", okami::AmmyTracker->field_4C);
-        ImGui::Text("field_4E: %04X", okami::AmmyTracker->field_4E);
-        ImGui::Text("field_50: %04X", okami::AmmyTracker->field_50);
+        ImGui::Text("volumeBGM: %d", okami::AmmyTracker->volumeBGM);
+        ImGui::Text("volumeSE: %d", okami::AmmyTracker->volumeSE);
+        ImGui::Text("volumeVoice: %d", okami::AmmyTracker->volumeVoice);
         ImGui::Text("field_52: %04X", okami::AmmyTracker->field_52);
 
         checklistColsTome("Bestiary Tome", okami::BestiaryTome::GetName, okami::AmmyTracker->bestiaryTomeUnlocked, okami::AmmyTracker->bestiaryTomeRead);

@@ -45,18 +45,47 @@ struct CharacterStats
 
     uint32_t unk1b;
 
-    // 0x00 - Divine Retribution
-    // 0x01 - Snarling Beast
-    // 0x20 - Devout Beads
+    // upper word = category, lower word = weapon
+    // 0x Reflector
+    //   x0 - Divine Retribution
+    //   x1 - Snarling Beast
+    //   x2 - Infinity Judge
+    //   x3 - Trinity Mirror
+    //   x4 - Solar Flare
+    // 1x Glaive
+    //   x0 - Tsumugari
+    //   x1 - Seven Strike
+    //   x2 - Blade of Kusanagi
+    //   x3 - Eighth Wonder
+    //   x4 - Thunder Edge
+    // 2x Rosary
+    //   x0 - Devout Beads
+    //   x1 - Life Beads
+    //   x2 - Exorcism Beads
+    //   x3 - Resurrection Beads
+    //   x4 - Tundra Beads
+    // FF None
     uint8_t mainWeapon;
     uint8_t subWeapon;
-    uint8_t unk4;
+
+    // Current Karmic transformation
+    // 7 = Karmic Transformer 1
+    // 8 = Karmic Transformer 6
+    // 9 = Karmic Transformer 5
+    // 10 = Karmic Transformer 4
+    // 11 = Karmic Transformer 2
+    // 12 = Karmic Transformer 9
+    // 13 = Karmic Transformer 7
+    // 14 = Karmic Transformer 3
+    // 15 = Karmic Transformer 8
+    uint8_t currentTransformation;
     uint8_t __padding4;
 
     uint16_t godhood;
     uint16_t __padding5;
 
-    BitField<64> weaponsUpgraded;
+    // Bit set is `1 << weaponID` (ID from weapon slots)
+    uint64_t weaponsUpgraded;
 
     uint16_t vengeanceSlipTimer;
     uint16_t attackIncreaseTimer;
@@ -79,7 +108,7 @@ struct WorldStateData
     BitField<64> obtainedBrushTechniques; // set from BrushData (+0x8909C0 + 0x78)
     // All entries are 1 by default.
     // Indices 12 and 25 match number of cherry bombs that can be created.
-    // Nothing changes for power slash 2.
+    // maybe actually brush upgrades, need to test modification of BrushData
     uint8_t brushUnknown[64];                     // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvenationBits; // set from BrushData (+0x8909C0 + 0x1F60)
 
@@ -96,13 +125,15 @@ struct WorldStateData
     uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
     BitField<4> wantedListsUnlocked;
     BitField<5> bountiesSlain[4];
-    // unk15[0] = Current fortune index, -1 = hidden
-    // unk15[1] = Current fortune flags, -1 = hidden
-    // unk15[2] 0x00004000 sakuya tree bloomed (fruit reward)
-    // unk15[2] 0x08000000 taka pass bloomed (fruit reward)
-    // unk15[3] gets set when going to map screen first time with quest marker
-    // unk15[3] 0x00200000 Agata ruins quest marked
-    uint32_t unk15[5];
+
+    int32_t currentFortune;       // -1 = hidden
+    uint32_t currentFortuneFlags; // -1 = hidden
+
+    // unk15[0] 0x00004000 sakuya tree bloomed (fruit reward)
+    // unk15[0] 0x08000000 taka pass bloomed (fruit reward)
+    // unk15[1] gets set when going to map screen first time with quest marker
+    // unk15[1] 0x00200000 Agata ruins quest marked
+    uint32_t unk15[3];
     uint32_t unk16;
     uint32_t unk17[4];
     uint32_t unk18;
@@ -110,12 +141,9 @@ struct WorldStateData
     uint32_t unk20;
 
     BitField<128> logbookViewed;
+    BitField<32> fortuneViewed;
 
-    //
-    // unk22[0] 0x80000000 - first fortune viewed
-    // unk22[0] 0x40000000 - second fortune viewed
-    // unk22[0] 0x20000000 - third fortune viewed
-    uint32_t unk22[195];
+    uint32_t unk22[194];
 
     uint32_t totalMoney;
     uint32_t totalDemonFangs; // not what you have for spending
@@ -174,13 +202,23 @@ struct TrackerData
 
     BitField<32> brushUpgrades;
 
-    uint32_t field_40;
-    uint32_t field_44; // changed in save menu
+    uint32_t gameOverCount;
+
+    // 1 = Controller Vibration: Off
+    // 2 = Camera Control: Invert Y Axis
+    // 4 = Just saved
+    // 6 = Camera Control: Invert X Axis
+    // 9 = ???
+    // 10 = Filter: Light
+    // 11 = Filter: Heavy
+    // 12 = Aspect Ratio: 4:3
+    // 13 = Mini-Games: On
+    BitField<32> optionFlags;
 
     BitField<32> areasRestored;
-    uint16_t field_4C;
-    uint16_t field_4E;
-    uint16_t field_50;
+    uint16_t volumeBGM; // 0 through 127
+    uint16_t volumeSE;
+    uint16_t volumeVoice;
     uint16_t field_52;
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeUnlocked;
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeRead;

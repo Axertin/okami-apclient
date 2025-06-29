@@ -73,9 +73,6 @@ void comparePreviousStats()
 
     compareInt("CharacterStats::unk1", old.unk1, current.unk1);
     compareInt("CharacterStats::unk1b", old.unk1b, current.unk1b);
-    compareInt("CharacterStats::mainWeapon", old.mainWeapon, current.mainWeapon);
-    compareInt("CharacterStats::unk3", old.subWeapon, current.subWeapon);
-    compareInt("CharacterStats::unk4", old.unk4, current.unk4);
 }
 
 void comparePreviousCollection()
@@ -108,7 +105,9 @@ void comparePreviousCollection()
     }
     compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
-    for (unsigned i = 0; i < 5; i++)
+    compareInt("WorldStateData::currentFortuneFlags", old.world.currentFortuneFlags, current.world.currentFortuneFlags);
+
+    for (unsigned i = 0; i < 3; i++)
     {
         std::string name = std::string("WorldStateData::unk15[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk15[i], current.world.unk15[i]);
@@ -126,7 +125,7 @@ void comparePreviousCollection()
 
     compareBitfield("WorldStateData::logbookViewed", old.world.logbookViewed, current.world.logbookViewed, logbookViewedDesc);
 
-    for (unsigned i = 0; i < 195; i++)
+    for (unsigned i = 0; i < 194; i++)
     {
         std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk22[i], current.world.unk22[i]);
@@ -150,13 +149,9 @@ void compareTrackerData()
     compareBitfield("TrackerData::field_34", old.field_34, current.field_34, emptyMapDesc);
     compareBitfield("TrackerData::field_38", old.field_38, current.field_38, emptyMapDesc);
     compareBitfield("TrackerData::brushUpgrades", old.brushUpgrades, current.brushUpgrades, brushUpgradesDesc);
-    compareInt("TrackerData::field_40", old.field_40, current.field_40);
-    compareInt("TrackerData::field_44", old.field_44, current.field_44);
+    compareBitfield("TrackerData::optionFlags", old.optionFlags, current.optionFlags, emptyMapDesc);
 
     compareBitfield("TrackerData::areasRestored", old.areasRestored, current.areasRestored, areasRestoredDesc);
-    compareInt("TrackerData::field_4C", old.field_4C, current.field_4C);
-    compareInt("TrackerData::field_4E", old.field_4E, current.field_4E);
-    compareInt("TrackerData::field_50", old.field_50, current.field_50);
     compareInt("TrackerData::field_52", old.field_52, current.field_52);
     compareInt("TrackerData::unk2", old.unk2, current.unk2);
     compareInt("TrackerData::field_6D", old.field_6D, current.field_6D);
