@@ -74,9 +74,9 @@ MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
  */
 void initVariables()
 {
-    AmmyPosX.bind(okami::MainBase + 0xB1EC10 + 0); // probably read-only copies
-    AmmyPosY.bind(okami::MainBase + 0xB1EC10 + 4); // probably read-only copies
-    AmmyPosZ.bind(okami::MainBase + 0xB1EC10 + 8); // probably read-only copies
+    AmmyPosX.bind(okami::MainBase + 0xB1EC10 + 0); // read-only copies
+    AmmyPosY.bind(okami::MainBase + 0xB1EC10 + 4); // read-only copies
+    AmmyPosZ.bind(okami::MainBase + 0xB1EC10 + 8); // read-only copies
 
     // everything needed for a save file vvvvvvvvv
     AmmyStats.bind(okami::MainBase + 0xB4DF90);

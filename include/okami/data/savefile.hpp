@@ -30,6 +30,8 @@ struct SaveSlot
     MapState MapData[MapTypes::NUM_MAP_TYPES];
 
     // Loaded to +0xB36CF0
+    // A bit gets set for every conversation that happens.
+    // The index here is the same as in the map's MSD file.
     BitField<512> DialogBits[MapTypes::NUM_MAP_TYPES];
     uint32_t unk1; // padding?
 

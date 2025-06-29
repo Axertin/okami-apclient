@@ -101,7 +101,7 @@ const char *GetName(unsigned value)
     return "invalid";
 }
 
-const std::unordered_map<unsigned, unsigned> mapidToIndex{
+static const std::unordered_map<unsigned, unsigned> mapidToIndex{
     {0x100, KamikiVillageGameStart},
     {0x101, CaveOfNagi},
     {0x102, KamikiVillage},
@@ -190,9 +190,9 @@ const std::unordered_map<unsigned, unsigned> mapidToIndex{
 };
 unsigned FromMapId(unsigned id)
 {
-    if (mapidToIndex.contains(id))
+    if (auto it = mapidToIndex.find(id); it != mapidToIndex.end())
     {
-        return mapidToIndex.at(id);
+        return it->second;
     }
     return None;
 }

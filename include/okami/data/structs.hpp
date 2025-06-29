@@ -45,18 +45,47 @@ struct CharacterStats
 
     uint32_t unk1b;
 
-    // 0x00 - Divine Retribution
-    // 0x01 - Snarling Beast
-    // 0x20 - Devout Beads
+    // upper word = category, lower word = weapon
+    // 0x Reflector
+    //   x0 - Divine Retribution
+    //   x1 - Snarling Beast
+    //   x2 - Infinity Judge
+    //   x3 - Trinity Mirror
+    //   x4 - Solar Flare
+    // 1x Glaive
+    //   x0 - Tsumugari
+    //   x1 - Seven Strike
+    //   x2 - Blade of Kusanagi
+    //   x3 - Eighth Wonder
+    //   x4 - Thunder Edge
+    // 2x Rosary
+    //   x0 - Devout Beads
+    //   x1 - Life Beads
+    //   x2 - Exorcism Beads
+    //   x3 - Resurrection Beads
+    //   x4 - Tundra Beads
+    // FF None
     uint8_t mainWeapon;
     uint8_t subWeapon;
-    uint8_t unk4;
+
+    // Current Karmic transformation
+    // 7 = Karmic Transformer 1
+    // 8 = Karmic Transformer 6
+    // 9 = Karmic Transformer 5
+    // 10 = Karmic Transformer 4
+    // 11 = Karmic Transformer 2
+    // 12 = Karmic Transformer 9
+    // 13 = Karmic Transformer 7
+    // 14 = Karmic Transformer 3
+    // 15 = Karmic Transformer 8
+    uint8_t currentTransformation;
     uint8_t __padding4;
 
     uint16_t godhood;
     uint16_t __padding5;
 
-    BitField<64> weaponsUpgraded;
+    // Bit set is `1 << weaponID` (ID from weapon slots)
+    uint64_t weaponsUpgraded;
 
     uint16_t vengeanceSlipTimer;
     uint16_t attackIncreaseTimer;
@@ -75,16 +104,15 @@ struct WorldStateData
     uint16_t unk2; // set from +0xB6B244
     uint16_t unk3;
     uint32_t unk4;
-    BitField<64> usableBrushTechniques;           // set from BrushData (+0x8909C0 + 0x70)
-    BitField<64> obtainedBrushTechniques;         // set from BrushData (+0x8909C0 + 0x78)
-    uint8_t brushUpgrades[64];                    // set from BrushData (+0x8909C0 + 0x80)
+    BitField<64> usableBrushTechniques;   // set from BrushData (+0x8909C0 + 0x70)
+    BitField<64> obtainedBrushTechniques; // set from BrushData (+0x8909C0 + 0x78)
+    // All entries are 1 by default.
+    // Indices 12 and 25 match number of cherry bombs that can be created.
+    // maybe actually brush upgrades, need to test modification of BrushData
+    uint8_t brushUnknown[64];                     // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvenationBits; // set from BrushData (+0x8909C0 + 0x1F60)
-    uint32_t unk5;
 
-    // gold dust acquired bits
-    // 1 - Agata Forest Merchant 1
-    // 2 - Agata Forest Merchant 2
-    // Only used to determine which ones you can no longer acquire in the world
+    BitField<32> keyItemsAcquired;
     BitField<32> goldDustsAcquired;
 
     uint8_t holyArtifactsEquipped[3]; // item id
@@ -97,13 +125,15 @@ struct WorldStateData
     uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
     BitField<4> wantedListsUnlocked;
     BitField<5> bountiesSlain[4];
-    // unk15[0] = Current fortune index, -1 = hidden
-    // unk15[1] = Current fortune flags, -1 = hidden
-    // unk15[2] 0x00004000 sakuya tree bloomed (fruit reward)
-    // unk15[2] 0x08000000 taka pass bloomed (fruit reward)
-    // unk15[3] gets set when going to map screen first time with quest marker
-    // unk15[3] 0x00200000 Agata ruins quest marked
-    uint32_t unk15[5];
+
+    int32_t currentFortune;       // -1 = hidden
+    uint32_t currentFortuneFlags; // -1 = hidden
+
+    // unk15[0] 0x00004000 sakuya tree bloomed (fruit reward)
+    // unk15[0] 0x08000000 taka pass bloomed (fruit reward)
+    // unk15[1] gets set when going to map screen first time with quest marker
+    // unk15[1] 0x00200000 Agata ruins quest marked
+    uint32_t unk15[3];
     uint32_t unk16;
     uint32_t unk17[4];
     uint32_t unk18;
@@ -111,34 +141,9 @@ struct WorldStateData
     uint32_t unk20;
 
     BitField<128> logbookViewed;
-    /*
-    {
-    "Destroy the Boulder!",
-    "Guardian Sapling Trouble"
-    "Secret of Hana Valley",
-    "Revive the Guardian Saplings",
-    "Sacred Tree Reborn",
-    "Shinshu Adventure",
-    "",
-    "",
-    "",
-    "",
-    "Sapling of Agata Forest",
-    "Hard Working Son",
-    "Ume is Lost",
-    "",
-    "A Son's Determination",
-    "Mysterious Windmill",
-    ...
-    88 = "Cut Down the Peach",
-    }
-    */
+    BitField<32> fortuneViewed;
 
-    //
-    // unk22[0] 0x80000000 - first fortune viewed
-    // unk22[0] 0x40000000 - second fortune viewed
-    // unk22[0] 0x20000000 - third fortune viewed
-    uint32_t unk22[195];
+    uint32_t unk22[194];
 
     uint32_t totalMoney;
     uint32_t totalDemonFangs; // not what you have for spending
@@ -185,21 +190,35 @@ struct TrackerData
     BitField<ItemTypes::NUM_ITEM_TYPES> firstTimeItem;
     BitField<96> logbookAvailable;
     BitField<64> animalsFedFirstTime;
-    uint32_t unk1[3];
+
     // unk1[0] 0x800 -> backstory finished, intro stage started
+    BitField<32> field_34;
 
-    uint32_t field_40;
-    uint32_t field_44; // changed in save menu
+    // unk1[1] 0x10000000 -> first Headless Guardian fight
+    // unk1[1] 0x04000000 -> bandit spider fight
+    // unk1[1] 0x08000000 -> first Ubume fight
+    // unk1[1] 0x00000040 -> swallowed by giant fish in N Ryoshima
+    BitField<32> field_38;
 
-    // 0x40000000 = completed cut down peach journal?
-    // 0x20000000 = completed Secret of Hana Valley / started Revive the Guardian Saplings
-    // 0x10000000 = completed Revive the Guardian Saplings
-    // 0x08000000 = Tsuta ruins restored (no logbook)
-    // 0x02000000 = taka pass restored (no logbook)
-    uint32_t field_48;
-    uint16_t field_4C;
-    uint16_t field_4E;
-    uint16_t field_50;
+    BitField<32> brushUpgrades;
+
+    uint32_t gameOverCount;
+
+    // 1 = Controller Vibration: Off
+    // 2 = Camera Control: Invert Y Axis
+    // 4 = Just saved
+    // 6 = Camera Control: Invert X Axis
+    // 9 = ???
+    // 10 = Filter: Light
+    // 11 = Filter: Heavy
+    // 12 = Aspect Ratio: 4:3
+    // 13 = Mini-Games: On
+    BitField<32> optionFlags;
+
+    BitField<32> areasRestored;
+    uint16_t volumeBGM; // 0 through 127
+    uint16_t volumeSE;
+    uint16_t volumeVoice;
     uint16_t field_52;
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeUnlocked;
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeRead;
@@ -207,10 +226,9 @@ struct TrackerData
     uint8_t field_6D;
     uint8_t field_6E;
     uint8_t field_6F;
-    // field_70[0] 0x04000000 - triggered Tsuta ruins intro
-    // field_70[0] 0x08000000 - Secret of Hana Valley added
-    uint32_t field_70[2];
-    BitField<32> mirrorsUnlocked; // not accurate?
+
+    // Bits marking visited map locations
+    BitField<MapTypes::NUM_MAP_TYPES> mapLocationsRevealed;
     uint32_t timePlayed;
 };
 
@@ -234,7 +252,7 @@ struct CustomTextures
 // singleton at +0x8909C0
 struct BrushState
 {
-    // TODO chonker
+    // not worth doing for this mod, but contains the active brush related elements such as unlocked and upgraded brushes
 };
 
 struct MapState
@@ -242,14 +260,16 @@ struct MapState
     uint32_t user[32];             // custom data differs per map
     BitField<96> unburiedObjects;  // set if dug up, same id as collectedObjects
     BitField<96> collectedObjects; // set if chest or other object collected
-    BitField<32> field_98;
+
+    BitField<32> commonStates; // Commonly used flags for all maps
+
     uint32_t timeOfDay;         // Usually synced with world time
-    BitField<96> areasRestored; // whether certain map areas are restored
+    BitField<96> areasRestored; // whether certain map areas are restored, 31 = entire map restored
     BitField<32> treesBloomed;
     BitField<32> cursedTreesBloomed;
     BitField<128> fightsCleared;
     BitField<64> npcHasMoreToSay;
-    BitField<64> npcUnknown; // Related to MoreToSay but never seen it set
+    BitField<64> npcUnknown; // Related to MoreToSay
     BitField<64> mapsExplored;
     BitField<32> field_DC;
     BitField<32> field_E0;
