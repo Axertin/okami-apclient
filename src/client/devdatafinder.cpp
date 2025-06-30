@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include "devdatafinderdesc.h"
+#include "devdatamapdata.h"
 #include "logger.h"
 #include "okami/data/maptype.hpp"
 #include "okami/data/structs.hpp"
@@ -18,7 +19,7 @@ okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
 std::array<okami::MapState, okami::MapTypes::NUM_MAP_TYPES> previousMapData;
 
-const std::unordered_map<unsigned int, const char *> emptyMapDesc{};
+const std::unordered_map<unsigned int, std::string> emptyMapDesc{};
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -27,7 +28,7 @@ template <typename... Args> void warn(const char *format, Args... args)
 }
 
 template <unsigned N>
-void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, const char *> &documentation)
+void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, std::string> &documentation)
 {
     okami::BitField<N> diff = current ^ old;
     std::vector<unsigned> diffIndices = diff.GetSetIndices();
@@ -123,8 +124,6 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk19", old.world.unk19, current.world.unk19);
     compareInt("WorldStateData::unk20", old.world.unk20, current.world.unk20);
 
-    compareBitfield("WorldStateData::logbookViewed", old.world.logbookViewed, current.world.logbookViewed, logbookViewedDesc);
-
     for (unsigned i = 0; i < 194; i++)
     {
         std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
@@ -143,7 +142,7 @@ void compareTrackerData()
     okami::TrackerData &current = *okami::AmmyTracker.get_ptr();
     okami::TrackerData &old = previousTracker;
 
-    compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable, current.logbookAvailable, tracker1Desc);
+    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgressDesc);
     compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTimeDesc);
 
     compareBitfield("TrackerData::field_34", old.field_34, current.field_34, emptyMapDesc);

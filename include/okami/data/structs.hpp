@@ -120,8 +120,7 @@ struct WorldStateData
     uint16_t unk11[56];
 
     BitField<256> mapStateBits[MapTypes::NUM_MAP_TYPES + 1];
-    BitField<256> animalsFedBits; // Whether a specific animal group in the
-                                  // world has been fed (globally)
+    BitField<256> animalsFedBits; // Whether a specific animal group in the world has been fed (globally)
     uint16_t numAnimalsFed[Animals::NUM_ANIMALS];
     BitField<4> wantedListsUnlocked;
     BitField<5> bountiesSlain[4];
@@ -188,7 +187,7 @@ struct CollectionData
 struct TrackerData
 {
     BitField<ItemTypes::NUM_ITEM_TYPES> firstTimeItem;
-    BitField<96> logbookAvailable;
+    BitField<96> gameProgressionBits;
     BitField<64> animalsFedFirstTime;
 
     // unk1[0] 0x800 -> backstory finished, intro stage started
@@ -228,7 +227,7 @@ struct TrackerData
     uint8_t field_6F;
 
     // Bits marking visited map locations
-    BitField<MapTypes::NUM_MAP_TYPES> mapLocationsRevealed;
+    BitField<MapTypes::NUM_MAP_TYPES> areaVisitedFlags;
     uint32_t timePlayed;
 };
 

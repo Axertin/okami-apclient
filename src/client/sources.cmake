@@ -4,6 +4,8 @@ set(client_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/console.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devdatafinder.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devdatafinderdesc.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devdatamapdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devtools.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/dllmain.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/gamehooks.cpp
