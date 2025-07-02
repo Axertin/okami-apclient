@@ -446,6 +446,25 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     ImGui::Text("IGT: %d", okami::AmmyTracker->timePlayed);
     ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(), Framer.getFPS());
 
+    static char markBuffer[256] = "";
+    static uint markNum = 0;
+
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
+    ImGui::InputText("##Log Markpoint", &markBuffer, sizeof(markBuffer));
+    ImGui::SameLine();
+    if (ImGui::Button("Mark"))
+    {
+        if (strlen(markBuffer) > 0)
+        {
+            LogInfo("%s", markBuffer);
+            markBuffer = "";
+        }
+        else
+        {
+            LogInfo("User Markpoint %d", ++markNum);
+        }
+    }
+
     GROUP("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen)
     {
         ImGui::Text("Pos: (%.2f, %.2f, %.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
