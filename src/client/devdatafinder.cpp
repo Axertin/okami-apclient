@@ -35,13 +35,13 @@ void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<
     std::vector<unsigned> diffIndices = diff.GetSetIndices();
     for (auto idx : diffIndices)
     {
-        if (showAlways && documentation.contains(idx))
-        {
-            logInfo("BitField %s index %u (%s) was changed from %d to %d", name, idx, documentation.at(idx).c_str(), old.IsSet(idx), current.IsSet(idx));
-        }
-        else
+        if (!documentation.contains(idx))
         {
             warn("BitField %s index %u was changed from %d to %d", name, idx, old.IsSet(idx), current.IsSet(idx));
+        }
+        else if (showAlways)
+        {
+            logInfo("BitField %s index %u (%s) was changed from %d to %d", name, idx, documentation.at(idx).c_str(), old.IsSet(idx), current.IsSet(idx));
         }
     }
 }
