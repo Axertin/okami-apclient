@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include "devdatafinderdesc.h"
+#include "devdatamapdata.h"
 #include "logger.h"
 #include "okami/data/maptype.hpp"
 #include "okami/data/structs.hpp"
@@ -18,7 +19,7 @@ okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
 std::array<okami::MapState, okami::MapTypes::NUM_MAP_TYPES> previousMapData;
 
-const std::unordered_map<unsigned int, const char *> emptyMapDesc{};
+const std::unordered_map<unsigned int, std::string> emptyMapDesc{};
 
 template <typename... Args> void warn(const char *format, Args... args)
 {
@@ -27,7 +28,8 @@ template <typename... Args> void warn(const char *format, Args... args)
 }
 
 template <unsigned N>
-void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, const char *> &documentation)
+void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, std::string> &documentation,
+                     bool showAlways = false)
 {
     okami::BitField<N> diff = current ^ old;
     std::vector<unsigned> diffIndices = diff.GetSetIndices();
@@ -36,6 +38,10 @@ void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<
         if (!documentation.contains(idx))
         {
             warn("BitField %s index %u was changed from %d to %d", name, idx, old.IsSet(idx), current.IsSet(idx));
+        }
+        else if (showAlways)
+        {
+            logInfo("BitField %s index %u (%s) was changed from %d to %d", name, idx, documentation.at(idx).c_str(), old.IsSet(idx), current.IsSet(idx));
         }
     }
 }
@@ -101,7 +107,7 @@ void comparePreviousCollection()
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
         std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits);
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits, true);
     }
     compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
@@ -123,8 +129,6 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk19", old.world.unk19, current.world.unk19);
     compareInt("WorldStateData::unk20", old.world.unk20, current.world.unk20);
 
-    compareBitfield("WorldStateData::logbookViewed", old.world.logbookViewed, current.world.logbookViewed, logbookViewedDesc);
-
     for (unsigned i = 0; i < 194; i++)
     {
         std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
@@ -143,7 +147,7 @@ void compareTrackerData()
     okami::TrackerData &current = *okami::AmmyTracker.get_ptr();
     okami::TrackerData &old = previousTracker;
 
-    compareBitfield("TrackerData::logbookAvailable", old.logbookAvailable, current.logbookAvailable, tracker1Desc);
+    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgressDesc, true);
     compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTimeDesc);
 
     compareBitfield("TrackerData::field_34", old.field_34, current.field_34, emptyMapDesc);
@@ -196,10 +200,10 @@ void comparePreviousMapData()
         compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapDataDesc.at(i).fightsCleared);
 
         name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
-        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcHasMoreToSay);
+        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcs, true);
 
         name = mapNamePrefix + std::string("MapState::npcUnknown");
-        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcUnknown);
+        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcs, true);
 
         name = mapNamePrefix + std::string("MapState::mapsExplored");
         compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapDataDesc.at(i).mapsExplored);

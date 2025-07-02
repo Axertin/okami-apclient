@@ -67,6 +67,7 @@ void *EditBrushesFnPtr;
 
 MemoryAccessor<BitField<32>> AmmyUsableBrushes;
 MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
+MemoryAccessor<std::array<uint8_t, 64>> AmmyBrushUpgrades; // why are there even 64 wtf??
 
 /**
  * @brief Initialize game variable pointers and overlays.
@@ -121,6 +122,7 @@ void initVariables()
 
     AmmyUsableBrushes.bind(okami::MainBase + 0x890A30);
     AmmyObtainedBrushes.bind(okami::MainBase + 0x890A38);
+    AmmyBrushUpgrades.bind(okami::MainBase + 0x8909C0 + 0x80);
 }
 
 /**

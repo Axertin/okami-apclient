@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "devdatafinderdesc.h"
+#include "devdatamapdata.h"
 #include "gamehooks.h"
 #include "gui.h"
 #include "imgui.h"
@@ -12,6 +14,7 @@
 #include "okami/bestiarytome.hpp"
 #include "okami/data/brushtype.hpp"
 #include "okami/data/itemtype.hpp"
+#include "okami/data/logbook.hpp"
 #include "okami/data/maptype.hpp"
 #include "okami/dojotech.hpp"
 #include "okami/fish.hpp"
@@ -29,6 +32,33 @@
  * - Integrate with known info table
  * - Figure out brush upgrades
  */
+#define CONCAT2(a, b) a##b
+#define CONCAT(a, b) CONCAT2(a, b)
+#define GROUP(...) if (auto CONCAT(__indent__, __LINE__) = IndentedGroup(__VA_ARGS__))
+
+class IndentedGroup
+{
+  private:
+    int amount;
+    bool result = false;
+
+  public:
+    IndentedGroup(const char *name, ImGuiTreeNodeFlags flags = 0, int amt = 6) : amount(amt)
+    {
+        result = ImGui::CollapsingHeader(name, flags);
+        ImGui::PushID(name);
+        ImGui::Indent(amount);
+    }
+    ~IndentedGroup()
+    {
+        ImGui::PopID();
+        ImGui::Indent(-amount);
+    }
+    operator bool()
+    {
+        return result;
+    }
+};
 
 void DevTools::toggleVisibility()
 {
@@ -37,59 +67,86 @@ void DevTools::toggleVisibility()
 
 void drawStatPair(const char *name, int type, void *pCurrent, void *pTotal)
 {
+    ImGui::PushID(name);
+
     ImGui::Text("%s:", name);
     ImGui::SameLine();
     ImGui::SetCursorPosX(100);
-    std::string currentName = std::string("##") + name + "_current";
     ImGui::SetNextItemWidth(80);
-    ImGui::InputScalar(currentName.c_str(), type, pCurrent);
+    ImGui::InputScalar("##current", type, pCurrent);
 
     ImGui::SameLine();
     ImGui::Text("/");
 
     ImGui::SameLine();
-    std::string totalName = std::string("##") + name + "_total";
     ImGui::SetNextItemWidth(80);
-    ImGui::InputScalar(totalName.c_str(), type, pTotal);
+    ImGui::InputScalar("##total", type, pTotal);
+
+    ImGui::PopID();
 }
 
 void drawStat(const char *name, int type, void *pCurrent)
 {
+    ImGui::PushID(name);
+
     ImGui::Text("%s:", name);
     ImGui::SameLine();
     ImGui::SetCursorPosX(100);
-    std::string currentName = std::string("##") + name + "_current";
     ImGui::SetNextItemWidth(80);
-    ImGui::InputScalar(currentName.c_str(), type, pCurrent);
+    ImGui::InputScalar("##current", type, pCurrent);
+
+    ImGui::PopID();
 }
 
 template <unsigned int N> void checkboxBitField(const char *label, unsigned idx, okami::BitField<N> &bits)
 {
     ImGui::CheckboxFlags(label, bits.GetIdxPtr(idx), bits.GetIdxMask(idx));
+    ImGui::SetItemTooltip("%d (0x%X)", idx, idx);
+}
+
+template <unsigned int N> void checklistManyMapped(const char *groupName, const std::unordered_map<unsigned, std::string> &desc, okami::BitField<N> &bits)
+{
+    GROUP(groupName)
+    {
+        for (unsigned i = 0; i < N; i++)
+        {
+            ImGui::PushID(i);
+
+            if (desc.contains(i))
+            {
+                checkboxBitField(desc.at(i).c_str(), i, bits);
+            }
+            else
+            {
+                checkboxBitField("", i, bits);
+                if ((i + 1) % 8 != 0 && !desc.contains(i + 1))
+                {
+                    ImGui::SameLine();
+                }
+            }
+
+            ImGui::PopID();
+        }
+    }
 }
 
 template <unsigned int N, class Fn> void checklistCols(const char *groupName, unsigned numCols, const Fn &pNameFn, okami::BitField<N> &bits)
 {
-    std::string name;
-    std::string uniqueExt = std::string("##") + (groupName ? groupName : "") + pNameFn(0) + pNameFn(1);
-
+    ImGui::PushID(&bits);
     if (groupName ? ImGui::CollapsingHeader(groupName) : true)
     {
         ImGui::Indent(6);
-        name = std::string("All##Btn") + uniqueExt;
-        if (ImGui::Button(name.c_str()))
+        if (ImGui::Button("All##Btn"))
         {
             bits.SetAll();
         }
         ImGui::SameLine();
-        name = std::string("None##Btn") + uniqueExt;
-        if (ImGui::Button(name.c_str()))
+        if (ImGui::Button("None##Btn"))
         {
             bits.ClearAll();
         }
 
-        name = std::string("TblId") + uniqueExt;
-        ImGui::BeginTable(name.c_str(), numCols);
+        ImGui::BeginTable("TblId", numCols);
 
         unsigned rows = (bits.count + numCols - 1) / numCols;
         for (unsigned i = 0; i < rows; i++)
@@ -115,6 +172,24 @@ template <unsigned int N, class Fn> void checklistCols(const char *groupName, un
             ImGui::Separator();
         }
     }
+    ImGui::PopID();
+}
+
+template <unsigned int N>
+void checklistColsMapped(const char *groupName, unsigned numCols, const char *basename, okami::BitField<N> &bits,
+                         const std::unordered_map<unsigned, std::string> &mapping)
+{
+    std::string mem;
+    auto NameFn = [&](unsigned id) -> const char *
+    {
+        if (mapping.count(id))
+        {
+            return mapping.at(id).c_str();
+        }
+        mem = basename + std::to_string(id);
+        return mem.c_str();
+    };
+    checklistCols(groupName, numCols, NameFn, bits);
 }
 
 template <unsigned int N> void checklistColsUnnamed(const char *groupName, unsigned numCols, const char *basename, okami::BitField<N> &bits)
@@ -131,27 +206,22 @@ template <unsigned int N> void checklistColsUnnamed(const char *groupName, unsig
 template <unsigned int N, class Fn> void checklistColsTome(const char *groupName, const Fn &pNameFn, okami::BitField<N> &collected, okami::BitField<N> &viewed)
 {
     std::string name;
-    std::string uniqueExt = std::string("##") + groupName + pNameFn(0) + pNameFn(1);
 
-    if (ImGui::CollapsingHeader(groupName))
+    GROUP(groupName)
     {
-        ImGui::Indent(6);
-        name = std::string("All##Btn") + uniqueExt;
-        if (ImGui::Button(name.c_str()))
+        if (ImGui::Button("All##Btn"))
         {
             collected.SetAll();
             viewed.SetAll();
         }
         ImGui::SameLine();
-        name = std::string("None##Btn") + uniqueExt;
-        if (ImGui::Button(name.c_str()))
+        if (ImGui::Button("None##Btn"))
         {
             collected.ClearAll();
             viewed.ClearAll();
         }
 
-        std::string tableName = std::string("TblId") + uniqueExt;
-        ImGui::BeginTable(tableName.c_str(), 3);
+        ImGui::BeginTable("TblId", 3);
         ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHeaderLabel);
         ImGui::TableSetupColumn("Col.");
         ImGui::TableSetupColumn("Read");
@@ -159,6 +229,7 @@ template <unsigned int N, class Fn> void checklistColsTome(const char *groupName
 
         for (unsigned i = 0; i < N; i++)
         {
+            ImGui::PushID(i);
             ImGui::TableNextRow();
             const char *itemName = pNameFn(i);
 
@@ -166,16 +237,14 @@ template <unsigned int N, class Fn> void checklistColsTome(const char *groupName
             ImGui::Text("%s", itemName);
 
             ImGui::TableNextColumn();
-            std::string collectedName = std::string("##Collected") + itemName;
-            checkboxBitField(collectedName.c_str(), i, collected);
+            checkboxBitField("##Collected", i, collected);
 
             ImGui::TableNextColumn();
-            std::string viewedName = std::string("##Viewed") + itemName;
-            checkboxBitField(viewedName.c_str(), i, viewed);
+            checkboxBitField("##Viewed", i, viewed);
+            ImGui::PopID();
         }
 
         ImGui::EndTable();
-        ImGui::Indent(-6);
         ImGui::Separator();
     }
 }
@@ -223,23 +292,22 @@ bool mapComboBox(const char *comboId, int *mapID)
 
 void drawInventory(const char *categoryName, const std::vector<uint16_t> &items)
 {
+    ImGui::PushID(categoryName);
     ImGui::SeparatorText(categoryName);
 
-    std::string tblName = std::string("InventoryTbl") + categoryName;
-    ImGui::BeginTable(tblName.c_str(), 4);
+    ImGui::BeginTable("InventoryTbl", 2);
     for (auto &i : items)
     {
+        ImGui::PushID(i);
         ImGui::TableNextColumn();
 
-        const char *itemName = okami::ItemTypes::GetName(i);
-        ImGui::Text("%s:", itemName);
-
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(40);
-        std::string currentName = std::string("##") + itemName + "_current";
-        ImGui::InputScalar(currentName.c_str(), ImGuiDataType_U16, &okami::AmmyCollections->inventory[i]);
+        int step = 1;
+        ImGui::SetNextItemWidth(80);
+        ImGui::InputScalar(okami::ItemTypes::GetName(i), ImGuiDataType_U16, &okami::AmmyCollections->inventory[i], &step);
+        ImGui::PopID();
     }
     ImGui::EndTable();
+    ImGui::PopID();
 }
 
 static const std::array<const char *, 4> notebookNames = {"Mika's Monster Notebook", "Haruka's Revenge Contract", "Masu's Monster Manifest",
@@ -253,12 +321,88 @@ static const std::array<const std::array<const char *, 5>, 4> bountyNames = {
     {"Creeping Igloo", "Snowy Stigma", "Stalking Blizzard", "Cold Remorse", "Frozen Penitence"},
 };
 
-static const std::unordered_map<uint8_t, const char *> weaponSlotNames = {
+static const std::unordered_map<unsigned, std::string> weaponSlotNames = {
     {0x00, "Divine Retribution"}, {0x01, "Snarling Beast"},     {0x02, "Infinity Judge"}, {0x03, "Trinity Mirror"},
     {0x04, "Solar Flare"},        {0x10, "Tsumugari"},          {0x11, "Seven Strike"},   {0x12, "Blade of Kusanagi"},
     {0x13, "Eighth Wonder"},      {0x14, "Thunder Edge"},       {0x20, "Devout Beads"},   {0x21, "Life Beads"},
     {0x22, "Exorcism Beads"},     {0x23, "Resurrection Beads"}, {0x24, "Tundra Beads"},   {0xFF, "None"},
 };
+
+static const std::vector<std::pair<uint16_t, uint8_t>> weaponsList = {
+    {okami::ItemTypes::DivineRetribution, 0x00}, {okami::ItemTypes::SnarlingBeast, 0x01},     {okami::ItemTypes::InfinityJudge, 0x02},
+    {okami::ItemTypes::TrinityMirror, 0x03},     {okami::ItemTypes::SolarFlare, 0x04},        {okami::ItemTypes::Tsumugari, 0x10},
+    {okami::ItemTypes::SevenStrike, 0x11},       {okami::ItemTypes::BladeOfKusanagi, 0x12},   {okami::ItemTypes::EighthWonder, 0x13},
+    {okami::ItemTypes::ThunderEdge, 0x14},       {okami::ItemTypes::DevoutBeads, 0x20},       {okami::ItemTypes::LifeBeads, 0x21},
+    {okami::ItemTypes::ExorcismBeads, 0x22},     {okami::ItemTypes::ResurrectionBeads, 0x23}, {okami::ItemTypes::TundraBeads, 0x24},
+};
+
+bool weaponComboBox(const char *comboId, int *weapon)
+{
+    static bool itemListInitialized = false;
+
+    static std::vector<std::pair<unsigned, std::string>> mapIDIndex;
+    static std::unordered_map<int, int> idToCombo;
+    static std::vector<const char *> itemList;
+    if (!itemListInitialized)
+    {
+        itemListInitialized = true;
+        std::copy(weaponSlotNames.begin(), weaponSlotNames.end(), std::back_inserter(mapIDIndex));
+        int i = 0;
+        for (auto &pair : mapIDIndex)
+        {
+            itemList.emplace_back(pair.second.c_str());
+            idToCombo[pair.first] = i++;
+        }
+    }
+
+    int comboSelection = idToCombo[*weapon];
+    if (ImGui::Combo(comboId, &comboSelection, itemList.data(), itemList.size()))
+    {
+        *weapon = mapIDIndex[comboSelection].first;
+        return true;
+    }
+    return false;
+}
+
+void mapGroup(unsigned mapIdx)
+{
+    if (okami::mapDataDesc.contains(mapIdx))
+    {
+        okami::MapState &mapState = okami::MapData->at(mapIdx);
+        const okami::MapDesc &mapDesc = okami::mapDataDesc.at(mapIdx);
+
+        checklistManyMapped("Event Bits", mapDesc.worldStateBits, okami::AmmyCollections->world.mapStateBits[mapIdx]);
+        checklistManyMapped("Collected Objects", mapDesc.collectedObjects, mapState.collectedObjects);
+        checklistManyMapped("Areas Restored", mapDesc.areasRestored, mapState.areasRestored);
+        checklistManyMapped("Trees Bloomed", mapDesc.treesBloomed, mapState.treesBloomed);
+        checklistManyMapped("Cursed Trees Bloomed", mapDesc.cursedTreesBloomed, mapState.cursedTreesBloomed);
+        checklistManyMapped("Fights Cleared", mapDesc.fightsCleared, mapState.fightsCleared);
+        checklistManyMapped("Maps Explored", mapDesc.mapsExplored, mapState.mapsExplored);
+        checklistManyMapped("NPC Has More to Say", mapDesc.npcs, mapState.npcHasMoreToSay);
+        checklistManyMapped("NPC Unknown", mapDesc.npcs, mapState.npcUnknown);
+
+        GROUP("Custom Data")
+        {
+            for (unsigned i = 0; i < 32; i++)
+            {
+                ImGui::PushID(i);
+                std::string name = mapDesc.userIndices.contains(i) ? mapDesc.userIndices.at(i) : std::to_string(i);
+                ImGui::Text("%08X", mapState.user[i]);
+                ImGui::SameLine();
+                ImGui::InputScalar(name.c_str(), ImGuiDataType_U32, &mapState.user[i]);
+                ImGui::SetItemTooltip("%d (0x%X)", i, i);
+                ImGui::PopID();
+            }
+        }
+
+        checklistManyMapped("Unknown DC", mapDesc.field_DC, mapState.field_DC);
+        checklistManyMapped("Unknown E0", mapDesc.field_E0, mapState.field_E0);
+    }
+    else
+    {
+        ImGui::Text("Invalid map ID");
+    }
+}
 
 /**
  * @brief Renders the Developer Tools window UI using ImGui.
@@ -302,9 +446,8 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     ImGui::Text("IGT: %d", okami::AmmyTracker->timePlayed);
     ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(), Framer.getFPS());
 
-    if (ImGui::CollapsingHeader("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen))
+    GROUP("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen)
     {
-        ImGui::Indent(6);
         ImGui::Text("Pos: (%.2f, %.2f, %.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
 
         drawStatPair("Health", ImGuiDataType_U16, &okami::AmmyStats->currentHealth, &okami::AmmyStats->maxHealth);
@@ -314,50 +457,29 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         drawStatPair("Food", ImGuiDataType_U16, &okami::AmmyStats->currentFood, &okami::AmmyStats->maxFood);
         drawStat("Godhood", ImGuiDataType_U16, &okami::AmmyStats->godhood);
         drawStat("Demon Fangs", ImGuiDataType_U32, &okami::AmmyCollections->world.totalDemonFangs);
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("CharacterStats"))
+    GROUP("CharacterStats")
     {
-        ImGui::Indent(6);
         ImGui::Text("unk1: %d", okami::AmmyStats->unk1);
         ImGui::Text("padding1: %d", okami::AmmyStats->__padding1);
 
         checklistCols("Dojo Techniques", 2, okami::DojoTechs::GetName, okami::AmmyStats->dojoTechniquesUnlocked);
 
         ImGui::Text("unk1b: %d", okami::AmmyStats->unk1b);
-        if (weaponSlotNames.count(okami::AmmyStats->mainWeapon))
-        {
-            ImGui::Text("Main Weapon: %s", weaponSlotNames.at(okami::AmmyStats->mainWeapon));
-        }
-        else
-        {
-            ImGui::Text("Main Weapon: %d", okami::AmmyStats->mainWeapon);
-        }
-        if (weaponSlotNames.count(okami::AmmyStats->subWeapon))
-        {
-            ImGui::Text("Sub Weapon: %s", weaponSlotNames.at(okami::AmmyStats->subWeapon));
-        }
-        else
-        {
-            ImGui::Text("Sub Weapon: %d", okami::AmmyStats->subWeapon);
-        }
+
         drawStat("Transformation", ImGuiDataType_U8, &okami::AmmyStats->currentTransformation);
         ImGui::Text("padding4: %d", okami::AmmyStats->__padding4);
         ImGui::Text("padding5: %d", okami::AmmyStats->__padding5);
-
-        // checklistColsUnnamed("Weapons upgraded", 4, "Weapon", okami::AmmyStats->weaponsUpgraded);
 
         ImGui::Text("vengeanceSlipTimer: %d", okami::AmmyStats->vengeanceSlipTimer);
         ImGui::Text("attackIncreaseTimer: %d", okami::AmmyStats->attackIncreaseTimer);
         ImGui::Text("defenseIncreaseTimer: %d", okami::AmmyStats->defenseIncreaseTimer);
         ImGui::Text("padding7: %d", okami::AmmyStats->__padding7);
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("Collections"))
+    GROUP("Collections")
     {
-        ImGui::Indent(6);
         ImGui::Text("numSaves: %d", okami::AmmyCollections->numSaves);
         ImGui::Text("unk1: %d", okami::AmmyCollections->unk1);
         ImGui::Text("unk2: %d", okami::AmmyCollections->unk2);
@@ -374,13 +496,10 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         checklistColsTome("Animal Tome", okami::Animals::GetName, okami::AmmyCollections->animalTomesCollected, okami::AmmyCollections->animalTomesViewed);
         checklistColsTome("Treasure Tome", okami::Treasures::GetName, okami::AmmyCollections->treasureTomesCollected,
                           okami::AmmyCollections->treasureTomesViewed);
-
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("World State"))
+    GROUP("World State")
     {
-        ImGui::Indent(6);
         drawStat("timeOfDay", ImGuiDataType_U32, &okami::AmmyCollections->world.timeOfDay);
         drawStat("day", ImGuiDataType_U16, &okami::AmmyCollections->world.day);
         ImGui::Text("unk1: %u", okami::AmmyCollections->world.unk1);
@@ -396,44 +515,44 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             ImGui::Text("Holy Artifact %d: %s", i + 1, okami::ItemTypes::GetName(okami::AmmyCollections->world.holyArtifactsEquipped[i]));
         }
         ImGui::Text("unk10: %u", okami::AmmyCollections->world.unk10);
-        if (ImGui::CollapsingHeader("unk11"))
+        GROUP("unk11")
         {
             for (unsigned i = 0; i < 56; i++)
             {
                 ImGui::Text("unk11[%u]: %u", i, okami::AmmyCollections->world.unk11[i]);
             }
         }
-        if (ImGui::CollapsingHeader("Map state bits"))
+        GROUP("Map state bits")
         {
-            ImGui::Indent(6);
             for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
             {
-                std::string name = std::string("Map") + std::to_string(i) + "State";
-                checklistColsUnnamed(okami::MapTypes::GetName(i), 4, name.c_str(), okami::AmmyCollections->world.mapStateBits[i]);
+                ImGui::PushID(i);
+                checklistColsUnnamed(okami::MapTypes::GetName(i), 4, "Bit", okami::AmmyCollections->world.mapStateBits[i]);
+                ImGui::PopID();
             }
-            ImGui::Indent(-6);
         }
         checklistColsUnnamed("Animal fed bits", 4, "AnimalFed", okami::AmmyCollections->world.animalsFedBits);
-        if (ImGui::CollapsingHeader("Num animals fed"))
+        GROUP("Num animals fed")
         {
             for (unsigned i = 0; i < okami::Animals::NUM_ANIMALS; i++)
             {
                 drawStat(okami::Animals::GetName(i), ImGuiDataType_U16, &okami::AmmyCollections->world.numAnimalsFed[i]);
             }
         }
-        if (ImGui::CollapsingHeader("Wanted Lists"))
+        GROUP("Wanted Lists")
         {
             // checklistCols(nullptr, 2, [&](unsigned id) { return notebookNames[id]; }, okami::AmmyCollections->world.wantedListsUnlocked);
             for (int i = 0; i < 4; i++)
             {
-                std::string name = std::string("##") + notebookNames[i];
-                checkboxBitField(name.c_str(), i, okami::AmmyCollections->world.wantedListsUnlocked);
+                ImGui::PushID(i);
+                checkboxBitField("##Notebook", i, okami::AmmyCollections->world.wantedListsUnlocked);
                 ImGui::SameLine();
                 ImGui::Indent(20);
                 ImGui::SeparatorText(notebookNames[i]);
                 ImGui::Indent(-20);
 
                 checklistCols(nullptr, 2, [&](unsigned id) { return bountyNames[i][id]; }, okami::AmmyCollections->world.bountiesSlain[i]);
+                ImGui::PopID();
             }
             ImGui::Separator();
         }
@@ -450,8 +569,8 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("unk19: %08X", okami::AmmyCollections->world.unk19);
         ImGui::Text("unk20: %08X", okami::AmmyCollections->world.unk20);
 
-        checklistColsUnnamed("Logbook Viewed", 2, "LogbookViewed", okami::AmmyCollections->world.logbookViewed);
-        if (ImGui::CollapsingHeader("unk22"))
+        checklistCols("Logbook Viewed", 2, okami::LogBook::GetName, okami::AmmyCollections->world.logbookViewed);
+        GROUP("unk22")
         {
             for (unsigned i = 0; i < 194; i++)
             {
@@ -459,21 +578,19 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             }
         }
         ImGui::Text("Enemies killed: %u", okami::AmmyCollections->world.totalEnemiesKilled);
-        if (ImGui::CollapsingHeader("unk24"))
+        GROUP("unk24")
         {
             for (unsigned i = 0; i < 7; i++)
             {
                 ImGui::Text("unk24[%u]: %08X", i, okami::AmmyCollections->world.unk24[i]);
             }
         }
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("Tracker"))
+    GROUP("Tracker")
     {
-        ImGui::Indent(6);
         checklistCols("first time item", 2, okami::ItemTypes::GetName, okami::AmmyTracker->firstTimeItem);
-        checklistColsUnnamed("logbook available", 3, "LogBookBit", okami::AmmyTracker->logbookAvailable);
+        checklistColsUnnamed("game progression", 4, "Prog", okami::AmmyTracker->gameProgressionBits);
         checklistColsUnnamed("animalsFedFirstTime", 2, "animalsFedFirstTime", okami::AmmyTracker->animalsFedFirstTime);
         checklistColsUnnamed("field_34", 2, "f34_", okami::AmmyTracker->field_34);
         checklistColsUnnamed("field_38", 2, "f38_", okami::AmmyTracker->field_38);
@@ -493,16 +610,13 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::Text("field_6D: %02X", okami::AmmyTracker->field_6D);
         ImGui::Text("field_6E: %02X", okami::AmmyTracker->field_6E);
         ImGui::Text("field_6F: %02X", okami::AmmyTracker->field_6F);
-        checklistCols("Maps Visited", 2, okami::MapTypes::GetName, okami::AmmyTracker->mapLocationsRevealed);
-        ImGui::Indent(-6);
+        checklistCols("Maps Visited", 2, okami::MapTypes::GetName, okami::AmmyTracker->areaVisitedFlags);
     }
 
     // TODO MapData
 
-    if (ImGui::CollapsingHeader("Items"))
+    GROUP("Items")
     {
-        ImGui::Indent(6);
-
         static int ItemID = 0;
 
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
@@ -513,50 +627,99 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             GameHooks::giveItem(ItemID, 1);
         }
 
-        if (ImGui::CollapsingHeader("Inventory"))
+        static std::unordered_map<okami::ItemCategory, std::vector<uint16_t>> itemsByCategory;
+        if (itemsByCategory.empty())
         {
-            static std::unordered_map<okami::ItemCategory, std::vector<uint16_t>> itemsByCategory;
-            if (itemsByCategory.empty())
+            for (auto &item : okami::ItemTable)
             {
-                for (auto &item : okami::ItemTable)
-                {
-                    itemsByCategory[item.second.Category].emplace_back(item.first);
-                }
+                itemsByCategory[item.second.Category].emplace_back(item.first);
+            }
+        }
+
+        GROUP("Weapons")
+        {
+            int mainWpn = okami::AmmyStats->mainWeapon;
+            if (weaponComboBox("Main Weapon", &mainWpn))
+            {
+                okami::AmmyStats->mainWeapon = mainWpn;
             }
 
+            int subWpn = okami::AmmyStats->subWeapon;
+            if (weaponComboBox("Sub Weapon", &subWpn))
+            {
+                okami::AmmyStats->subWeapon = subWpn;
+            }
+
+            // ----
+
+            ImGui::BeginTable("TblIdWeapons", 3);
+            ImGui::TableSetupColumn("", ImGuiTableColumnFlags_NoHeaderLabel);
+            ImGui::TableSetupColumn("Have");
+            ImGui::TableSetupColumn("Gold");
+            ImGui::TableHeadersRow();
+
+            for (auto &wpn : weaponsList)
+            {
+                ImGui::PushID(wpn.first);
+                ImGui::TableNextRow();
+
+                ImGui::TableNextColumn();
+                ImGui::Text("%s", okami::ItemTypes::GetName(wpn.first));
+
+                ImGui::TableNextColumn();
+                bool hasWpn = okami::AmmyCollections->inventory[wpn.first] != 0;
+                if (ImGui::Checkbox("##HasWpn", &hasWpn))
+                {
+                    okami::AmmyCollections->inventory[wpn.first] = hasWpn ? 1 : 0;
+                }
+
+                ImGui::TableNextColumn();
+                bool upgWpn = (okami::AmmyStats->weaponsUpgraded & (1ull << wpn.second));
+                if (ImGui::Checkbox("##UpgWpn", &upgWpn))
+                {
+                    if (upgWpn)
+                    {
+                        okami::AmmyStats->weaponsUpgraded |= (1ull << wpn.second);
+                    }
+                    else
+                    {
+                        okami::AmmyStats->weaponsUpgraded &= ~(1ull << wpn.second);
+                    }
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndTable();
+        }
+
+        GROUP("Inventory")
+        {
             drawInventory("Consumables", itemsByCategory[okami::ItemCategory::Consumable]);
             drawInventory("Collectibles", itemsByCategory[okami::ItemCategory::Collectible]);
             drawInventory("Key Items", itemsByCategory[okami::ItemCategory::KeyItem]);
-            drawInventory("Weapons", itemsByCategory[okami::ItemCategory::Weapon]);
             drawInventory("Karmic Transformer", itemsByCategory[okami::ItemCategory::KT]);
             drawInventory("Artifacts", itemsByCategory[okami::ItemCategory::Artifact]);
             drawInventory("Treasures", itemsByCategory[okami::ItemCategory::Treasure]);
             drawInventory("Fish", itemsByCategory[okami::ItemCategory::Fish]);
             drawInventory("Maps", itemsByCategory[okami::ItemCategory::Map]);
-            drawInventory("Held Items", itemsByCategory[okami::ItemCategory::HeldItem]);
         }
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("Brushes"))
+    GROUP("Brushes")
     {
-        ImGui::Indent(6);
         checklistCols("Usable Brushes", 2, okami::BrushTypes::GetName, *okami::AmmyUsableBrushes.get_ptr());
         checklistCols("Obtained Brushes", 2, okami::BrushTypes::GetName, *okami::AmmyObtainedBrushes.get_ptr());
-        if (ImGui::CollapsingHeader("Brush Unknown"))
+        GROUP("Brush Unknown")
         {
             for (int i = 0; i < 64; i++)
             {
                 std::string name = std::string("BrushUnk") + std::to_string(i);
-                drawStat(name.c_str(), ImGuiDataType_U8, &okami::AmmyCollections->world.brushUnknown[i]);
+                drawStat(name.c_str(), ImGuiDataType_U8, &okami::AmmyBrushUpgrades->data()[i]);
             }
         }
-        ImGui::Indent(-6);
     }
 
-    if (ImGui::CollapsingHeader("Maps"))
+    GROUP("Maps")
     {
-        ImGui::Indent(6);
         static int MapID = okami::CurrentMapID.get();
 
         ImGui::Text("External Map: %d (%s)", okami::ExteriorMapID.get(), okami::decodeMapName(okami::ExteriorMapID.get()).c_str());
@@ -565,9 +728,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
         mapComboBox("Map ID", &MapID);
         ImGui::SameLine();
+
         int mapIndex = okami::MapTypes::FromMapId(MapID);
         ImGui::Text("%04X (%u)", MapID, mapIndex);
         ImGui::SameLine();
+        // TODO teleport to specific map entrance (maybe we can do entrance rando)
         if (ImGui::Button("Teleport"))
         {
             okami::ExteriorMapID.set(MapID);
@@ -575,9 +740,24 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             okami::LoadingZoneTrigger.set(0x2);
         }
 
-        int currentMapIndex = okami::MapTypes::FromMapId(okami::CurrentMapID.get());
-        checklistColsUnnamed("Current Map World Bits", 4, "MapBit", okami::AmmyCollections->world.mapStateBits[currentMapIndex]);
-        ImGui::Indent(-6);
+        checklistManyMapped("Global Event Bits", okami::mapDataDesc.at(0).worldStateBits, okami::AmmyCollections->world.mapStateBits[0]);
+
+        GROUP("Current Map")
+        {
+            int currentMapIndex = okami::MapTypes::FromMapId(okami::CurrentMapID.get());
+            mapGroup(currentMapIndex);
+        }
+
+        GROUP("All Maps")
+        {
+            for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
+            {
+                GROUP(okami::MapTypes::GetName(i))
+                {
+                    mapGroup(i);
+                }
+            }
+        }
     }
 
     ImGui::End();

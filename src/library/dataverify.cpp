@@ -40,10 +40,18 @@ CHARA_CHECK(w, 0x44);
 
 SIZECHECK(TrackerData, 0x80);
 TRACK_CHECK(firstTimeItem, 0x00);
-TRACK_CHECK(logbookAvailable, 0x20);
+TRACK_CHECK(gameProgressionBits, 0x20);
 TRACK_CHECK(animalsFedFirstTime, 0x2C);
+TRACK_CHECK(brushUpgrades, 0x3C);
+TRACK_CHECK(gameOverCount, 0x40);
+TRACK_CHECK(optionFlags, 0x44);
+TRACK_CHECK(areasRestored, 0x48);
+TRACK_CHECK(volumeBGM, 0x4C);
+TRACK_CHECK(volumeSE, 0x4E);
+TRACK_CHECK(volumeVoice, 0x50);
 TRACK_CHECK(bestiaryTomeUnlocked, 0x54);
 TRACK_CHECK(bestiaryTomeRead, 0x60);
+TRACK_CHECK(areaVisitedFlags, 0x70);
 TRACK_CHECK(timePlayed, 0x7C);
 
 #define COLLECT_CHECK(member, offset) OFFCHECK(CollectionData, member, offset)
