@@ -8,6 +8,7 @@ on:
     branches:
       - master
   workflow_call:  # Allow this workflow to be called by other workflows
+  workflow_dispatch: # Allow manual triggering of this workflow
 
 jobs:
   setup:

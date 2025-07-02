@@ -10,6 +10,7 @@
 #include "gamehooks.h"
 #include "gui.h"
 #include "imgui.h"
+#include "logger.h"
 #include "okami/animals.hpp"
 #include "okami/bestiarytome.hpp"
 #include "okami/data/brushtype.hpp"
@@ -446,22 +447,22 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     ImGui::Text("IGT: %d", okami::AmmyTracker->timePlayed);
     ImGui::Text("Frame Time: %.2f ms (%.2f FPS)", Framer.getFrameTimeMs(), Framer.getFPS());
 
-    static char markBuffer[256] = "";
-    static uint markNum = 0;
+    static char markBuffer[256];
+    static int markNum = 0;
 
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
-    ImGui::InputText("##Log Markpoint", &markBuffer, sizeof(markBuffer));
+    ImGui::InputText("##Log Markpoint", markBuffer, sizeof(markBuffer));
     ImGui::SameLine();
     if (ImGui::Button("Mark"))
     {
         if (strlen(markBuffer) > 0)
         {
-            LogInfo("%s", markBuffer);
-            markBuffer = "";
+            logInfo("%s", markBuffer);
+            markBuffer[0] = '\0';
         }
         else
         {
-            LogInfo("User Markpoint %d", ++markNum);
+            logInfo("User Markpoint %d", ++markNum);
         }
     }
 
