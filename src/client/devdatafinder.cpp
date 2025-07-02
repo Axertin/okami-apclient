@@ -28,13 +28,18 @@ template <typename... Args> void warn(const char *format, Args... args)
 }
 
 template <unsigned N>
-void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, std::string> &documentation)
+void compareBitfield(const char *name, okami::BitField<N> &old, okami::BitField<N> &current, const std::unordered_map<unsigned, std::string> &documentation,
+                     bool showAlways = false)
 {
     okami::BitField<N> diff = current ^ old;
     std::vector<unsigned> diffIndices = diff.GetSetIndices();
     for (auto idx : diffIndices)
     {
-        if (!documentation.contains(idx))
+        if (showAlways && documentation.contains(idx))
+        {
+            logInfo("BitField %s index %u (%s) was changed from %d to %d", name, idx, documentation.at(idx).c_str(), old.IsSet(idx), current.IsSet(idx));
+        }
+        else
         {
             warn("BitField %s index %u was changed from %d to %d", name, idx, old.IsSet(idx), current.IsSet(idx));
         }
@@ -102,7 +107,7 @@ void comparePreviousCollection()
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
         std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits);
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits, true);
     }
     compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
 
@@ -142,7 +147,7 @@ void compareTrackerData()
     okami::TrackerData &current = *okami::AmmyTracker.get_ptr();
     okami::TrackerData &old = previousTracker;
 
-    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgressDesc);
+    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgressDesc, true);
     compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTimeDesc);
 
     compareBitfield("TrackerData::field_34", old.field_34, current.field_34, emptyMapDesc);
@@ -195,10 +200,10 @@ void comparePreviousMapData()
         compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapDataDesc.at(i).fightsCleared);
 
         name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
-        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcHasMoreToSay);
+        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcs, true);
 
         name = mapNamePrefix + std::string("MapState::npcUnknown");
-        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcUnknown);
+        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcs, true);
 
         name = mapNamePrefix + std::string("MapState::mapsExplored");
         compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapDataDesc.at(i).mapsExplored);

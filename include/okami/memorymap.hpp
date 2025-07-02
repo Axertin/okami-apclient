@@ -65,6 +65,7 @@ extern void *EditBrushesFnPtr;
 
 extern MemoryAccessor<BitField<32>> AmmyUsableBrushes;
 extern MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
+extern MemoryAccessor<std::array<uint8_t, 64>> AmmyBrushUpgrades;
 
 /**
  * @brief Initialize game variable pointers and overlays.

@@ -13,8 +13,7 @@ struct MapDesc
     std::unordered_map<unsigned, std::string> treesBloomed;
     std::unordered_map<unsigned, std::string> cursedTreesBloomed;
     std::unordered_map<unsigned, std::string> fightsCleared;
-    std::unordered_map<unsigned, std::string> npcHasMoreToSay;
-    std::unordered_map<unsigned, std::string> npcUnknown;
+    std::unordered_map<unsigned, std::string> npcs;
     std::unordered_map<unsigned, std::string> mapsExplored;
     std::unordered_map<unsigned, std::string> field_DC;
     std::unordered_map<unsigned, std::string> field_E0;

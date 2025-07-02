@@ -47,23 +47,23 @@ struct CharacterStats
 
     // upper word = category, lower word = weapon
     // 0x Reflector
-    //   x0 - Divine Retribution
-    //   x1 - Snarling Beast
-    //   x2 - Infinity Judge
-    //   x3 - Trinity Mirror
-    //   x4 - Solar Flare
+    //   00 - Divine Retribution
+    //   01 - Snarling Beast
+    //   02 - Infinity Judge
+    //   03 - Trinity Mirror
+    //   04 - Solar Flare
     // 1x Glaive
-    //   x0 - Tsumugari
-    //   x1 - Seven Strike
-    //   x2 - Blade of Kusanagi
-    //   x3 - Eighth Wonder
-    //   x4 - Thunder Edge
+    //   10 - Tsumugari
+    //   11 - Seven Strike
+    //   12 - Blade of Kusanagi
+    //   13 - Eighth Wonder
+    //   14 - Thunder Edge
     // 2x Rosary
-    //   x0 - Devout Beads
-    //   x1 - Life Beads
-    //   x2 - Exorcism Beads
-    //   x3 - Resurrection Beads
-    //   x4 - Tundra Beads
+    //   20 - Devout Beads
+    //   21 - Life Beads
+    //   22 - Exorcism Beads
+    //   23 - Resurrection Beads
+    //   24 - Tundra Beads
     // FF None
     uint8_t mainWeapon;
     uint8_t subWeapon;
@@ -207,7 +207,7 @@ struct TrackerData
     // 2 = Camera Control: Invert Y Axis
     // 4 = Just saved
     // 6 = Camera Control: Invert X Axis
-    // 9 = ???
+    // 9 = ??? gives all karmic transformers when set and specific code called
     // 10 = Filter: Light
     // 11 = Filter: Heavy
     // 12 = Aspect Ratio: 4:3
@@ -222,9 +222,9 @@ struct TrackerData
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeUnlocked;
     BitField<BestiaryTome::NUM_BESTIARY_ENTRIES> bestiaryTomeRead;
     uint8_t unk2;
-    uint8_t field_6D;
-    uint8_t field_6E;
-    uint8_t field_6F;
+    uint8_t field_6D; // padding
+    uint8_t field_6E; // padding
+    uint8_t field_6F; // padding
 
     // Bits marking visited map locations
     BitField<MapTypes::NUM_MAP_TYPES> areaVisitedFlags;

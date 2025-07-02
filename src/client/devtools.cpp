@@ -5,6 +5,8 @@
 #include <unordered_set>
 #include <utility>
 
+#include "devdatafinderdesc.h"
+#include "devdatamapdata.h"
 #include "gamehooks.h"
 #include "gui.h"
 #include "imgui.h"
@@ -99,6 +101,33 @@ void drawStat(const char *name, int type, void *pCurrent)
 template <unsigned int N> void checkboxBitField(const char *label, unsigned idx, okami::BitField<N> &bits)
 {
     ImGui::CheckboxFlags(label, bits.GetIdxPtr(idx), bits.GetIdxMask(idx));
+    ImGui::SetItemTooltip("%d (0x%X)", idx, idx);
+}
+
+template <unsigned int N> void checklistManyMapped(const char *groupName, const std::unordered_map<unsigned, std::string> &desc, okami::BitField<N> &bits)
+{
+    GROUP(groupName)
+    {
+        for (unsigned i = 0; i < N; i++)
+        {
+            ImGui::PushID(i);
+
+            if (desc.contains(i))
+            {
+                checkboxBitField(desc.at(i).c_str(), i, bits);
+            }
+            else
+            {
+                checkboxBitField("", i, bits);
+                if ((i + 1) % 8 != 0 && !desc.contains(i + 1))
+                {
+                    ImGui::SameLine();
+                }
+            }
+
+            ImGui::PopID();
+        }
+    }
 }
 
 template <unsigned int N, class Fn> void checklistCols(const char *groupName, unsigned numCols, const Fn &pNameFn, okami::BitField<N> &bits)
@@ -129,7 +158,6 @@ template <unsigned int N, class Fn> void checklistCols(const char *groupName, un
                 if (index < bits.count)
                 {
                     checkboxBitField(pNameFn(index), index, bits);
-                    ImGui::SetItemTooltip("%d (0x%X)", index, index);
                 }
                 else
                 {
@@ -210,11 +238,9 @@ template <unsigned int N, class Fn> void checklistColsTome(const char *groupName
 
             ImGui::TableNextColumn();
             checkboxBitField("##Collected", i, collected);
-            ImGui::SetItemTooltip("%d (0x%X)", i, i);
 
             ImGui::TableNextColumn();
             checkboxBitField("##Viewed", i, viewed);
-            ImGui::SetItemTooltip("%d (0x%X)", i, i);
             ImGui::PopID();
         }
 
@@ -336,6 +362,46 @@ bool weaponComboBox(const char *comboId, int *weapon)
         return true;
     }
     return false;
+}
+
+void mapGroup(unsigned mapIdx)
+{
+    if (okami::mapDataDesc.contains(mapIdx))
+    {
+        okami::MapState &mapState = okami::MapData->at(mapIdx);
+        const okami::MapDesc &mapDesc = okami::mapDataDesc.at(mapIdx);
+
+        checklistManyMapped("Event Bits", mapDesc.worldStateBits, okami::AmmyCollections->world.mapStateBits[mapIdx]);
+        checklistManyMapped("Collected Objects", mapDesc.collectedObjects, mapState.collectedObjects);
+        checklistManyMapped("Areas Restored", mapDesc.areasRestored, mapState.areasRestored);
+        checklistManyMapped("Trees Bloomed", mapDesc.treesBloomed, mapState.treesBloomed);
+        checklistManyMapped("Cursed Trees Bloomed", mapDesc.cursedTreesBloomed, mapState.cursedTreesBloomed);
+        checklistManyMapped("Fights Cleared", mapDesc.fightsCleared, mapState.fightsCleared);
+        checklistManyMapped("Maps Explored", mapDesc.mapsExplored, mapState.mapsExplored);
+        checklistManyMapped("NPC Has More to Say", mapDesc.npcs, mapState.npcHasMoreToSay);
+        checklistManyMapped("NPC Unknown", mapDesc.npcs, mapState.npcUnknown);
+
+        GROUP("Custom Data")
+        {
+            for (unsigned i = 0; i < 32; i++)
+            {
+                ImGui::PushID(i);
+                std::string name = mapDesc.userIndices.contains(i) ? mapDesc.userIndices.at(i) : std::to_string(i);
+                ImGui::Text("%08X", mapState.user[i]);
+                ImGui::SameLine();
+                ImGui::InputScalar(name.c_str(), ImGuiDataType_U32, &mapState.user[i]);
+                ImGui::SetItemTooltip("%d (0x%X)", i, i);
+                ImGui::PopID();
+            }
+        }
+
+        checklistManyMapped("Unknown DC", mapDesc.field_DC, mapState.field_DC);
+        checklistManyMapped("Unknown E0", mapDesc.field_E0, mapState.field_E0);
+    }
+    else
+    {
+        ImGui::Text("Invalid map ID");
+    }
 }
 
 /**
@@ -647,7 +713,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             for (int i = 0; i < 64; i++)
             {
                 std::string name = std::string("BrushUnk") + std::to_string(i);
-                drawStat(name.c_str(), ImGuiDataType_U8, &okami::AmmyCollections->world.brushUnknown[i]);
+                drawStat(name.c_str(), ImGuiDataType_U8, &okami::AmmyBrushUpgrades->data()[i]);
             }
         }
     }
@@ -662,9 +728,11 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x * 0.5f);
         mapComboBox("Map ID", &MapID);
         ImGui::SameLine();
+
         int mapIndex = okami::MapTypes::FromMapId(MapID);
         ImGui::Text("%04X (%u)", MapID, mapIndex);
         ImGui::SameLine();
+        // TODO teleport to specific map entrance (maybe we can do entrance rando)
         if (ImGui::Button("Teleport"))
         {
             okami::ExteriorMapID.set(MapID);
@@ -672,8 +740,24 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             okami::LoadingZoneTrigger.set(0x2);
         }
 
-        int currentMapIndex = okami::MapTypes::FromMapId(okami::CurrentMapID.get());
-        checklistColsUnnamed("Current Map World Bits", 4, "MapBit", okami::AmmyCollections->world.mapStateBits[currentMapIndex]);
+        checklistManyMapped("Global Event Bits", okami::mapDataDesc.at(0).worldStateBits, okami::AmmyCollections->world.mapStateBits[0]);
+
+        GROUP("Current Map")
+        {
+            int currentMapIndex = okami::MapTypes::FromMapId(okami::CurrentMapID.get());
+            mapGroup(currentMapIndex);
+        }
+
+        GROUP("All Maps")
+        {
+            for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
+            {
+                GROUP(okami::MapTypes::GetName(i))
+                {
+                    mapGroup(i);
+                }
+            }
+        }
     }
 
     ImGui::End();
