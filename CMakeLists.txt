@@ -12,7 +12,12 @@ function(enable_strict_warnings target)
   endif()
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
-    target_compile_options(${target} PRIVATE -Wall)
+    target_compile_options(${target} PRIVATE -Wall
+        -Wno-c++98-compat
+        -Wno-c++98-compat-pedantic
+        -Wno-c++17-extensions
+        -Wno-unused-lambda-capture
+        -Wno-missing-field-initializers)
 
     if(extra_warnings)
       target_compile_options(${target} PRIVATE -Wextra -Wshadow -Wconversion)
@@ -64,9 +69,14 @@ endfunction()
 
 function(apply_release_optimizations target)
   if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_compile_options(${target} PRIVATE /O2 /Ob2 /GL /Gy)
-    target_link_options(${target} PRIVATE /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO)
-
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+      target_compile_options(${target} PRIVATE /O2 /Ob2 /GL /Gy)
+      target_link_options(${target} PRIVATE /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO)
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      target_compile_options(${target} PRIVATE -O3 -flto)
+      target_link_options(${target} PRIVATE -flto LINKER:--gc-sections)
+    endif()
+    
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       target_compile_options(${target} PRIVATE -flto=thin)
     endif()
@@ -122,6 +132,18 @@ set(CXX_STD "23" CACHE STRING "Requested C++ standard")
 set(STD_FEATURE "cxx_std_${CXX_STD}")
 
 project("okami-apclient" LANGUAGES CXX)
+
+# Cross-compilation detection  
+if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(CROSS_COMPILING_WINDOWS TRUE)
+    message(STATUS "Cross-compiling for Windows from ${CMAKE_HOST_SYSTEM_NAME}")
+else()
+    set(CROSS_COMPILING_WINDOWS FALSE)
+endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CROSSCOMPILING)
+  set(VCPKG_APPLOCAL_DEPS OFF CACHE BOOL "Disable vcpkg app-local dependencies" FORCE)
+endif()
 
 if(BUILD_TESTS_ONLY)
   message(STATUS "Building tests only - skipping Windows-specific dependencies")
@@ -199,6 +221,15 @@ if(NOT BUILD_TESTS_ONLY)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     target_link_libraries(okami-apclient PRIVATE Crypt32)
     target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
+    # target_link_libraries(okami-apclient PRIVATE -static-libgcc -static-libstdc++ dwmapi d3dcompiler)
+    target_link_libraries(okami-apclient PRIVATE dwmapi d3dcompiler)
+    target_compile_definitions(okami-apclient PRIVATE
+      _WEBSOCKETPP_CPP11_STL_
+      _WEBSOCKETPP_CPP11_THREAD_
+      _WEBSOCKETPP_NO_BOOST_)
+    target_compile_options(okami-apclient PRIVATE  -Wa,-mbig-obj -g1)
+    target_link_options(okami-apclient PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
   endif()
 
   add_git_version_info(okami-apclient)
@@ -215,6 +246,10 @@ if(NOT BUILD_TESTS_ONLY)
   )
   target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
+    target_compile_options(okami-loader PRIVATE  -Wa,-mbig-obj -g1)
+    target_link_options(okami-loader PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
+  endif()
   enable_strict_warnings(okami-loader)
   apply_release_optimizations(okami-loader)
 
@@ -264,8 +299,21 @@ else()
     imgui
     d3d11
     dxgi
+    dwmapi
+    d3dcompiler
     ws2_32
   )
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
+    # target_link_libraries(okami-tests PRIVATE -static-libgcc -static-libstdc++)
+    target_link_libraries(okami-apclient PRIVATE dwmapi d3dcompiler)
+    target_compile_definitions(okami-tests PRIVATE
+      _WEBSOCKETPP_CPP11_STL_
+      _WEBSOCKETPP_CPP11_THREAD_
+      _WEBSOCKETPP_NO_BOOST_)
+    target_compile_options(okami-tests PRIVATE -Wa,-mbig-obj -g1)
+    target_link_options(okami-tests PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
+  endif()
 endif()
 
 target_include_directories(okami-tests SYSTEM PRIVATE
@@ -285,7 +333,9 @@ target_compile_features(okami-tests PRIVATE ${STD_FEATURE})
 
 include(CTest)
 include(Catch)
-catch_discover_tests(okami-tests)
+if(NOT CMAKE_CROSSCOMPILING)
+    catch_discover_tests(okami-tests)
+endif()
 
 # Install
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)

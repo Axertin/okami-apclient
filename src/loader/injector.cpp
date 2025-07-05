@@ -3,225 +3,211 @@
 #include <iostream>
 #include <optional>
 #include <thread>
-#include <vector>
 
-std::optional<DWORD> OkamiInjector::findOkamiProcess()
+std::optional<DWORD> OkamiInjector::findOkamiProcess(int tries)
 {
-    // Okami HD window class and title
-    HWND hwnd = FindWindowW(nullptr, L"ŌKAMI HD");
-    if (!hwnd)
+    std::cout << "Trying window-based detection..." << std::endl;
+
+    for (int i = 0; i < tries; ++i)
     {
-        // Try alternative window title
-        hwnd = FindWindowW(L"MT Framework", nullptr);
+        HWND hwnd = FindWindowW(nullptr, L"ŌKAMI HD");
+        if (!hwnd)
+            hwnd = FindWindowW(nullptr, L"steam_app_587620");
+        if (!hwnd)
+            hwnd = FindWindowW(L"MT Framework", nullptr);
+
+        if (hwnd)
+        {
+            DWORD processId = 0;
+            GetWindowThreadProcessId(hwnd, &processId);
+            if (processId)
+            {
+                std::cout << "Found Okami HD process: " << processId << std::endl;
+                return processId;
+            }
+        }
+
+        std::cout << ".";
+        std::cout.flush();
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 
-    if (!hwnd)
-    {
-        return std::nullopt;
-    }
-
-    DWORD processId = 0;
-    GetWindowThreadProcessId(hwnd, &processId);
-
-    return processId ? std::optional<DWORD>(processId) : std::nullopt;
+    std::cout << "\nWindow detection failed." << std::endl;
+    return std::nullopt;
 }
 
 bool OkamiInjector::inject(DWORD processId, const std::wstring &dllPath)
 {
-    // Open target process
-    HANDLE hProcess =
-        OpenProcess(PROCESS_CREATE_THREAD | PROCESS_QUERY_INFORMATION | PROCESS_VM_OPERATION | PROCESS_VM_WRITE | PROCESS_VM_READ, FALSE, processId);
+    std::cout << "Using SetWindowsHookEx injection for process " << processId << std::endl;
 
-    if (!hProcess)
+    // Find the main thread of the target process
+    DWORD mainThreadId = getMainThreadId(processId);
+    if (!mainThreadId)
     {
-        std::cerr << "Failed to open process: " << formatWindowsError(GetLastError()) << std::endl;
+        std::cerr << "Could not find main thread of target process" << std::endl;
         return false;
     }
 
-    // Allocate memory for DLL path
-    size_t pathSize = (dllPath.length() + 1) * sizeof(wchar_t);
-    LPVOID remotePath = VirtualAllocEx(hProcess, nullptr, pathSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+    std::cout << "Target main thread ID: " << mainThreadId << std::endl;
 
-    if (!remotePath)
+    // Load the DLL in our process first to get the entry point
+    HMODULE hLocalModule = LoadLibraryW(dllPath.c_str());
+    if (!hLocalModule)
     {
-        std::cerr << "Failed to allocate memory: " << formatWindowsError(GetLastError()) << std::endl;
-        CloseHandle(hProcess);
+        std::cerr << "Failed to load DLL locally: " << formatWindowsError(GetLastError()) << std::endl;
         return false;
     }
 
-    // Write DLL path
-    if (!WriteProcessMemory(hProcess, remotePath, dllPath.c_str(), pathSize, nullptr))
+    // Get the entry point (which now has HOOKPROC signature)
+    HOOKPROC entryPoint = reinterpret_cast<HOOKPROC>(GetProcAddress(hLocalModule, "entry"));
+    if (!entryPoint)
     {
-        std::cerr << "Failed to write memory: " << formatWindowsError(GetLastError()) << std::endl;
-        VirtualFreeEx(hProcess, remotePath, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        std::cerr << "Could not find 'entry' export in DLL" << std::endl;
+        FreeLibrary(hLocalModule);
         return false;
     }
 
-    // Get LoadLibraryW address
-    HMODULE hKernel32 = GetModuleHandleW(L"kernel32.dll");
-    LPVOID loadLibraryAddr = reinterpret_cast<LPVOID>(GetProcAddress(hKernel32, "LoadLibraryW"));
+    std::cout << "Entry point found at: " << entryPoint << std::endl;
 
-    // Load the DLL
-    HANDLE hLoadThread = CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(loadLibraryAddr), remotePath, 0, nullptr);
+    // Install the hook - this will load the DLL into the target process
+    HHOOK hHook = SetWindowsHookExW(WH_GETMESSAGE, // Hook type that gets called on message processing
+                                    entryPoint,    // Our entry point as the hook procedure
+                                    hLocalModule,  // Module containing the hook procedure
+                                    mainThreadId   // Target thread
+    );
 
-    if (!hLoadThread)
+    if (!hHook)
     {
-        std::cerr << "Failed to create LoadLibrary thread: " << formatWindowsError(GetLastError()) << std::endl;
-        VirtualFreeEx(hProcess, remotePath, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
+        std::cerr << "Failed to install hook: " << formatWindowsError(GetLastError()) << std::endl;
+        FreeLibrary(hLocalModule);
         return false;
     }
 
-    // Wait for DLL to load
-    WaitForSingleObject(hLoadThread, INFINITE);
+    std::cout << "Hook installed successfully" << std::endl;
 
-    // Get the module handle from LoadLibrary
-    DWORD hModule = 0;
-    GetExitCodeThread(hLoadThread, &hModule);
-    CloseHandle(hLoadThread);
+    // Trigger the hook by sending a message to the target thread
+    std::cout << "Triggering hook execution..." << std::endl;
 
-    // Cleanup path memory
-    VirtualFreeEx(hProcess, remotePath, 0, MEM_RELEASE);
-
-    if (!hModule)
+    // Send a harmless message that will trigger our hook
+    if (!PostThreadMessageW(mainThreadId, WM_NULL, 0, 0))
     {
-        std::cerr << "LoadLibrary failed in target process" << std::endl;
-        CloseHandle(hProcess);
-        return false;
-    }
+        std::cout << "PostThreadMessage failed, trying alternative trigger..." << std::endl;
 
-    // Now call the entry point
-    if (!callEntryPoint(hProcess, dllPath))
-    {
-        CloseHandle(hProcess);
-        return false;
-    }
-
-    CloseHandle(hProcess);
-    return true;
-}
-
-bool OkamiInjector::callEntryPoint(HANDLE hProcess, const std::wstring &dllPath)
-{
-    // Get the base name of the DLL
-    std::wstring dllName = dllPath.substr(dllPath.find_last_of(L"\\") + 1);
-
-    // Find the module in the target process
-    HMODULE hMods[1024];
-    DWORD cbNeeded;
-    if (!EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded))
-    {
-        std::cerr << "Failed to enumerate modules" << std::endl;
-        return false;
-    }
-
-    HMODULE targetModule = nullptr;
-    for (unsigned int i = 0; i < (cbNeeded / sizeof(HMODULE)); i++)
-    {
-        wchar_t modName[MAX_PATH];
-        if (GetModuleFileNameExW(hProcess, hMods[i], modName, MAX_PATH))
-        {
-            std::wstring modPath(modName);
-            if (modPath.find(dllName) != std::wstring::npos)
+        // Alternative: Find window and send a message to it
+        HWND hwnd = nullptr;
+        EnumWindows(
+            [](HWND hWnd, LPARAM lParam) -> BOOL
             {
-                targetModule = hMods[i];
-                break;
-            }
+                DWORD windowProcessId;
+                GetWindowThreadProcessId(hWnd, &windowProcessId);
+                if (windowProcessId == static_cast<DWORD>(lParam))
+                {
+                    *reinterpret_cast<HWND *>(&lParam) = hWnd; // Hack to return the HWND
+                    return FALSE;                              // Stop enumeration
+                }
+                return TRUE;
+            },
+            reinterpret_cast<LPARAM>(&hwnd));
+
+        if (hwnd)
+        {
+            std::cout << "Sending message to window..." << std::endl;
+            SendMessageTimeoutW(hwnd, WM_NULL, 0, 0, SMTO_NORMAL, 5000, nullptr);
         }
     }
 
-    if (!targetModule)
+    // Give the hook some time to execute
+    std::cout << "Waiting for hook execution..." << std::endl;
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+
+    // Clean up the hook
+    UnhookWindowsHookEx(hHook);
+    FreeLibrary(hLocalModule);
+
+    std::cout << "Hook injection completed" << std::endl;
+    return true;
+}
+
+DWORD OkamiInjector::getMainThreadId(DWORD processId)
+{
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    if (snapshot == INVALID_HANDLE_VALUE)
     {
-        std::cerr << "Could not find injected module in target process" << std::endl;
-        return false;
+        return 0;
     }
 
-    // Get offset of 'entry' export in our process
-    HMODULE localModule = LoadLibraryW(dllPath.c_str());
-    if (!localModule)
+    THREADENTRY32 te32;
+    te32.dwSize = sizeof(THREADENTRY32);
+
+    DWORD mainThreadId = 0;
+    FILETIME earliestTime = {};
+    bool foundFirst = false;
+
+    if (Thread32First(snapshot, &te32))
     {
-        std::cerr << "Failed to load DLL locally for export resolution" << std::endl;
-        return false;
+        do
+        {
+            if (te32.th32OwnerProcessID == processId)
+            {
+                // Open thread to get creation time
+                HANDLE hThread = OpenThread(THREAD_QUERY_INFORMATION, FALSE, te32.th32ThreadID);
+                if (hThread)
+                {
+                    FILETIME creationTime, exitTime, kernelTime, userTime;
+                    if (GetThreadTimes(hThread, &creationTime, &exitTime, &kernelTime, &userTime))
+                    {
+                        // Find the earliest created thread (likely the main thread)
+                        if (!foundFirst || CompareFileTime(&creationTime, &earliestTime) < 0)
+                        {
+                            earliestTime = creationTime;
+                            mainThreadId = te32.th32ThreadID;
+                            foundFirst = true;
+                        }
+                    }
+                    CloseHandle(hThread);
+                }
+            }
+        } while (Thread32Next(snapshot, &te32));
     }
 
-    FARPROC entryProc = GetProcAddress(localModule, "entry");
-    if (!entryProc)
-    {
-        std::cerr << "Could not find 'entry' export in DLL" << std::endl;
-        FreeLibrary(localModule);
-        return false;
-    }
-
-    // Calculate offset
-    DWORD_PTR offset = reinterpret_cast<DWORD_PTR>(entryProc) - reinterpret_cast<DWORD_PTR>(localModule);
-    FreeLibrary(localModule);
-
-    // Calculate remote address
-    LPVOID remoteEntry = reinterpret_cast<LPVOID>(reinterpret_cast<DWORD_PTR>(targetModule) + offset);
-
-    // Create thread to run entry point
-    HANDLE hEntryThread = CreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(remoteEntry), nullptr, 0, nullptr);
-
-    if (!hEntryThread)
-    {
-        std::cerr << "Failed to create entry point thread: " << formatWindowsError(GetLastError()) << std::endl;
-        return false;
-    }
-
-    // Wait for entry to complete
-    WaitForSingleObject(hEntryThread, INFINITE);
-
-    DWORD exitCode = 0;
-    GetExitCodeThread(hEntryThread, &exitCode);
-    CloseHandle(hEntryThread);
-
-    return exitCode == 0;
+    CloseHandle(snapshot);
+    return mainThreadId;
 }
 
 std::string OkamiInjector::formatWindowsError(DWORD error)
 {
-    LPSTR messageBuffer = nullptr;
-    size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS, nullptr, error,
-                                 MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
+    if (error == 0)
+        return "Success";
 
-    std::string message(messageBuffer, size);
+    LPSTR messageBuffer = nullptr;
+    FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error, 0, reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
+
+    std::string message(messageBuffer);
     LocalFree(messageBuffer);
+
+    // Remove trailing newlines
+    while (!message.empty() && (message.back() == '\n' || message.back() == '\r'))
+        message.pop_back();
 
     return message;
 }
 
-bool OkamiInjector::launchOkami(const std::wstring &exePath)
+std::optional<DWORD> OkamiInjector::launchOkami(const std::wstring &exePath)
 {
     STARTUPINFOW si = {sizeof(si)};
     PROCESS_INFORMATION pi = {0};
 
-    // Create process suspended to ensure we can inject before it fully
-    // initializes
     if (!CreateProcessW(exePath.c_str(), nullptr, nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &si, &pi))
     {
         std::cerr << "Failed to launch okami.exe: " << formatWindowsError(GetLastError()) << std::endl;
-        return false;
+        return std::nullopt;
     }
 
-    // Resume the main thread
+    std::cout << "Launched game with PID: " << pi.dwProcessId << std::endl;
     ResumeThread(pi.hThread);
-
-    // Close thread handle (we don't need it)
     CloseHandle(pi.hThread);
     CloseHandle(pi.hProcess);
 
-    // Give the game time to initialize its window
     std::cout << "Waiting for game to initialize..." << std::endl;
-    for (int i = 0; i < 30; i++)
-    {
-        if (findOkamiProcess())
-        {
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // Extra time for full init
-            return true;
-        }
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    }
-
-    return false;
+    return findOkamiProcess(60);
 }
