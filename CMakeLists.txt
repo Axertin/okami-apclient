@@ -222,14 +222,18 @@ if(NOT BUILD_TESTS_ONLY)
     target_link_libraries(okami-apclient PRIVATE Crypt32)
     target_compile_options(okami-apclient PRIVATE /Zc:__cplusplus)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
-    # target_link_libraries(okami-apclient PRIVATE -static-libgcc -static-libstdc++ dwmapi d3dcompiler)
     target_link_libraries(okami-apclient PRIVATE dwmapi d3dcompiler)
     target_compile_definitions(okami-apclient PRIVATE
       _WEBSOCKETPP_CPP11_STL_
       _WEBSOCKETPP_CPP11_THREAD_
       _WEBSOCKETPP_NO_BOOST_)
     target_compile_options(okami-apclient PRIVATE  -Wa,-mbig-obj -g1)
-    target_link_options(okami-apclient PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
+    target_link_options(okami-apclient PRIVATE
+      -static-libgcc 
+      -static-libstdc++ 
+      -static
+      LINKER:--allow-multiple-definition
+      LINKER:--enable-stdcall-fixup)
   endif()
 
   add_git_version_info(okami-apclient)
@@ -248,7 +252,12 @@ if(NOT BUILD_TESTS_ONLY)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
     target_compile_options(okami-loader PRIVATE  -Wa,-mbig-obj -g1)
-    target_link_options(okami-loader PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
+    target_link_options(okami-loader PRIVATE
+      -static-libgcc 
+      -static-libstdc++ 
+      -static
+      LINKER:--allow-multiple-definition
+      LINKER:--enable-stdcall-fixup)
   endif()
   enable_strict_warnings(okami-loader)
   apply_release_optimizations(okami-loader)
@@ -312,7 +321,12 @@ else()
       _WEBSOCKETPP_CPP11_THREAD_
       _WEBSOCKETPP_NO_BOOST_)
     target_compile_options(okami-tests PRIVATE -Wa,-mbig-obj -g1)
-    target_link_options(okami-tests PRIVATE LINKER:--allow-multiple-definition LINKER:--enable-stdcall-fixup)
+    target_link_options(okami-tests PRIVATE
+      -static-libgcc 
+      -static-libstdc++ 
+      -static
+      LINKER:--allow-multiple-definition
+      LINKER:--enable-stdcall-fixup)
   endif()
 endif()
 
