@@ -1,10 +1,7 @@
 {
   "name": "okami-apclient",
   "dependencies": [
-    {
-      "name": "minhook",
-      "platform": "windows"
-    },
+    "minhook",
     "nlohmann-json",
     "asio",
     "openssl",

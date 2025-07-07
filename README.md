@@ -20,17 +20,55 @@ A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipe
    ├── okami.exe (and the rest of the vanilla files)
    ```
 
-4. Run `okami-loader.exe`, and you're off!
+4. Running the mod is different depending on your platform. See **Usage**, below.
 
 **Note**: The mod produces debug logs in `Okami/logs/`, date and timestamped. Providing a log will make it a lot easier to diagnose any issues you're having!
+
+## Usage
+
+Depending on your platform, launching the mod is a little different:
+
+### Windows
+
+Simply run `okami-loader.exe`. The loader will launch the game if needed, inject the mod, then close.
+
+### Linux / Steam Deck
+
+Running the mod on Linux via Proton is a little more involved:
+
+1. Ensure you have the `protontricks` and `wine` packages installed.
+2. Make sure Okami is set to use Proton 9.0-4
+    1. Right-click on game in library
+    2. Click `Properties...`
+    3. Click `Compatibility`
+    4. Check `Force Use of a specific Steam compatibility Tool`
+    5. Select `Proton 9.0-4` from the dropdown
+3. Launch the game through Steam
+4. **After the game window appears**, open a terminal, `cd` to your okami install directory, and execute the following:
+
+    ```bash
+    protontricks-launch --appid 587620 okami-loader.exe
+    ```
+
+5. The loader should print some stuff in the terminal, then exit. You should now see the mod's ImGui overlay on the game window.
+
+The reason `protontricks` is required is to place the okami-loader.exe process in the same Wine prefix as the game. This allows the two processes to interact with one another in the DOS-like environment (and the loader to inject the mod into the game). `587620` is Okami HD's Steam App ID.
+
+### Useful Keybindings
+
+- `END`, `ALT`, and `SUPER` (`WIN`) will unlock your cursor from the game
+- `HOME` will toggle the visibility of the entire ImGui UI
+- `F2` will toggle the Archipelago login window (it won't appear if the entire UI is invisible)
 
 ## Building From Source
 
 ### Prerequisites
 
 - **Visual Studio 2019/2022** (Or Windows SDK + CLang/MSVC separately)
+  - When cross-compiling from Linux, you will instead need `mingw64-gcc-c++` and `mingw64-winpthreads-static`
 - **CMake 3.21+**
 - **Ninja**
+- **Your favorite text editor** (hopefully one with CMake support to make your life easier)
 
 When opening in Visual Studio, accept the .vsconfig prompt to install the Clang toolchain. VS may not prompt you until you re-open the project after loading it for the first time.
 
@@ -77,6 +115,8 @@ To build:
   cmake --preset x64-clang-release
   cmake --build --preset x64-clang-release
   ```
+
+Of course, if you're cross-compiling, use the cross-compile targets.
 
 ## Contributing
 

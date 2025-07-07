@@ -7,11 +7,11 @@
 class OkamiInjector
 {
   public:
-    static std::optional<DWORD> findOkamiProcess();
+    static std::optional<DWORD> findOkamiProcess(int tries = 30);
     static bool inject(DWORD processId, const std::wstring &dllPath);
-    static bool launchOkami(const std::wstring &exePath);
+    static std::optional<DWORD> launchOkami(const std::wstring &exePath);
 
   private:
-    static bool callEntryPoint(HANDLE hProcess, const std::wstring &dllPath);
+    static DWORD getMainThreadId(DWORD processId);
     static std::string formatWindowsError(DWORD error);
 };

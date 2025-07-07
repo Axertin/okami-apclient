@@ -4,5 +4,4 @@
 // Windows Header Files
 #include <windows.h>
 
-#include <Psapi.h>
-#include <TlHelp32.h>
+#include <tlhelp32.h>

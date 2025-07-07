@@ -87,8 +87,10 @@
             "cacheVariables": {
                 "CXX_STD": "23",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "VCPKG_TARGET_TRIPLET": "x64-linux",
-                "BUILD_TESTS_ONLY": "ON"
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+                "VCPKG_HOST_TRIPLET": "x64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/mingw-w64.cmake",
+                "VCPKG_INSTALLED_DIR": "${sourceDir}/out/build/${presetName}/vcpkg_installed"
             },
             "condition": {
                 "type": "equals",
@@ -105,6 +107,45 @@
             "inherits": "linux-native-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-cross-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CXX_STD": "23",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+                "VCPKG_HOST_TRIPLET": "x64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/mingw-w64.cmake",
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/vcpkg-overlays"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "environment": {
+                "VCPKG_DEFAULT_TRIPLET": "x64-mingw-static",
+                "VCPKG_DEFAULT_HOST_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "linux-cross-debug",
+            "displayName": "Linux Cross Debug",
+            "inherits": "linux-cross-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-cross-release",
+            "displayName": "Linux Cross Release",
+            "inherits": "linux-cross-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],

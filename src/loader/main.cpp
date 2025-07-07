@@ -40,25 +40,15 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 
     // Check if game is already running
     std::cout << "Checking for Okami HD process..." << std::endl;
-    std::optional<DWORD> processId = OkamiInjector::findOkamiProcess();
+    std::optional<DWORD> processId = OkamiInjector::findOkamiProcess(1);
 
     if (!processId)
     {
         std::cout << "Okami HD not running. Launching game..." << std::endl;
-
-        if (!OkamiInjector::launchOkami(okamiExe.wstring()))
-        {
-            std::cerr << "Failed to launch Okami HD!" << std::endl;
-            std::cout << "Press Enter to exit..." << std::endl;
-            std::cin.get();
-            return 1;
-        }
-
-        // Try to find the process again
-        processId = OkamiInjector::findOkamiProcess();
+        processId = OkamiInjector::launchOkami(okamiExe.wstring());
         if (!processId)
         {
-            std::cerr << "Error: Game launched but process not found." << std::endl;
+            std::cerr << "Failed to launch Okami HD!" << std::endl;
             std::cout << "Press Enter to exit..." << std::endl;
             std::cin.get();
             return 1;
