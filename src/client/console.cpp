@@ -44,7 +44,7 @@ void Console::toggleVisibility()
     IsVisible = !IsVisible;
 }
 
-void Console::draw(int OuterWidth, int OuterHeight, float UIScale)
+void Console::draw([[maybe_unused]] int OuterWidth, [[maybe_unused]] int OuterHeight, float UIScale)
 {
     if (!IsVisible)
         return;

@@ -58,8 +58,16 @@ bool OkamiInjector::inject(DWORD processId, const std::wstring &dllPath)
         return false;
     }
 
+    // Ignore the warning - We know the signature's right, but the compiler doesn't.
+#pragma warning(push)
+#pragma warning(disable : 4191) // MSVC/Clang-cl: 'reinterpret_cast': unsafe conversion from 'FARPROC' to 'HOOKPROC'
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-function-type" // GCC/MinGW: function pointer cast warnings
     // Get the entry point (which now has HOOKPROC signature)
     HOOKPROC entryPoint = reinterpret_cast<HOOKPROC>(GetProcAddress(hLocalModule, "entry"));
+#pragma warning(pop)
+#pragma GCC diagnostic pop
+
     if (!entryPoint)
     {
         std::cerr << "Could not find 'entry' export in DLL" << std::endl;
@@ -67,7 +75,7 @@ bool OkamiInjector::inject(DWORD processId, const std::wstring &dllPath)
         return false;
     }
 
-    std::cout << "Entry point found at: " << entryPoint << std::endl;
+    std::cout << "Entry point found at: " << reinterpret_cast<void *>(entryPoint) << std::endl;
 
     // Install the hook - this will load the DLL into the target process
     HHOOK hHook = SetWindowsHookExW(WH_GETMESSAGE, // Hook type that gets called on message processing
