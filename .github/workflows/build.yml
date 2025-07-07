@@ -50,6 +50,8 @@ jobs:
     permissions:
       id-token: write
       contents: read
+      packages: read
+      statuses: read
       checks: write
       pull-requests: read
 
