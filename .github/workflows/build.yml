@@ -76,19 +76,23 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
 
-      - name: Setup vcpkg binary caching
+      - name: Setup vcpkg file-based binary cache
         shell: pwsh
         run: |
-          echo "VCPKG_BINARY_SOURCES=clear;x-gha,readwrite" >> $env:GITHUB_ENV
+          $cacheDir = "${{ github.workspace }}/vcpkg-binary-cache"
+          New-Item -ItemType Directory -Force -Path $cacheDir
+          echo "VCPKG_BINARY_SOURCES=clear;files,$cacheDir,readwrite" >> $env:GITHUB_ENV
 
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
-          path: out/build/${{ matrix.preset }}/vcpkg_installed
-          key: ${{ runner.os }}-vcpkg-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
+          path: |
+            ${{ github.workspace }}/vcpkg-binary-cache
+            out/build/${{ matrix.preset }}/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-v2-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
           restore-keys: |
-            ${{ runner.os }}-vcpkg-${{ matrix.config }}-
-            ${{ runner.os }}-vcpkg-
+            ${{ runner.os }}-vcpkg-v2-${{ matrix.config }}-
+            ${{ runner.os }}-vcpkg-v2-
 
       - name: Configure CMake
         run: cmake --preset ${{ matrix.preset }}
