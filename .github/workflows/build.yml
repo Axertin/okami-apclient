@@ -74,6 +74,11 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
 
+      - name: Setup vcpkg binary caching
+        shell: pwsh
+        run: |
+          echo "VCPKG_BINARY_SOURCES=clear;x-gha,readwrite" >> $env:GITHUB_ENV
+
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
