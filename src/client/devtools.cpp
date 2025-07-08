@@ -5,8 +5,6 @@
 #include <unordered_set>
 #include <utility>
 
-#include "devdatafinderdesc.h"
-#include "devdatamapdata.h"
 #include "gamehooks.h"
 #include "gui.h"
 #include "imgui.h"
@@ -17,6 +15,8 @@
 #include "okami/data/itemtype.hpp"
 #include "okami/data/logbook.hpp"
 #include "okami/data/maptype.hpp"
+#include "okami/devdatafinderdesc.h"
+#include "okami/devdatamapdata.h"
 #include "okami/dojotech.hpp"
 #include "okami/fish.hpp"
 #include "okami/items.hpp"
