@@ -1,11 +1,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "devdatafinderdesc.h"
-#include "devdatamapdata.h"
 #include "logger.h"
 #include "okami/data/maptype.hpp"
 #include "okami/data/structs.hpp"
+#include "okami/devdatafinderdesc.h"
+#include "okami/devdatamapdata.h"
 #include "okami/memorymap.hpp"
 
 namespace okami
