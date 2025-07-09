@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         ## Is this the right place?
-        
+
         **This mod handles:**
         - GUI/interface improvements
         - Connection and networking features  
@@ -60,7 +60,7 @@ body:
     attributes:
       label: Implementation Ideas
       description: Do you have any ideas for how this could work?
-      placeholder: Optional: any thoughts on implementation, UI/UX, etc.
+      placeholder: any thoughts on implementation, UI/UX, etc.
 
   - type: textarea
     id: related-features
