@@ -14,6 +14,7 @@ body:
       label: Bug Description
       description: What happened?
       placeholder: A clear description of what the bug is
+      render: text
     validations:
       required: true
 
@@ -23,6 +24,7 @@ body:
       label: Expected Behavior
       description: What did you expect to happen?
       placeholder: What should have happened instead?
+      render: text
     validations:
       required: true
 
@@ -63,7 +65,6 @@ body:
       options:
         - Windows 11
         - Windows 10
-        - Other Windows
         - Linux
         - Other
     validations:
@@ -73,9 +74,8 @@ body:
     id: log-files
     attributes:
       label: Log Files
-      description: Please paste relevant log entries from the `logs/` directory
-      placeholder: Paste relevant log entries here
-      render: text
+      description: Please paste or upload relevant log entries from the `logs/` directory
+      placeholder: Paste relevant log entries here or upload your log file
     validations:
       required: true
 
@@ -96,6 +96,7 @@ body:
       label: Workaround
       description: Is there a way to work around this issue?
       placeholder: Describe any workarounds you've found
+      render: text
 
   - type: textarea
     id: additional-context

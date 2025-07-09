@@ -46,22 +46,13 @@ body:
     validations:
       required: true
 
-  - type: input
-    id: bit-change
-    attributes:
-      label: Bit Change
-      description: Extract from log (from X to Y)
-      placeholder: e.g., from 0 to 1
-    validations:
-      required: true
-
   - type: dropdown
     id: category
     attributes:
       label: Category
       description: What type of bit field is this?
       options:
-        - worldStateBits (most common)
+        - worldStateBits
         - userIndices
         - collectedObjects
         - areasRestored
@@ -81,6 +72,7 @@ body:
       label: What You Were Doing
       description: What did you just do in-game when this bit flipped?
       placeholder: Action taken when bit changed
+      render: text
     validations:
       required: true
 
@@ -90,6 +82,7 @@ body:
       label: Game Context
       description: Were you in a cutscene, talking to an NPC, picking up an item, etc.?
       placeholder: Describe the context when this happened
+      render: text
 
   - type: input
     id: short-description
@@ -99,13 +92,6 @@ body:
       placeholder: e.g., "Talked to Mr Orange for the first time"
     validations:
       required: true
-
-  - type: textarea
-    id: detailed-description
-    attributes:
-      label: Detailed Description
-      description: More context about what this represents
-      placeholder: Provide more detailed context about what this bit flag means
 
   - type: checkboxes
     id: reproducibility
@@ -123,6 +109,7 @@ body:
       label: Additional Testing
       description: If you did more testing, describe what you found
       placeholder: Describe any additional testing you performed
+      render: text
 
   - type: textarea
     id: log-context
@@ -130,7 +117,6 @@ body:
       label: Log File Context
       description: Paste 5-10 lines before/after the bit change for context
       placeholder: This helps identify patterns and related bit changes
-      render: text
 
   - type: textarea
     id: notes
@@ -138,6 +124,7 @@ body:
       label: Notes
       description: Any other observations, related quest info, or patterns you noticed
       placeholder: Any additional notes or observations
+      render: text
 
   - type: markdown
     attributes:
