@@ -67,8 +67,6 @@ See the [README](README.md) for detailed build instructions.
 For more in-depth information, check the `docs/` folder:
 - **[Development Guide](docs/development.md)** - Detailed setup, architecture, and coding standards
 - **[Memory Mapping Guide](docs/memory-mapping.md)** - How to contribute reverse engineering discoveries
-- **[Testing Guide](docs/testing.md)** - Testing strategies and tools
-- **[Architecture Overview](docs/architecture.md)** - How the mod is structured
 
 ## Community Guidelines
 

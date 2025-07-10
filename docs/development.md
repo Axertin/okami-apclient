@@ -159,5 +159,4 @@ Debug logs are automatically saved to `logs/` directory with timestamps. Check l
 
 - **Build issues** - Check vcpkg and CMake output
 - **Runtime crashes** - Check log files and use debugger
-- **Architecture questions** - See `docs/architecture.md`
 - **Community discussion** - [Archipelago Discord](https://discord.com/channels/731205301247803413/1196620860405067848)

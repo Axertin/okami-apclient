@@ -122,12 +122,13 @@ Of course, if you're cross-compiling, use the cross-compile targets.
 
 Contributions are welcome! Please:
 
-1. Fork the repository
-2. Create a feature branch from `master`
-3. Test your changes
-4. Run `format.sh` (use Git Bash on Windows)
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+2. Fork the repository
+3. Create a feature branch from `master`
+4. Test your changes
+5. Run `format.sh` (use Git Bash on Windows)
    1. CI uses `clang-format` v20. You probably want to match this to ensure you're formatting the same as the CI does.
-5. Submit a pull request
+6. Submit a pull request
 
 ## Project Structure
 
