@@ -59,3 +59,43 @@ TEST_CASE("MemoryAccessor deals with BitFields", "[memory]")
     REQUIRE(accessor->GetSetIndices().size() == 1);
     REQUIRE(accessor->GetSetIndices()[0] == 0x4);
 }
+
+TEST_CASE("MemoryAccessor functionality", "[memory]")
+{
+    SECTION("Basic accessor operations")
+    {
+        int testValue = 42;
+        okami::MemoryAccessor<int> accessor;
+        accessor.bind(reinterpret_cast<uintptr_t>(&testValue));
+
+        REQUIRE(accessor.get() == 42);
+
+        accessor.set(100);
+        REQUIRE(testValue == 100);
+        REQUIRE(accessor.get() == 100);
+    }
+
+    SECTION("Implicit conversion operators")
+    {
+        float testFloat = 3.14f;
+        okami::MemoryAccessor<float> accessor;
+        accessor.bind(reinterpret_cast<uintptr_t>(&testFloat));
+
+        // Test implicit conversion
+        float retrieved = accessor;
+        REQUIRE(retrieved == 3.14f);
+
+        // Test assignment operator
+        accessor = 2.71f;
+        REQUIRE(testFloat == 2.71f);
+    }
+
+    SECTION("Raw address access")
+    {
+        int testValue = 0;
+        okami::MemoryAccessor<int> accessor;
+        accessor.bind(reinterpret_cast<uintptr_t>(&testValue));
+
+        REQUIRE(accessor.raw() == reinterpret_cast<uintptr_t>(&testValue));
+    }
+}
