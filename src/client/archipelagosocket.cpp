@@ -2,33 +2,26 @@
 
 #include "gamehooks.h"
 #include "logger.h"
-#include "loginwindow.h"
 #include "receive.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
 #pragma warning(pop)
 
+#include <filesystem>
+
+// File-local constants
+static const std::string CERT_STORE = "mods/apclient/cacert.pem";
+static const std::string GAME_NAME = "Okami HD";
+static const int ITEM_HANDLING = 0b111;
+static const auto POLL_INTERVAL_CONNECTED = std::chrono::milliseconds(1000);
+static const auto POLL_INTERVAL_CONNECTING = std::chrono::milliseconds(200);
+static const auto CONNECTION_TIMEOUT = std::chrono::seconds(10);
+
 #pragma warning(push)
 #pragma warning(disable : 4996)
-const std::string uuid_file = std::string(std::getenv("APPDATA")).append("\\uuid");
+static const std::string UUID_FILE = std::string(std::getenv("APPDATA")) + "\\uuid";
 #pragma warning(pop)
-
-const std::string CertStore = "mods/apclient/cacert.pem";
-const std::string GameName = "Okami HD";
-const int ItemHandlingVector = 0b111;
-const long long PollingIntervalMs = 1000;
-const long long connectionTimeout = 10;
-
-std::string ArchipelagoSocket::uuid = "";
-bool ArchipelagoSocket::Connected = false;
-bool ArchipelagoSocket::APSyncQueued = false;
-
-static std::chrono::steady_clock::time_point lastPollTime;
-static std::chrono::steady_clock::time_point connectionStartTime;
-
-APClient *ArchipelagoSocket::Client = nullptr;
-LoginWindow *ArchipelagoSocket::guiWindow = nullptr;
 
 ArchipelagoSocket &ArchipelagoSocket::instance()
 {
@@ -36,322 +29,378 @@ ArchipelagoSocket &ArchipelagoSocket::instance()
     return socket;
 }
 
-void ArchipelagoSocket::clientConnect(LoginWindow *LoginData)
-{
-    guiWindow = LoginData;
-    std::string serverInput = LoginData->Server;
-    logInfo("[apsocket] Connecting to %s as %s", serverInput.c_str(), LoginData->Slot);
-
-    if (serverInput.empty())
-    {
-        logError("[apsocket] Server field is empty");
-        if (LoginData)
-        {
-            LoginData->setMessage("Please enter a server address");
-        }
-        return;
-    }
-
-    // Build proper URI
-    std::string uri;
-    std::string uuidBase;
-
-    if (serverInput.starts_with("ws://") || serverInput.starts_with("wss://"))
-    {
-        uri = serverInput;
-        uuidBase = serverInput.substr(serverInput.find("://") + 3);
-        logDebug("[apsocket] Using provided WebSocket URI: %s", uri.c_str());
-    }
-    else
-    {
-        // Treat as host:port
-        std::string hostPort = serverInput;
-        if (hostPort.find(':') == std::string::npos)
-        {
-            logError("[apsocket] No port specified in server address");
-            if (LoginData)
-            {
-                LoginData->setMessage("Server must include port (e.g., localhost:38281)");
-            }
-            return;
-        }
-
-        // Use appropriate protocol based on host
-        if (hostPort.starts_with("localhost") || hostPort.starts_with("127.0.0.1"))
-        {
-            uri = "ws://" + hostPort;
-        }
-        else
-        {
-            uri = "wss://" + hostPort;
-        }
-        uuidBase = hostPort;
-        logDebug("[apsocket] Built URI: %s", uri.c_str());
-    }
-
-    // Validate certificate for secure connections
-    if (uri.starts_with("wss://") && !std::filesystem::exists(CertStore))
-    {
-        logError("[apsocket] SSL certificate file missing: %s", CertStore.c_str());
-        if (LoginData)
-        {
-            LoginData->setMessage("SSL certificate file missing");
-        }
-        return;
-    }
-
-    // Generate UUID
-    try
-    {
-        uuid = ap_get_uuid(uuid_file, uuidBase);
-        logDebug("[apsocket] Generated UUID: %s", uuid.c_str());
-    }
-    catch (const std::exception &e)
-    {
-        logError("[apsocket] Failed to generate UUID: %s", e.what());
-        if (LoginData)
-        {
-            LoginData->setMessage("UUID generation failed");
-        }
-        return;
-    }
-
-    // Clean up existing client
-    if (Client != nullptr)
-    {
-        logDebug("[apsocket] Cleaning up previous connection");
-        delete Client;
-        Client = nullptr;
-    }
-
-    // Create APClient
-    try
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        Client = new APClient(uuid, GameName, uri, CertStore);
-
-        APSyncQueued = false;
-        Connected = false;
-        lastPollTime = std::chrono::steady_clock::now();
-        connectionStartTime = std::chrono::steady_clock::now();
-
-        if (LoginData)
-        {
-            LoginData->setMessage("Connecting...");
-        }
-        logDebug("[apsocket] APClient created successfully");
-    }
-    catch (const std::exception &e)
-    {
-        logError("[apsocket] Failed to create client: %s", e.what());
-        if (LoginData)
-        {
-            LoginData->setMessage("Connection failed: " + std::string(e.what()));
-        }
-        return;
-    }
-
-    // Set up connection handlers
-    Client->set_socket_connected_handler([]() { logDebug("[apsocket] Socket connected to server"); });
-
-    Client->set_socket_disconnected_handler(
-        []()
-        {
-            logDebug("[apsocket] Socket disconnected from server");
-            Connected = false;
-        });
-
-    Client->set_room_info_handler(
-        [LoginData]()
-        {
-            logDebug("[apsocket] Room info received, connecting to slot");
-            std::list<std::string> Tags;
-            Client->ConnectSlot(LoginData->Slot, LoginData->Password, ItemHandlingVector, Tags);
-        });
-
-    Client->set_slot_connected_handler(
-        [LoginData](const nlohmann::json &Data)
-        {
-            logInfo("[apsocket] Connected successfully!");
-            Connected = true;
-
-            std::list<std::string> Tags = {};
-            Client->ConnectUpdate(false, ItemHandlingVector, true, Tags);
-            Client->StatusUpdate(APClient::ClientStatus::PLAYING);
-
-            if (LoginData)
-            {
-                LoginData->setMessage("Connected successfully!");
-            }
-        });
-
-    Client->set_slot_disconnected_handler(
-        [LoginData]()
-        {
-            logWarning("[apsocket] Disconnected from slot");
-            Connected = false;
-            if (LoginData)
-            {
-                LoginData->setMessage("Disconnected from server");
-            }
-        });
-
-    Client->set_slot_refused_handler(
-        [LoginData](const std::list<std::string> &Errors)
-        {
-            std::string errorMsg = "Connection refused: ";
-            for (const auto &error : Errors)
-            {
-                errorMsg += error + " ";
-                logError("[apsocket] Slot refused: %s", error.c_str());
-            }
-            Connected = false;
-            if (LoginData)
-            {
-                LoginData->setMessage(errorMsg);
-            }
-        });
-
-    Client->set_items_received_handler(
-        [](const std::list<APClient::NetworkItem> &Items)
-        {
-            logInfo("[apsocket] Received %d items", Items.size());
-            for (const auto &Item : Items)
-            {
-                logDebug("[apsocket] Item ID: 0x%X, index: %d", Item.item, Item.index);
-                if (Item.index > 0)
-                {
-                    receiveAPItem(Item.item);
-                }
-            }
-        });
-
-    Client->set_location_info_handler([](const std::list<APClient::NetworkItem> &Items)
-                                      { logDebug("[apsocket] Received location info for %d items", Items.size()); });
-
-    logDebug("[apsocket] Connection handlers configured");
-}
-
-void ArchipelagoSocket::sendLocation(int64_t LocationID)
-{
-    if (!Client || !Connected)
-    {
-        logWarning("[apsocket] Cannot send location - not connected");
-        return;
-    }
-
-    logInfo("[apsocket] Sending location check: 0x%X", LocationID);
-    std::list<int64_t> Check;
-    Check.push_back(LocationID);
-    Client->LocationChecks(Check);
-}
-
-void ArchipelagoSocket::gameFinished()
-{
-    if (Client && Connected)
-    {
-        logInfo("[apsocket] Game completed!");
-        Client->StatusUpdate(APClient::ClientStatus::GOAL);
-    }
-}
-
-void ArchipelagoSocket::poll()
-{
-    if (Client)
-    {
-        auto now = std::chrono::steady_clock::now();
-        auto pollTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastPollTime).count();
-
-        // Poll more frequently when not connected to establish connection faster
-        auto interval = Connected ? PollingIntervalMs : 200LL;
-
-        // Check for timeout during connection attempts
-        if (!Connected)
-        {
-            auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(now - connectionStartTime).count();
-            if (elapsedTime >= connectionTimeout)
-            {
-                logError("[apsocket] Connection timed out after %d seconds", connectionTimeout);
-                delete Client;
-                Client = nullptr;
-                APSyncQueued = false;
-                if (guiWindow != nullptr)
-                {
-                    guiWindow->setMessage("Connection Timed Out");
-                }
-                return;
-            }
-        }
-
-        if (pollTimeMs >= interval)
-        {
-            try
-            {
-                Client->poll();
-            }
-            catch (const std::exception &e)
-            {
-                logError("[apsocket] Poll error: %s", e.what());
-                Connected = false;
-            }
-            lastPollTime = now;
-        }
-    }
-}
-
-void ArchipelagoSocket::cancelConnection()
-{
-    if (Client && !Connected)
-    {
-        logInfo("[apsocket] Canceling connection attempt");
-        delete Client;
-        Client = nullptr;
-        Connected = false;
-    }
-}
-
-std::string ArchipelagoSocket::getItemName(int64_t ID, int Player)
-{
-    if (Client)
-    {
-        return Client->get_item_name(ID, Client->get_player_game(Player));
-    }
-    return "";
-}
-
-std::string ArchipelagoSocket::getItemDesc(int player)
-{
-    if (Client)
-    {
-        return "Item for " + Client->get_player_alias(player) + " playing " + Client->get_player_game(player);
-    }
-    return "";
-}
-
-std::string ArchipelagoSocket::getAddrInfo()
-{
-    if (Client)
-    {
-        return Client->get_slot() + "_" + Client->get_seed();
-    }
-    return "";
-}
-
-bool ArchipelagoSocket::scoutLocations(std::list<int64_t> Locations, int CreateAsHint)
-{
-    if (Client)
-    {
-        return Client->LocationScouts(Locations, CreateAsHint);
-    }
-    return false;
-}
-
 bool ArchipelagoSocket::isConnected() const
 {
-    return Connected;
+    return connected_.load();
+}
+
+std::string ArchipelagoSocket::getStatus() const
+{
+    std::lock_guard<std::mutex> lock(statusMutex_);
+    return currentStatus_;
 }
 
 std::string ArchipelagoSocket::getUUID() const
 {
-    return uuid;
+    std::lock_guard<std::mutex> lock(statusMutex_);
+    return uuid_;
+}
+
+void ArchipelagoSocket::processMainThreadTasks()
+{
+    std::queue<std::function<void()>> tasksToProcess;
+
+    {
+        std::lock_guard<std::mutex> lock(taskMutex_);
+        tasksToProcess.swap(mainThreadTasks_);
+    }
+
+    while (!tasksToProcess.empty())
+    {
+        auto task = std::move(tasksToProcess.front());
+        tasksToProcess.pop();
+        try
+        {
+            task();
+        }
+        catch (const std::exception &e)
+        {
+            logError("[apsocket] Main thread task failed: %s", e.what());
+        }
+    }
+}
+
+void ArchipelagoSocket::queueMainThreadTask(std::function<void()> task)
+{
+    std::lock_guard<std::mutex> lock(taskMutex_);
+    mainThreadTasks_.push(std::move(task));
+}
+
+void ArchipelagoSocket::setStatus(const std::string &status)
+{
+    {
+        std::lock_guard<std::mutex> lock(statusMutex_);
+        currentStatus_ = status;
+    }
+    logInfo("[apsocket] %s", status.c_str());
+}
+
+std::string ArchipelagoSocket::buildURI(const std::string &server) const
+{
+    if (server.starts_with("ws://") || server.starts_with("wss://"))
+    {
+        return server;
+    }
+
+    if (server.find(':') == std::string::npos)
+    {
+        throw std::invalid_argument("Server must include port (e.g., localhost:38281)");
+    }
+
+    // Use secure WebSocket for non-local connections
+    if (server.starts_with("localhost") || server.starts_with("127.0.0.1"))
+    {
+        return "ws://" + server;
+    }
+    else
+    {
+        return "wss://" + server;
+    }
+}
+
+void ArchipelagoSocket::connect(const std::string &server, const std::string &slot, const std::string &password)
+{
+    if (server.empty())
+    {
+        setStatus("Server address cannot be empty");
+        return;
+    }
+
+    if (slot.empty())
+    {
+        setStatus("Slot name cannot be empty");
+        return;
+    }
+
+    logInfo("[apsocket] Connecting to %s as %s", server.c_str(), slot.c_str());
+
+    // Disconnect any existing connection
+    disconnect();
+
+    try
+    {
+        // Build URI and generate UUID
+        std::string uri = buildURI(server);
+        std::string uuidBase = server;
+        if (uri.starts_with("wss://") || uri.starts_with("ws://"))
+        {
+            uuidBase = uri.substr(uri.find("://") + 3);
+        }
+
+        // Validate SSL certificate if needed
+        if (uri.starts_with("wss://") && !std::filesystem::exists(CERT_STORE))
+        {
+            setStatus("SSL certificate file missing: " + CERT_STORE);
+            return;
+        }
+
+        // Generate UUID
+        {
+            std::lock_guard<std::mutex> lock(statusMutex_);
+            uuid_ = ap_get_uuid(UUID_FILE, uuidBase);
+        }
+
+        // Create APClient
+        {
+            std::lock_guard<std::mutex> lock(clientMutex_);
+            client_ = std::make_unique<APClient>(uuid_, GAME_NAME, uri, CERT_STORE);
+            setupHandlers(slot, password);
+        }
+
+        connected_.store(false);
+        hasAttemptedConnection_.store(true); // NEW: Mark that we've attempted connection
+        lastPollTime_ = std::chrono::steady_clock::now();
+        connectionStartTime_ = std::chrono::steady_clock::now();
+        setStatus("Connecting...");
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Connection setup failed: %s", e.what());
+        setStatus("Connection failed: " + std::string(e.what()));
+    }
+}
+
+void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string &password)
+{
+    // Note: client_ is already locked when this is called
+
+    client_->set_socket_connected_handler([]() { logDebug("[apsocket] Socket connected"); });
+
+    client_->set_socket_disconnected_handler(
+        [this]()
+        {
+            logDebug("[apsocket] Socket disconnected");
+            connected_.store(false);
+            queueMainThreadTask([this]() { setStatus("Disconnected"); });
+        });
+
+    client_->set_room_info_handler(
+        [this, slot, password]()
+        {
+            logDebug("[apsocket] Room info received, connecting to slot");
+            std::list<std::string> tags;
+            client_->ConnectSlot(slot, password, ITEM_HANDLING, tags);
+        });
+
+    client_->set_slot_connected_handler(
+        [this](const nlohmann::json &data)
+        {
+            logInfo("[apsocket] Connected successfully!");
+            connected_.store(true);
+
+            queueMainThreadTask([this]() { setStatus("Connected successfully!"); });
+
+            std::list<std::string> tags;
+            client_->ConnectUpdate(false, ITEM_HANDLING, true, tags);
+            client_->StatusUpdate(APClient::ClientStatus::PLAYING);
+        });
+
+    client_->set_slot_disconnected_handler(
+        [this]()
+        {
+            logWarning("[apsocket] Slot disconnected");
+            connected_.store(false);
+            queueMainThreadTask([this]() { setStatus("Disconnected from slot"); });
+        });
+
+    client_->set_slot_refused_handler(
+        [this](const std::list<std::string> &errors)
+        {
+            connected_.store(false);
+            std::string errorMsg = "Connection refused: ";
+            for (const auto &error : errors)
+            {
+                errorMsg += error + " ";
+                logError("[apsocket] Slot refused: %s", error.c_str());
+            }
+            queueMainThreadTask([this, errorMsg]() { setStatus(errorMsg); });
+        });
+
+    client_->set_items_received_handler(
+        [this](const std::list<APClient::NetworkItem> &items)
+        {
+            logInfo("[apsocket] Received %zu items", items.size());
+
+            for (const auto &item : items)
+            {
+                if (item.index > 0)
+                {
+                    queueMainThreadTask([itemId = item.item]() { receiveAPItem(itemId); });
+                }
+            }
+        });
+
+    client_->set_location_info_handler([](const std::list<APClient::NetworkItem> &items)
+                                       { logDebug("[apsocket] Received location info for %zu items", items.size()); });
+}
+
+void ArchipelagoSocket::disconnect()
+{
+    connected_.store(false);
+
+    std::lock_guard<std::mutex> lock(clientMutex_);
+    if (client_)
+    {
+        client_.reset();
+        setStatus("Disconnected");
+    }
+    // Note: Don't reset hasAttemptedConnection_ here - user might reconnect
+}
+
+void ArchipelagoSocket::poll()
+{
+    // Don't poll if we've never attempted a connection
+    if (!hasAttemptedConnection_.load())
+    {
+        return;
+    }
+
+    try
+    {
+        withClient(
+            [this](APClient &client)
+            {
+                auto now = std::chrono::steady_clock::now();
+                auto elapsed = now - lastPollTime_;
+                auto interval = connected_.load() ? POLL_INTERVAL_CONNECTED : POLL_INTERVAL_CONNECTING;
+
+                // Check for connection timeout
+                if (!connected_.load())
+                {
+                    auto connectionElapsed = now - connectionStartTime_;
+                    if (connectionElapsed >= CONNECTION_TIMEOUT)
+                    {
+                        logError("[apsocket] Connection timed out");
+                        connected_.store(false);
+                        queueMainThreadTask([this]() { setStatus("Connection timed out"); });
+                        // Clean up and return - don't throw
+                        {
+                            std::lock_guard<std::mutex> lock(clientMutex_);
+                            client_.reset();
+                        }
+                        return;
+                    }
+                }
+
+                if (elapsed >= interval)
+                {
+                    client.poll();
+                    lastPollTime_ = now;
+                }
+            });
+    }
+    catch (const std::exception &e)
+    {
+        bool wasConnected = connected_.load();
+        connected_.store(false);
+
+        // Only log if we thought we were connected
+        if (wasConnected)
+        {
+            logError("[apsocket] Poll failed while connected: %s", e.what());
+            queueMainThreadTask([this, error = std::string(e.what())]() { setStatus("Connection lost: " + error); });
+        }
+
+        // Clean up failed connection
+        {
+            std::lock_guard<std::mutex> lock(clientMutex_);
+            client_.reset();
+        }
+    }
+}
+
+void ArchipelagoSocket::sendLocation(int64_t locationID)
+{
+    try
+    {
+        withClient(
+            [locationID](APClient &client)
+            {
+                logInfo("[apsocket] Sending location: 0x%llX", locationID);
+                client.LocationChecks({locationID});
+            });
+    }
+    catch (const std::exception &e)
+    {
+        logWarning("[apsocket] Failed to send location: %s", e.what());
+    }
+}
+
+void ArchipelagoSocket::gameFinished()
+{
+    try
+    {
+        withClient(
+            [](APClient &client)
+            {
+                logInfo("[apsocket] Game completed!");
+                client.StatusUpdate(APClient::ClientStatus::GOAL);
+            });
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Failed to report game completion: %s", e.what());
+    }
+}
+
+std::string ArchipelagoSocket::getItemName(int64_t id, int player) const
+{
+    try
+    {
+        return withClient([id, player](APClient &client) { return client.get_item_name(id, client.get_player_game(player)); });
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Failed to get item name: %s", e.what());
+        return "Unknown Item";
+    }
+}
+
+std::string ArchipelagoSocket::getItemDesc(int player) const
+{
+    try
+    {
+        return withClient([player](APClient &client) { return "Item for " + client.get_player_alias(player) + " (" + client.get_player_game(player) + ")"; });
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Failed to get item description: %s", e.what());
+        return "Unknown Player";
+    }
+}
+
+std::string ArchipelagoSocket::getConnectionInfo() const
+{
+    try
+    {
+        return withClient([](APClient &client) { return client.get_slot() + "_" + client.get_seed(); });
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Failed to get connection info: %s", e.what());
+        return "";
+    }
+}
+
+bool ArchipelagoSocket::scoutLocations(const std::list<int64_t> &locations, int createAsHint)
+{
+    try
+    {
+        return withClient([&locations, createAsHint](APClient &client) { return client.LocationScouts(locations, createAsHint); });
+    }
+    catch (const std::exception &e)
+    {
+        logError("[apsocket] Failed to scout locations: %s", e.what());
+        return false;
+    }
 }
