@@ -1,0 +1,141 @@
+name: Memory ID Mapping
+description: Report the meaning of a memory ID/bit flag in Okami HD
+title: "[Memory ID] Map [MapID] Bit [BitIndex] - [Brief Description]"
+labels: ["memory-mapping", "reverse-engineering"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping map Okami's memory structure! This helps improve the mod's game integration.
+
+  - type: textarea
+    id: console-log
+    attributes:
+      label: Console Log Entry
+      description: Copy the exact log line(s) here
+      placeholder: |
+        [timestamp] [WARN] [Undocumented] BitField MapBits[X] (Map Name) index YYYY was changed from Z to W
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: map-id
+    attributes:
+      label: Map ID
+      description: Extract from log (e.g., MapBits[9])
+      placeholder: e.g., 9
+    validations:
+      required: true
+
+  - type: input
+    id: map-name
+    attributes:
+      label: Map Name
+      description: Extract from log
+      placeholder: e.g., Kusa Village
+    validations:
+      required: true
+
+  - type: input
+    id: bit-index
+    attributes:
+      label: Bit Index
+      description: Extract from log
+      placeholder: e.g., 1234
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      description: What type of bit field is this?
+      options:
+        - worldStateBits
+        - userIndices
+        - collectedObjects
+        - areasRestored
+        - treesBloomed
+        - cursedTreesBloomed
+        - fightsCleared
+        - npcs
+        - mapsExplored
+        - other
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: action-taken
+    attributes:
+      label: What You Were Doing
+      description: What did you just do in-game when this bit flipped?
+      placeholder: Action taken when bit changed
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: game-context
+    attributes:
+      label: Game Context
+      description: Were you in a cutscene, talking to an NPC, picking up an item, etc.?
+      placeholder: Describe the context when this happened
+      render: text
+
+  - type: input
+    id: short-description
+    attributes:
+      label: Proposed Short Description
+      description: Brief description of what this bit represents
+      placeholder: e.g., "Talked to Mr Orange for the first time"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: reproducibility
+    attributes:
+      label: Can you reproduce it?
+      options:
+        - label: Yes, consistently
+        - label: Yes, but only sometimes
+        - label: No, was a one-time event
+        - label: Haven't tested yet
+
+  - type: textarea
+    id: additional-testing
+    attributes:
+      label: Additional Testing
+      description: If you did more testing, describe what you found
+      placeholder: Describe any additional testing you performed
+      render: text
+
+  - type: textarea
+    id: log-context
+    attributes:
+      label: Log File Context
+      description: Paste 5-10 lines before/after the bit change for context
+      placeholder: This helps identify patterns and related bit changes
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Any other observations, related quest info, or patterns you noticed
+      placeholder: Any additional notes or observations
+      render: text
+
+  - type: markdown
+    attributes:
+      value: |
+        ### Quick Reference for Categories:
+        - **worldStateBits**: Quest progress, cutscenes, general game state  
+        - **userIndices**: Counters, timers, numeric values
+        - **collectedObjects**: Chests, items, pickups, destructible objects
+        - **areasRestored**: Cursed areas purified
+        - **treesBloomed**: Individual trees restored  
+        - **cursedTreesBloomed**: Cursed trees specifically
+        - **fightsCleared**: Demon gates, battles, bosses
+        - **npcs**: NPC interaction states
+        - **mapsExplored**: Room/area discovery flags
