@@ -34,12 +34,6 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     (void)OuterHeight;
     (void)UIScale;
 
-    // Auto-hide when connected and in-game, unless manually shown
-    if (!IsVisible && !manuallyShown && Socket.isConnected() && !OnTitleScreen)
-    {
-        return;
-    }
-
     if (!IsVisible)
     {
         return;
@@ -47,7 +41,7 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     ImGui::Begin(name.c_str(), &IsVisible, ImGuiWindowFlags_AlwaysAutoResize);
 
-    // Simple connection status
+    // Connection status with color
     if (Socket.isConnected())
     {
         ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.0f), "Connected");
@@ -75,8 +69,8 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
         if (ImGui::Button("Connect"))
         {
             saveLoginData(JsonSavePath, Server, Slot, Password);
-            Socket.clientConnect(this);
-            setMessage("Connecting...");
+            // NEW: Use the updated interface
+            Socket.connect(Server, Slot, Password);
         }
 
         if (!canConnect)
@@ -88,45 +82,35 @@ void LoginWindow::draw(int OuterWidth, int OuterHeight, float UIScale)
     {
         if (ImGui::Button("Disconnect"))
         {
-            // TODO: Implement disconnect
-            setMessage("Disconnect not implemented");
+            Socket.disconnect();
         }
     }
 
-    // Simple message display with colors
-    if (!message.empty())
+    // Display status message with colors
+    std::string status = Socket.getStatus();
+    if (!status.empty())
     {
         ImVec4 color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // Default white
 
-        if (message.find("Connected") != std::string::npos)
+        if (status.find("Connected") != std::string::npos)
         {
             color = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // Green
         }
-        else if (message.find("refused") != std::string::npos || message.find("failed") != std::string::npos)
+        else if (status.find("refused") != std::string::npos || status.find("failed") != std::string::npos || status.find("missing") != std::string::npos ||
+                 status.find("empty") != std::string::npos)
         {
             color = ImVec4(1.0f, 0.3f, 0.3f, 1.0f); // Red
         }
-        else if (message.find("Connecting") != std::string::npos)
+        else if (status.find("Connecting") != std::string::npos)
         {
             color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // Yellow
         }
 
-        ImGui::TextColored(color, "%s", message.c_str());
-    }
-
-    // Reset manual flag when window is closed and we should auto-hide
-    if (!IsVisible && Socket.isConnected() && !OnTitleScreen)
-    {
-        manuallyShown = false;
+        ImGui::TextColored(color, "%s", status.c_str());
     }
 
     ImGui::End();
 #endif
-}
-
-void LoginWindow::setMessage(const std::string &newMessage)
-{
-    message = newMessage;
 }
 
 void LoginWindow::saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword)

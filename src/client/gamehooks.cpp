@@ -37,7 +37,9 @@ void __cdecl GameHooks::onGameTick()
 {
     okami::devDataFinder_OnGameTick();
     // checkBrushes();
-    ArchipelagoSocket::instance().poll();
+    auto &apsocket = ArchipelagoSocket::instance();
+    apsocket.poll();
+    apsocket.processMainThreadTasks();
     Main_FlowerTickOrigin();
 }
 

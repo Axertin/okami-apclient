@@ -36,7 +36,6 @@ class LoginWindow : public Window
     }
     void toggleVisibility() override;
     void draw(int OuterWidth, int OuterHeight, float UIScale) override;
-    void setMessage(const std::string &newMessage);
     bool loadLoginData(const std::string &path, std::string &oServer, std::string &oSlot, std::string &oPassword);
     void saveLoginData(const std::string &path, const std::string &oServer, const std::string &oSlot, const std::string &oPassword);
     char Server[128] = "archipelago.gg:";
