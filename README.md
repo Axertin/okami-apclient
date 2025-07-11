@@ -15,7 +15,8 @@ A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipe
    ├── mods/
    │   └── apclient/
    │       ├── okami-apclient.dll
-   │       └── cacert.pem
+   │       ├── cacert.pem
+   │       └── game-data/
    ├── okami-loader.exe
    ├── okami.exe (and the rest of the vanilla files)
    ```

@@ -6,6 +6,7 @@
     "asio",
     "openssl",
     "zlib",
-    "catch2"
+    "catch2",
+    "yaml-cpp"
   ]
 }
