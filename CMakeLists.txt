@@ -13,11 +13,11 @@ function(enable_strict_warnings target)
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
     target_compile_options(${target} PRIVATE -Wall
-        -Wno-c++98-compat
-        -Wno-c++98-compat-pedantic
-        -Wno-c++17-extensions
-        -Wno-unused-lambda-capture
-        -Wno-missing-field-initializers)
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-c++17-extensions
+      -Wno-unused-lambda-capture
+      -Wno-missing-field-initializers)
 
     if(extra_warnings)
       target_compile_options(${target} PRIVATE -Wextra -Wshadow -Wconversion)
@@ -76,11 +76,79 @@ function(apply_release_optimizations target)
       target_compile_options(${target} PRIVATE -O3 -flto)
       target_link_options(${target} PRIVATE -flto LINKER:--gc-sections)
     endif()
-    
+
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       target_compile_options(${target} PRIVATE -flto=thin)
     endif()
   endif()
+endfunction()
+
+# Function to generate Windows resources with version info
+function(add_windows_resources target)
+  if(NOT WIN32)
+    return()
+  endif()
+
+  # Ensure version info is available
+  get_target_property(VERSION_STRING ${target} VERSION_STRING)
+  if(NOT VERSION_STRING)
+    message(WARNING "No version string found for ${target} - call add_git_version_info() first")
+    return()
+  endif()
+
+  # Parse semantic version from git version string
+  # Handle your versioning formats: "1.2.3", "1.2.3-dev.4", "1.2.3-alpha.1.2", "0.0.42-dev"
+  if(VERSION_STRING MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)")
+    set(VERSION_MAJOR ${CMAKE_MATCH_1})
+    set(VERSION_MINOR ${CMAKE_MATCH_2})
+    set(VERSION_PATCH ${CMAKE_MATCH_3})
+
+    # Extract build number from your specific format patterns
+    set(VERSION_BUILD 0)
+    if(VERSION_STRING MATCHES "-dev\\.([0-9]+)")
+      # "1.2.3-dev.4" -> build = 4
+      set(VERSION_BUILD ${CMAKE_MATCH_1})
+    elseif(VERSION_STRING MATCHES "-[a-zA-Z]+\\.[0-9]+\\.([0-9]+)")
+      # "1.2.3-alpha.1.2" -> build = 2  
+      set(VERSION_BUILD ${CMAKE_MATCH_1})
+    endif()
+  else()
+    message(WARNING "Could not parse version from '${VERSION_STRING}' - using defaults")
+    set(VERSION_MAJOR 0)
+    set(VERSION_MINOR 0)
+    set(VERSION_PATCH 0)
+    set(VERSION_BUILD 0)
+  endif()
+
+  # Set up resource compiler
+  if(CMAKE_RC_COMPILER)
+    # Already found (MinGW case)
+  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
+    # clang-cl case - use MSVC rc.exe
+    find_program(CMAKE_RC_COMPILER rc.exe HINTS ${MSVC_TOOLSET_DIR})
+    if(NOT CMAKE_RC_COMPILER)
+      find_program(CMAKE_RC_COMPILER rc.exe)
+    endif()
+  endif()
+
+  if(NOT CMAKE_RC_COMPILER)
+    message(WARNING "Resource compiler not found - ${target} will not have icon/version info")
+    return()
+  endif()
+
+  enable_language(RC)
+
+  # Generate the resource file
+  set(RC_FILE "${CMAKE_CURRENT_BINARY_DIR}/${target}_resources.rc")
+
+  configure_file(
+    "${CMAKE_SOURCE_DIR}/cmake/resources.rc.in"
+    "${RC_FILE}"
+    @ONLY
+  )
+
+  # Add to target
+  target_sources(${target} PRIVATE ${RC_FILE})
 endfunction()
 
 # option to build tests only (for Linux development)
@@ -135,10 +203,10 @@ project("okami-apclient" LANGUAGES CXX)
 
 # Cross-compilation detection  
 if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(CROSS_COMPILING_WINDOWS TRUE)
-    message(STATUS "Cross-compiling for Windows from ${CMAKE_HOST_SYSTEM_NAME}")
+  set(CROSS_COMPILING_WINDOWS TRUE)
+  message(STATUS "Cross-compiling for Windows from ${CMAKE_HOST_SYSTEM_NAME}")
 else()
-    set(CROSS_COMPILING_WINDOWS FALSE)
+  set(CROSS_COMPILING_WINDOWS FALSE)
 endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CROSSCOMPILING)
@@ -227,10 +295,10 @@ if(NOT BUILD_TESTS_ONLY)
       _WEBSOCKETPP_CPP11_STL_
       _WEBSOCKETPP_CPP11_THREAD_
       _WEBSOCKETPP_NO_BOOST_)
-    target_compile_options(okami-apclient PRIVATE  -Wa,-mbig-obj -g1)
+    target_compile_options(okami-apclient PRIVATE -Wa,-mbig-obj -g1)
     target_link_options(okami-apclient PRIVATE
-      -static-libgcc 
-      -static-libstdc++ 
+      -static-libgcc
+      -static-libstdc++
       -static
       LINKER:--allow-multiple-definition
       LINKER:--enable-stdcall-fixup)
@@ -238,6 +306,7 @@ if(NOT BUILD_TESTS_ONLY)
 
   add_git_version_info(okami-apclient)
   get_target_property(_version okami-apclient VERSION_STRING)
+  add_windows_resources(okami-apclient)
 
   # Injector
   add_executable(okami-loader
@@ -251,16 +320,18 @@ if(NOT BUILD_TESTS_ONLY)
   target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
-    target_compile_options(okami-loader PRIVATE  -Wa,-mbig-obj -g1)
+    target_compile_options(okami-loader PRIVATE -Wa,-mbig-obj -g1)
     target_link_options(okami-loader PRIVATE
-      -static-libgcc 
-      -static-libstdc++ 
+      -static-libgcc
+      -static-libstdc++
       -static
       LINKER:--allow-multiple-definition
       LINKER:--enable-stdcall-fixup)
   endif()
+  add_git_version_info(okami-loader)
   enable_strict_warnings(okami-loader)
   apply_release_optimizations(okami-loader)
+  add_windows_resources(okami-loader)
 
 endif()
 
@@ -322,8 +393,8 @@ else()
       _WEBSOCKETPP_NO_BOOST_)
     target_compile_options(okami-tests PRIVATE -Wa,-mbig-obj -g1)
     target_link_options(okami-tests PRIVATE
-      -static-libgcc 
-      -static-libstdc++ 
+      -static-libgcc
+      -static-libstdc++
       -static
       LINKER:--allow-multiple-definition
       LINKER:--enable-stdcall-fixup)
@@ -348,7 +419,7 @@ target_compile_features(okami-tests PRIVATE ${STD_FEATURE})
 include(CTest)
 include(Catch)
 if(NOT CMAKE_CROSSCOMPILING)
-    catch_discover_tests(okami-tests)
+  catch_discover_tests(okami-tests)
 endif()
 
 # Install

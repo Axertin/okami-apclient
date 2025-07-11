@@ -139,6 +139,11 @@ Contributions are welcome! Please:
 - `external/`: Dependency Git submodules
 - `cmake/`: Build system utilities
 
+## Acknowledgements
+
+- All of the wonderful contributors to the [Okami Reverse Engineering Wiki](https://okami.speedruns.wiki/Reverse_Engineering)
+- Loader and APClient icon: **@sidorak26** on the Archipelago Discord
+
 ## License
 
 This project is under the MIT License - see the [LICENSE](LICENSE) file for details.
