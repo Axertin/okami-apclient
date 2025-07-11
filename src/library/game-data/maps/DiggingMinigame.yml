@@ -1,0 +1,5 @@
+# Map: DiggingMinigame
+
+worldStateBits:
+  1: "Made it to end (show shining block)"
+  3: "Explanation shown"

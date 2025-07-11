@@ -1,0 +1,10 @@
+# Map: SasaSanctuary
+
+worldStateBits:
+  1: "Entry dialogue trigger"
+  5: "Kaguya's Memories ended"
+  9: "Spring No More ended"
+  12: "Rejection quest started"
+  17: "Blocked Path ended"
+  35: "Blocked Path started"
+  61: "Spring No More started"

@@ -1,0 +1,6 @@
+# Map: CityCheckpoint
+
+worldStateBits:
+  1: "Bringing Down the Bridge ended"
+  42: "City Checkpoint quest ended"
+  43: "Bringing Down the Bridge quest started"

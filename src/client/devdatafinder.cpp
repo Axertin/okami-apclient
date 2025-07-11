@@ -4,7 +4,6 @@
 #include "logger.h"
 #include "okami/data/maptype.hpp"
 #include "okami/data/structs.hpp"
-#include "okami/devdatamapdata.h"
 #include "okami/gamestateregistry.h"
 #include "okami/memorymap.hpp"
 
@@ -113,7 +112,9 @@ void comparePreviousCollection()
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
         std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits, true);
+        auto mapType = static_cast<MapTypes::Enum>(i);
+        auto &worldStateBits = registry.getMapConfig(mapType).worldStateBits;
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], worldStateBits, true);
     }
 
     auto &animalsFound = registry.getGlobalConfig().animalsFound;
@@ -188,10 +189,12 @@ void comparePreviousMapData()
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
+        auto mapType = static_cast<MapTypes::Enum>(i);
+        const auto &mapConfig = registry.getMapConfig(mapType);
         std::string mapNamePrefix = std::string("(") + okami::MapTypes::GetName(i) + ") ";
         for (unsigned j = 0; j < 32; j++)
         {
-            if (mapDataDesc.at(i).userIndices.contains(j))
+            if (mapConfig.userIndices.contains(j))
                 continue;
 
             name = mapNamePrefix + std::string("MapState::user[") + std::to_string(j) + "]";
@@ -199,38 +202,38 @@ void comparePreviousMapData()
         }
 
         name = mapNamePrefix + std::string("MapState::collectedObjects");
-        compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapDataDesc.at(i).collectedObjects);
+        compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapConfig.collectedObjects);
 
         name = mapNamePrefix + std::string("MapState::commonStates");
         auto &commonStates = registry.getGlobalConfig().commonStates;
         compareBitfield(name.c_str(), old[i].commonStates, current[i].commonStates, commonStates);
 
         name = mapNamePrefix + std::string("MapState::areasRestored");
-        compareBitfield(name.c_str(), old[i].areasRestored, current[i].areasRestored, mapDataDesc.at(i).areasRestored);
+        compareBitfield(name.c_str(), old[i].areasRestored, current[i].areasRestored, mapConfig.areasRestored);
 
         name = mapNamePrefix + std::string("MapState::treesBloomed");
-        compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapDataDesc.at(i).treesBloomed);
+        compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapConfig.treesBloomed);
 
         name = mapNamePrefix + std::string("MapState::cursedTreesBloomed");
-        compareBitfield(name.c_str(), old[i].cursedTreesBloomed, current[i].cursedTreesBloomed, mapDataDesc.at(i).cursedTreesBloomed);
+        compareBitfield(name.c_str(), old[i].cursedTreesBloomed, current[i].cursedTreesBloomed, mapConfig.cursedTreesBloomed);
 
         name = mapNamePrefix + std::string("MapState::fightsCleared");
-        compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapDataDesc.at(i).fightsCleared);
+        compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapConfig.fightsCleared);
 
         name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
-        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcs, true);
+        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapConfig.npcs, true);
 
         name = mapNamePrefix + std::string("MapState::npcUnknown");
-        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcs, true);
+        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapConfig.npcs, true);
 
         name = mapNamePrefix + std::string("MapState::mapsExplored");
-        compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapDataDesc.at(i).mapsExplored);
+        compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapConfig.mapsExplored);
 
         name = mapNamePrefix + std::string("MapState::field_DC");
-        compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapDataDesc.at(i).field_DC);
+        compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapConfig.field_DC);
 
         name = mapNamePrefix + std::string("MapState::field_E0");
-        compareBitfield(name.c_str(), old[i].field_E0, current[i].field_E0, mapDataDesc.at(i).field_E0);
+        compareBitfield(name.c_str(), old[i].field_E0, current[i].field_E0, mapConfig.field_E0);
     }
 }
 

@@ -2,6 +2,7 @@
 
 #include <format>
 #include <fstream>
+#include <iostream>
 #include <mutex>
 
 #include <yaml-cpp/yaml.h>
@@ -85,6 +86,9 @@ std::string_view GameStateRegistry::getMapDescription(MapTypes::Enum map, std::s
     {
         const_cast<GameStateRegistry *>(this)->loadMapConfig(map);
     }
+    else
+    {
+    }
 
     const auto &config = getMapConfig(map);
 
@@ -146,6 +150,12 @@ std::string_view GameStateRegistry::getGlobalDescription(std::string_view catego
 const MapStateConfig &GameStateRegistry::getMapConfig(MapTypes::Enum map) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
+
+    if (!hasMapConfig(map))
+    {
+        const_cast<GameStateRegistry *>(this)->loadMapConfig(map);
+    }
+
     static const MapStateConfig empty_config{};
 
     if (auto it = map_configs_.find(map); it != map_configs_.end())
@@ -166,7 +176,9 @@ const GlobalConfig &GameStateRegistry::getGlobalConfig() const
 bool GameStateRegistry::hasMapConfig(MapTypes::Enum map) const
 {
     // Note: caller should already hold the lock
-    return map_configs_.contains(map);
+    bool exists = map_configs_.contains(map);
+
+    return exists;
 }
 
 void GameStateRegistry::reload()
@@ -178,16 +190,31 @@ void GameStateRegistry::reload()
     // Configs will be lazy-loaded on next access
 }
 
+std::string normalizeMapName(const std::string &mapName)
+{
+    std::string result;
+    for (char c : mapName)
+    {
+        if (std::isalnum(c))
+        {
+            result += c;
+        }
+        // Skip spaces, parentheses, etc.
+    }
+    return result;
+}
+
 void GameStateRegistry::loadMapConfig(MapTypes::Enum map)
 {
-    // Note: caller should already hold the lock
     if (config_dir_.empty())
     {
         map_configs_[map] = MapStateConfig{};
         return;
     }
 
-    auto file_path = config_dir_ / "maps" / std::format("{}.yml", MapTypes::GetName(map));
+    // Normalize the map name to match generated filenames
+    std::string mapName = normalizeMapName(MapTypes::GetName(map));
+    auto file_path = config_dir_ / "maps" / std::format("{}.yml", mapName);
 
     if (!std::filesystem::exists(file_path))
     {
@@ -199,9 +226,8 @@ void GameStateRegistry::loadMapConfig(MapTypes::Enum map)
     {
         map_configs_[map] = parseMapYamlFile(file_path);
     }
-    catch (const std::exception &)
+    catch (const std::exception &e)
     {
-        // Use empty config on parse failure
         map_configs_[map] = MapStateConfig{};
     }
 }

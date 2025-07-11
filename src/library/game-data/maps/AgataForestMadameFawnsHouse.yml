@@ -1,0 +1,11 @@
+# Map: AgataForestMadameFawnsHouse
+
+worldStateBits:
+  1: "Spoke with Madame Fawn 1"
+  2: "Spoke with Madame Fawn 2"
+  3: "First fortune told"
+  5: "Came in from back door"
+  6: "Came in from back door"
+
+collectedObjects:
+  0: "Chest (Stray Bead)"
