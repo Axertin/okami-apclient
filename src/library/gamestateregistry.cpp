@@ -1,4 +1,4 @@
-#include "okami/configmanager.h"
+#include "okami/gamestateregistry.h"
 
 #include <format>
 #include <fstream>
@@ -17,42 +17,73 @@
 namespace okami
 {
 
-ConfigManager::ConfigManager(std::filesystem::path config_directory) : config_dir_(std::move(config_directory))
+GameStateRegistry::GameStateRegistry(std::filesystem::path config_directory) : config_dir_(std::move(config_directory))
 {
-    if (!std::filesystem::exists(config_dir_))
+    if (!config_dir_.empty() && !std::filesystem::exists(config_dir_))
     {
-        std::filesystem::create_directories(config_dir_);
+        try
+        {
+            std::filesystem::create_directories(config_dir_);
+        }
+        catch (const std::exception &)
+        {
+            // If we can't create directories, just continue with empty config
+        }
     }
 }
 
-void ConfigManager::initialize(const std::filesystem::path &config_dir)
+void GameStateRegistry::initialize(const std::filesystem::path &config_dir)
 {
-    instance_ = new ConfigManager(config_dir);
+    std::call_once(init_flag_, [&config_dir]() { instance_ = new GameStateRegistry(config_dir); });
 }
 
-const ConfigManager &ConfigManager::instance()
+IGameStateRegistry &GameStateRegistry::instance()
 {
+    // Check for test instance first
+    if (test_instance_)
+    {
+        return *test_instance_;
+    }
+
     std::call_once(init_flag_,
                    []()
                    {
                        if (!instance_)
                        {
-                           // Default initialization - try to find game-data relative to module
-                           ConfigManager temp({});
-                           auto game_data_path = temp.getModuleDirectory() / "game-data";
-                           instance_ = new ConfigManager(game_data_path);
+                           try
+                           {
+                               auto game_data_path = getModuleDirectory() / "game-data";
+                               instance_ = new GameStateRegistry(game_data_path);
+                           }
+                           catch (const std::exception &)
+                           {
+                               // Fallback to empty config if anything fails
+                               instance_ = new GameStateRegistry({});
+                           }
                        }
                    });
     return *instance_;
 }
 
-std::string_view ConfigManager::getMapDescription(MapTypes::Enum map, std::string_view category, unsigned bit_index) const
+void GameStateRegistry::setInstance(std::unique_ptr<IGameStateRegistry> test_instance)
+{
+    test_instance_ = std::move(test_instance);
+}
+
+void GameStateRegistry::resetInstance()
+{
+    test_instance_.reset();
+    // Note: We intentionally don't reset instance_ as it's meant to live for program duration
+}
+
+std::string_view GameStateRegistry::getMapDescription(MapTypes::Enum map, std::string_view category, unsigned bit_index) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
+    // Load map config if not already loaded
     if (!hasMapConfig(map))
     {
-        const_cast<ConfigManager *>(this)->loadMapConfig(map);
+        const_cast<GameStateRegistry *>(this)->loadMapConfig(map);
     }
 
     const auto &config = getMapConfig(map);
@@ -82,18 +113,18 @@ std::string_view ConfigManager::getMapDescription(MapTypes::Enum map, std::strin
     return {};
 }
 
-std::string_view ConfigManager::getGlobalDescription(std::string_view category, unsigned bit_index) const
+std::string_view GameStateRegistry::getGlobalDescription(std::string_view category, unsigned bit_index) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
 
+    // Load global config if not already loaded
     if (!global_loaded_)
     {
-        const_cast<ConfigManager *>(this)->loadGlobalConfig();
+        const_cast<GameStateRegistry *>(this)->loadGlobalConfig();
     }
 
     const auto &config = getGlobalConfig();
 
-    // Use a static map for O(1) lookup and easy extensibility
     static const std::unordered_map<std::string_view, const std::unordered_map<unsigned, std::string> GlobalConfig::*> category_map = {
         {"brushUpgrades", &GlobalConfig::brushUpgrades}, {"areasRestored", &GlobalConfig::areasRestored},
         {"commonStates", &GlobalConfig::commonStates},   {"gameProgress", &GlobalConfig::gameProgress},
@@ -112,7 +143,7 @@ std::string_view ConfigManager::getGlobalDescription(std::string_view category, 
     return {};
 }
 
-const MapStateConfig &ConfigManager::getMapConfig(MapTypes::Enum map) const
+const MapStateConfig &GameStateRegistry::getMapConfig(MapTypes::Enum map) const
 {
     std::lock_guard<std::mutex> lock(mutex_);
     static const MapStateConfig empty_config{};
@@ -125,18 +156,20 @@ const MapStateConfig &ConfigManager::getMapConfig(MapTypes::Enum map) const
     return empty_config;
 }
 
-const GlobalConfig &ConfigManager::getGlobalConfig() const
+const GlobalConfig &GameStateRegistry::getGlobalConfig() const
 {
+    // NOTE: This method should NOT lock mutex or call instance()
+    // It's only called from within other methods that already hold the lock
     return global_config_;
 }
 
-bool ConfigManager::hasMapConfig(MapTypes::Enum map) const
+bool GameStateRegistry::hasMapConfig(MapTypes::Enum map) const
 {
     // Note: caller should already hold the lock
     return map_configs_.contains(map);
 }
 
-void ConfigManager::reload()
+void GameStateRegistry::reload()
 {
     std::lock_guard<std::mutex> lock(mutex_);
     map_configs_.clear();
@@ -145,8 +178,15 @@ void ConfigManager::reload()
     // Configs will be lazy-loaded on next access
 }
 
-void ConfigManager::loadMapConfig(MapTypes::Enum map)
+void GameStateRegistry::loadMapConfig(MapTypes::Enum map)
 {
+    // Note: caller should already hold the lock
+    if (config_dir_.empty())
+    {
+        map_configs_[map] = MapStateConfig{};
+        return;
+    }
+
     auto file_path = config_dir_ / "maps" / std::format("{}.yml", MapTypes::GetName(map));
 
     if (!std::filesystem::exists(file_path))
@@ -161,13 +201,26 @@ void ConfigManager::loadMapConfig(MapTypes::Enum map)
     }
     catch (const std::exception &)
     {
-        // Log error and use empty config
+        // Use empty config on parse failure
         map_configs_[map] = MapStateConfig{};
     }
 }
 
-void ConfigManager::loadGlobalConfig()
+void GameStateRegistry::loadGlobalConfig()
 {
+    // Note: caller should already hold the lock
+    if (global_loaded_)
+    {
+        return; // Prevent double-loading
+    }
+
+    if (config_dir_.empty())
+    {
+        global_config_ = GlobalConfig{};
+        global_loaded_ = true;
+        return;
+    }
+
     auto file_path = config_dir_ / "global.yml";
 
     if (!std::filesystem::exists(file_path))
@@ -183,14 +236,14 @@ void ConfigManager::loadGlobalConfig()
     }
     catch (const std::exception &)
     {
-        // Log error and use empty config
+        // Use empty config on parse failure
         global_config_ = GlobalConfig{};
     }
 
     global_loaded_ = true;
 }
 
-MapStateConfig ConfigManager::parseMapYamlFile(const std::filesystem::path &file_path) const
+MapStateConfig GameStateRegistry::parseMapYamlFile(const std::filesystem::path &file_path) const
 {
     YAML::Node root = YAML::LoadFile(file_path.string());
     MapStateConfig config;
@@ -201,9 +254,17 @@ MapStateConfig ConfigManager::parseMapYamlFile(const std::filesystem::path &file
         {
             for (const auto &item : node)
             {
-                unsigned index = item.first.as<unsigned>();
-                std::string description = item.second.as<std::string>();
-                target_map[index] = std::move(description);
+                try
+                {
+                    unsigned index = item.first.as<unsigned>();
+                    std::string description = item.second.as<std::string>();
+                    target_map[index] = std::move(description);
+                }
+                catch (const std::exception &)
+                {
+                    // Skip malformed entries
+                    continue;
+                }
             }
         }
     };
@@ -223,7 +284,7 @@ MapStateConfig ConfigManager::parseMapYamlFile(const std::filesystem::path &file
     return config;
 }
 
-GlobalConfig ConfigManager::parseGlobalYamlFile(const std::filesystem::path &file_path) const
+GlobalConfig GameStateRegistry::parseGlobalYamlFile(const std::filesystem::path &file_path) const
 {
     YAML::Node root = YAML::LoadFile(file_path.string());
     GlobalConfig config;
@@ -234,9 +295,17 @@ GlobalConfig ConfigManager::parseGlobalYamlFile(const std::filesystem::path &fil
         {
             for (const auto &item : node)
             {
-                unsigned index = item.first.as<unsigned>();
-                std::string description = item.second.as<std::string>();
-                target_map[index] = std::move(description);
+                try
+                {
+                    unsigned index = item.first.as<unsigned>();
+                    std::string description = item.second.as<std::string>();
+                    target_map[index] = std::move(description);
+                }
+                catch (const std::exception &)
+                {
+                    // Skip malformed entries
+                    continue;
+                }
             }
         }
     };
@@ -253,7 +322,7 @@ GlobalConfig ConfigManager::parseGlobalYamlFile(const std::filesystem::path &fil
     return config;
 }
 
-std::filesystem::path ConfigManager::getModuleDirectory() const
+std::filesystem::path GameStateRegistry::getModuleDirectory()
 {
 #ifdef _WIN32
     HMODULE hModule = nullptr;
@@ -275,7 +344,6 @@ std::filesystem::path ConfigManager::getModuleDirectory() const
     return std::filesystem::path(path).parent_path();
 #else
     // For non-Windows platforms (including cross-compilation host)
-    // This should never be called in practice since we're building a Windows DLL
     return std::filesystem::current_path();
 #endif
 }
