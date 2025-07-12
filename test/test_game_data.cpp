@@ -6,7 +6,6 @@
 #pragma warning(pop)
 
 #include "okami/data/structs.hpp"
-#include "okami/devdatamapdata.h"
 #include "okami/memoryaccessor.hpp"
 
 TEST_CASE("BitField basic operations", "[game-data]")
@@ -65,77 +64,6 @@ TEST_CASE("BitField basic operations", "[game-data]")
     }
 }
 
-TEST_CASE("Map data structure integrity", "[game-data]")
-{
-    SECTION("All documented maps exist in enum")
-    {
-        // Verify that every map in our documentation exists
-        for (const auto &[mapId, mapDesc] : okami::mapDataDesc)
-        {
-            // NUM_MAP_TYPES seems to be 1 fewer than the actual number of maps - blame the '06 devs I guess
-            REQUIRE(mapId <= okami::MapTypes::NUM_MAP_TYPES);
-        }
-    }
-
-    SECTION("Kamiki Village has expected data")
-    {
-        auto it = okami::mapDataDesc.find(okami::MapTypes::KamikiVillage);
-        REQUIRE(it != okami::mapDataDesc.end());
-
-        const auto &desc = it->second;
-        REQUIRE_FALSE(desc.worldStateBits.empty());
-        REQUIRE_FALSE(desc.collectedObjects.empty());
-        REQUIRE_FALSE(desc.treesBloomed.empty());
-
-        // Verify some known mappings exist
-        REQUIRE(desc.worldStateBits.count(1) > 0);   // "In god zone by the tree"
-        REQUIRE(desc.collectedObjects.count(0) > 0); // First chest
-    }
-
-    SECTION("No duplicate bit indices within categories")
-    {
-        for (const auto &[mapId, mapDesc] : okami::mapDataDesc)
-        {
-            // Check for duplicate keys in worldStateBits
-            std::unordered_set<unsigned> seenBits;
-            for (const auto &[bitIndex, description] : mapDesc.worldStateBits)
-            {
-                REQUIRE(seenBits.find(bitIndex) == seenBits.end());
-                seenBits.insert(bitIndex);
-            }
-
-            // Check for duplicate keys in collectedObjects
-            std::unordered_set<unsigned> seenObjects;
-            for (const auto &[objIndex, description] : mapDesc.collectedObjects)
-            {
-                REQUIRE(seenObjects.find(objIndex) == seenObjects.end());
-                seenObjects.insert(objIndex);
-            }
-        }
-    }
-
-    SECTION("All descriptions are non-empty")
-    {
-        for (const auto &[mapId, mapDesc] : okami::mapDataDesc)
-        {
-            for (const auto &[bitIndex, description] : mapDesc.worldStateBits)
-            {
-                REQUIRE_FALSE(description.empty());
-            }
-
-            for (const auto &[objIndex, description] : mapDesc.collectedObjects)
-            {
-                // REQUIRE_FALSE(description.empty()); //TODO: Add descriptions to every object, then re-enable this check
-            }
-
-            for (const auto &[treeIndex, description] : mapDesc.treesBloomed)
-            {
-                REQUIRE_FALSE(description.empty());
-            }
-        }
-    }
-}
-
 TEST_CASE("BitField size constraints", "[game-data]")
 {
     SECTION("Standard map bitfield size")
@@ -155,17 +83,5 @@ TEST_CASE("BitField size constraints", "[game-data]")
 
         auto indices = accessor->GetSetIndices();
         REQUIRE(indices.size() == 3);
-    }
-
-    SECTION("Bit indices within documented ranges")
-    {
-        for (const auto &[mapId, mapDesc] : okami::mapDataDesc)
-        {
-            for (const auto &[bitIndex, description] : mapDesc.worldStateBits)
-            {
-                // Assuming 512-bit fields for map state
-                REQUIRE(bitIndex < 512);
-            }
-        }
     }
 }

@@ -15,10 +15,9 @@
 #include "okami/data/itemtype.hpp"
 #include "okami/data/logbook.hpp"
 #include "okami/data/maptype.hpp"
-#include "okami/devdatafinderdesc.h"
-#include "okami/devdatamapdata.h"
 #include "okami/dojotech.hpp"
 #include "okami/fish.hpp"
+#include "okami/gamestateregistry.h"
 #include "okami/items.hpp"
 #include "okami/memorymap.hpp"
 #include "okami/movelisttome.hpp"
@@ -105,24 +104,64 @@ template <unsigned int N> void checkboxBitField(const char *label, unsigned idx,
     ImGui::SetItemTooltip("%d (0x%X)", idx, idx);
 }
 
-template <unsigned int N> void checklistManyMapped(const char *groupName, const std::unordered_map<unsigned, std::string> &desc, okami::BitField<N> &bits)
+template <unsigned int N> void checklistManyMapped(const char *groupName, const char *category, okami::MapTypes::Enum map, okami::BitField<N> &bits)
 {
     GROUP(groupName)
     {
+        auto &registry = okami::GameStateRegistry::instance();
+
         for (unsigned i = 0; i < N; i++)
         {
             ImGui::PushID(i);
 
-            if (desc.contains(i))
+            auto description = registry.getMapDescription(map, category, i);
+            if (!description.empty())
             {
-                checkboxBitField(desc.at(i).c_str(), i, bits);
+                checkboxBitField(description.data(), i, bits);
             }
             else
             {
                 checkboxBitField("", i, bits);
-                if ((i + 1) % 8 != 0 && !desc.contains(i + 1))
+                if ((i + 1) % 8 != 0)
                 {
-                    ImGui::SameLine();
+                    auto next_desc = registry.getMapDescription(map, category, i + 1);
+                    if (next_desc.empty())
+                    {
+                        ImGui::SameLine();
+                    }
+                }
+            }
+
+            ImGui::PopID();
+        }
+    }
+}
+
+template <unsigned int N> void checklistManyMappedGlobal(const char *groupName, const char *category, okami::BitField<N> &bits)
+{
+    GROUP(groupName)
+    {
+        auto &registry = okami::GameStateRegistry::instance();
+
+        for (unsigned i = 0; i < N; i++)
+        {
+            ImGui::PushID(i);
+
+            auto description = registry.getGlobalDescription(category, i);
+            if (!description.empty())
+            {
+                checkboxBitField(description.data(), i, bits);
+            }
+            else
+            {
+                checkboxBitField("", i, bits);
+                if ((i + 1) % 8 != 0)
+                {
+                    auto next_desc = registry.getGlobalDescription(category, i + 1);
+                    if (next_desc.empty())
+                    {
+                        ImGui::SameLine();
+                    }
                 }
             }
 
@@ -367,42 +406,37 @@ bool weaponComboBox(const char *comboId, int *weapon)
 
 void mapGroup(unsigned mapIdx)
 {
-    if (okami::mapDataDesc.contains(mapIdx))
+    auto &registry = okami::GameStateRegistry::instance();
+    okami::MapState &mapState = okami::MapData->at(mapIdx);
+    auto mapEnum = static_cast<okami::MapTypes::Enum>(mapIdx);
+
+    checklistManyMapped("Event Bits", "worldStateBits", mapEnum, okami::AmmyCollections->world.mapStateBits[mapIdx]);
+    checklistManyMapped("Collected Objects", "collectedObjects", mapEnum, mapState.collectedObjects);
+    checklistManyMapped("Areas Restored", "areasRestored", mapEnum, mapState.areasRestored);
+    checklistManyMapped("Trees Bloomed", "treesBloomed", mapEnum, mapState.treesBloomed);
+    checklistManyMapped("Cursed Trees Bloomed", "cursedTreesBloomed", mapEnum, mapState.cursedTreesBloomed);
+    checklistManyMapped("Fights Cleared", "fightsCleared", mapEnum, mapState.fightsCleared);
+    checklistManyMapped("Maps Explored", "mapsExplored", mapEnum, mapState.mapsExplored);
+    checklistManyMapped("NPC Has More to Say", "npcs", mapEnum, mapState.npcHasMoreToSay);
+    checklistManyMapped("NPC Unknown", "npcs", mapEnum, mapState.npcUnknown);
+
+    GROUP("Custom Data")
     {
-        okami::MapState &mapState = okami::MapData->at(mapIdx);
-        const okami::MapDesc &mapDesc = okami::mapDataDesc.at(mapIdx);
-
-        checklistManyMapped("Event Bits", mapDesc.worldStateBits, okami::AmmyCollections->world.mapStateBits[mapIdx]);
-        checklistManyMapped("Collected Objects", mapDesc.collectedObjects, mapState.collectedObjects);
-        checklistManyMapped("Areas Restored", mapDesc.areasRestored, mapState.areasRestored);
-        checklistManyMapped("Trees Bloomed", mapDesc.treesBloomed, mapState.treesBloomed);
-        checklistManyMapped("Cursed Trees Bloomed", mapDesc.cursedTreesBloomed, mapState.cursedTreesBloomed);
-        checklistManyMapped("Fights Cleared", mapDesc.fightsCleared, mapState.fightsCleared);
-        checklistManyMapped("Maps Explored", mapDesc.mapsExplored, mapState.mapsExplored);
-        checklistManyMapped("NPC Has More to Say", mapDesc.npcs, mapState.npcHasMoreToSay);
-        checklistManyMapped("NPC Unknown", mapDesc.npcs, mapState.npcUnknown);
-
-        GROUP("Custom Data")
+        for (unsigned i = 0; i < 32; i++)
         {
-            for (unsigned i = 0; i < 32; i++)
-            {
-                ImGui::PushID(i);
-                std::string name = mapDesc.userIndices.contains(i) ? mapDesc.userIndices.at(i) : std::to_string(i);
-                ImGui::Text("%08X", mapState.user[i]);
-                ImGui::SameLine();
-                ImGui::InputScalar(name.c_str(), ImGuiDataType_U32, &mapState.user[i]);
-                ImGui::SetItemTooltip("%d (0x%X)", i, i);
-                ImGui::PopID();
-            }
+            ImGui::PushID(i);
+            auto description = registry.getMapDescription(mapEnum, "userIndices", i);
+            std::string name = !description.empty() ? std::string(description) : std::to_string(i);
+            ImGui::Text("%08X", mapState.user[i]);
+            ImGui::SameLine();
+            ImGui::InputScalar(name.c_str(), ImGuiDataType_U32, &mapState.user[i]);
+            ImGui::SetItemTooltip("%d (0x%X)", i, i);
+            ImGui::PopID();
         }
+    }
 
-        checklistManyMapped("Unknown DC", mapDesc.field_DC, mapState.field_DC);
-        checklistManyMapped("Unknown E0", mapDesc.field_E0, mapState.field_E0);
-    }
-    else
-    {
-        ImGui::Text("Invalid map ID");
-    }
+    checklistManyMapped("Unknown DC", "field_DC", mapEnum, mapState.field_DC);
+    checklistManyMapped("Unknown E0", "field_E0", mapEnum, mapState.field_E0);
 }
 
 /**
@@ -501,6 +535,8 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     GROUP("Collections")
     {
         ImGui::Text("numSaves: %d", okami::AmmyCollections->numSaves);
+        ImGui::Text("currentMapId: %d", okami::AmmyCollections->currentMapId);
+        ImGui::Text("lastMapId: %d", okami::AmmyCollections->lastMapId);
         ImGui::Text("unk1: %d", okami::AmmyCollections->unk1);
         ImGui::Text("unk2: %d", okami::AmmyCollections->unk2);
         ImGui::Text("walletUpgrades: %d", okami::AmmyCollections->walletUpgrades);
@@ -760,7 +796,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
             okami::LoadingZoneTrigger.set(0x2);
         }
 
-        checklistManyMapped("Global Event Bits", okami::mapDataDesc.at(0).worldStateBits, okami::AmmyCollections->world.mapStateBits[0]);
+        checklistManyMappedGlobal("Global Event Bits", "commonStates", okami::AmmyCollections->world.mapStateBits[0]);
 
         GROUP("Current Map")
         {
