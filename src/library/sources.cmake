@@ -4,10 +4,9 @@ set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/bestiarytome.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/brushtype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dataverify.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/devdatafinderdesc.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/devdatamapdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dojotech.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/fish.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/gamestateregistry.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/itemtype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/logbook.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/maptype.cpp

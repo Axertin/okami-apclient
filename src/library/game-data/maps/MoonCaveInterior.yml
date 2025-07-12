@@ -1,0 +1,5 @@
+# Map: MoonCaveInterior
+
+worldStateBits:
+  2: "Orochi's Appetizer quest started"
+  26: "Orochi's Appetizer quest ended"

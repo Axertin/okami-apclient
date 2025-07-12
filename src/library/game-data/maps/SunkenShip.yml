@@ -1,0 +1,5 @@
+# Map: SunkenShip
+
+worldStateBits:
+  1: "Fox Rods quest ended"
+  3: "Sunken Treasure quest ended"

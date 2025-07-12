@@ -1,0 +1,10 @@
+# Map: CaveOfNagi
+
+worldStateBits:
+  9: "Entered cave cutscene trigger"
+  17: "Close enough to use rejuvenation on broken sword"
+  38: "Constellation pulsing"
+  43: "Set while in cave area"
+
+collectedObjects:
+  0: "Chest on the other side of the river (Stray Bead)"

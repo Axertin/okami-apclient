@@ -1,0 +1,94 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Okami Map State Configuration"
+type: object
+properties:
+  worldStateBits:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  userIndices:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  collectedObjects:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  areasRestored:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  treesBloomed:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  cursedTreesBloomed:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  fightsCleared:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  npcs:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  mapsExplored:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  field_DC:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  field_E0:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+# Allow any combination of the above properties, but no others
+additionalProperties: false

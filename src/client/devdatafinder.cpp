@@ -4,8 +4,7 @@
 #include "logger.h"
 #include "okami/data/maptype.hpp"
 #include "okami/data/structs.hpp"
-#include "okami/devdatafinderdesc.h"
-#include "okami/devdatamapdata.h"
+#include "okami/gamestateregistry.h"
 #include "okami/memorymap.hpp"
 
 namespace okami
@@ -74,6 +73,7 @@ template <> void compareInt<uint8_t>(const char *name, uint8_t old, uint8_t curr
 
 void comparePreviousStats()
 {
+    const auto &registry = okami::GameStateRegistry::instance();
     okami::CharacterStats &current = *okami::AmmyStats.get_ptr();
     okami::CharacterStats &old = previousStats;
 
@@ -83,6 +83,7 @@ void comparePreviousStats()
 
 void comparePreviousCollection()
 {
+    const auto &registry = okami::GameStateRegistry::instance();
     okami::CollectionData &current = *okami::AmmyCollections.get_ptr();
     okami::CollectionData &old = previousCollection;
 
@@ -95,8 +96,12 @@ void comparePreviousCollection()
     compareInt("WorldStateData::unk2", old.world.unk2, current.world.unk2);
     compareInt("WorldStateData::unk3", old.world.unk3, current.world.unk3);
     compareInt("WorldStateData::unk4", old.world.unk4, current.world.unk4);
-    compareBitfield("WorldStateData::keyItemsAcquired", old.world.keyItemsAcquired, current.world.keyItemsAcquired, keyItemsFoundDesc);
-    compareBitfield("WorldStateData::goldDustsAcquired", old.world.goldDustsAcquired, current.world.goldDustsAcquired, goldDustsFoundDesc);
+
+    auto &keyItemsFound = registry.getGlobalConfig().keyItemsFound;
+    auto &goldDustsFound = registry.getGlobalConfig().goldDustsFound;
+    compareBitfield("WorldStateData::keyItemsAcquired", old.world.keyItemsAcquired, current.world.keyItemsAcquired, keyItemsFound);
+    compareBitfield("WorldStateData::goldDustsAcquired", old.world.goldDustsAcquired, current.world.goldDustsAcquired, goldDustsFound);
+
     compareInt("WorldStateData::unk10", old.world.unk10, current.world.unk10);
     for (unsigned i = 0; i < 56; i++)
     {
@@ -107,9 +112,13 @@ void comparePreviousCollection()
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES + 1; i++)
     {
         std::string name = std::string("WorldStateData::mapStateBits[") + std::to_string(i) + "] (" + okami::MapTypes::GetName(i) + ")";
-        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], mapDataDesc.at(i).worldStateBits, true);
+        auto mapType = static_cast<MapTypes::Enum>(i);
+        auto &worldStateBits = registry.getMapConfig(mapType).worldStateBits;
+        compareBitfield(name.c_str(), old.world.mapStateBits[i], current.world.mapStateBits[i], worldStateBits, true);
     }
-    compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFedDesc);
+
+    auto &animalsFound = registry.getGlobalConfig().animalsFound;
+    compareBitfield("WorldStateData::animalsFedBits", old.world.animalsFedBits, current.world.animalsFedBits, animalsFound);
 
     compareInt("WorldStateData::currentFortuneFlags", old.world.currentFortuneFlags, current.world.currentFortuneFlags);
 
@@ -144,18 +153,26 @@ void comparePreviousCollection()
 
 void compareTrackerData()
 {
+    const auto &registry = okami::GameStateRegistry::instance();
     okami::TrackerData &current = *okami::AmmyTracker.get_ptr();
     okami::TrackerData &old = previousTracker;
 
-    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgressDesc, true);
-    compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTimeDesc);
+    auto &gameProgress = registry.getGlobalConfig().gameProgress;
+    auto &animalsFedFirstTime = registry.getGlobalConfig().animalsFedFirstTime;
+    compareBitfield("TrackerData::gameProgressionBits", old.gameProgressionBits, current.gameProgressionBits, gameProgress, true);
+    compareBitfield("TrackerData::animalsFedFirstTime", old.animalsFedFirstTime, current.animalsFedFirstTime, animalsFedFirstTime);
 
     compareBitfield("TrackerData::field_34", old.field_34, current.field_34, emptyMapDesc);
     compareBitfield("TrackerData::field_38", old.field_38, current.field_38, emptyMapDesc);
-    compareBitfield("TrackerData::brushUpgrades", old.brushUpgrades, current.brushUpgrades, brushUpgradesDesc);
+
+    auto &brushUpgrades = registry.getGlobalConfig().brushUpgrades;
+    compareBitfield("TrackerData::brushUpgrades", old.brushUpgrades, current.brushUpgrades, brushUpgrades);
+
     compareBitfield("TrackerData::optionFlags", old.optionFlags, current.optionFlags, emptyMapDesc);
 
-    compareBitfield("TrackerData::areasRestored", old.areasRestored, current.areasRestored, areasRestoredDesc);
+    auto &areasRestored = registry.getGlobalConfig().areasRestored;
+    compareBitfield("TrackerData::areasRestored", old.areasRestored, current.areasRestored, areasRestored);
+
     compareInt("TrackerData::field_52", old.field_52, current.field_52);
     compareInt("TrackerData::unk2", old.unk2, current.unk2);
     compareInt("TrackerData::field_6D", old.field_6D, current.field_6D);
@@ -165,16 +182,19 @@ void compareTrackerData()
 
 void comparePreviousMapData()
 {
+    const auto &registry = okami::GameStateRegistry::instance();
     auto &current = *okami::MapData.get_ptr();
     auto &old = previousMapData;
     std::string name;
 
     for (unsigned i = 0; i < okami::MapTypes::NUM_MAP_TYPES; i++)
     {
+        auto mapType = static_cast<MapTypes::Enum>(i);
+        const auto &mapConfig = registry.getMapConfig(mapType);
         std::string mapNamePrefix = std::string("(") + okami::MapTypes::GetName(i) + ") ";
         for (unsigned j = 0; j < 32; j++)
         {
-            if (mapDataDesc.at(i).userIndices.contains(j))
+            if (mapConfig.userIndices.contains(j))
                 continue;
 
             name = mapNamePrefix + std::string("MapState::user[") + std::to_string(j) + "]";
@@ -182,37 +202,38 @@ void comparePreviousMapData()
         }
 
         name = mapNamePrefix + std::string("MapState::collectedObjects");
-        compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapDataDesc.at(i).collectedObjects);
+        compareBitfield(name.c_str(), old[i].collectedObjects, current[i].collectedObjects, mapConfig.collectedObjects);
 
         name = mapNamePrefix + std::string("MapState::commonStates");
-        compareBitfield(name.c_str(), old[i].commonStates, current[i].commonStates, commonStatesDesc);
+        auto &commonStates = registry.getGlobalConfig().commonStates;
+        compareBitfield(name.c_str(), old[i].commonStates, current[i].commonStates, commonStates);
 
         name = mapNamePrefix + std::string("MapState::areasRestored");
-        compareBitfield(name.c_str(), old[i].areasRestored, current[i].areasRestored, mapDataDesc.at(i).areasRestored);
+        compareBitfield(name.c_str(), old[i].areasRestored, current[i].areasRestored, mapConfig.areasRestored);
 
         name = mapNamePrefix + std::string("MapState::treesBloomed");
-        compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapDataDesc.at(i).treesBloomed);
+        compareBitfield(name.c_str(), old[i].treesBloomed, current[i].treesBloomed, mapConfig.treesBloomed);
 
         name = mapNamePrefix + std::string("MapState::cursedTreesBloomed");
-        compareBitfield(name.c_str(), old[i].cursedTreesBloomed, current[i].cursedTreesBloomed, mapDataDesc.at(i).cursedTreesBloomed);
+        compareBitfield(name.c_str(), old[i].cursedTreesBloomed, current[i].cursedTreesBloomed, mapConfig.cursedTreesBloomed);
 
         name = mapNamePrefix + std::string("MapState::fightsCleared");
-        compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapDataDesc.at(i).fightsCleared);
+        compareBitfield(name.c_str(), old[i].fightsCleared, current[i].fightsCleared, mapConfig.fightsCleared);
 
         name = mapNamePrefix + std::string("MapState::npcHasMoreToSay");
-        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapDataDesc.at(i).npcs, true);
+        compareBitfield(name.c_str(), old[i].npcHasMoreToSay, current[i].npcHasMoreToSay, mapConfig.npcs, true);
 
         name = mapNamePrefix + std::string("MapState::npcUnknown");
-        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapDataDesc.at(i).npcs, true);
+        compareBitfield(name.c_str(), old[i].npcUnknown, current[i].npcUnknown, mapConfig.npcs, true);
 
         name = mapNamePrefix + std::string("MapState::mapsExplored");
-        compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapDataDesc.at(i).mapsExplored);
+        compareBitfield(name.c_str(), old[i].mapsExplored, current[i].mapsExplored, mapConfig.mapsExplored);
 
         name = mapNamePrefix + std::string("MapState::field_DC");
-        compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapDataDesc.at(i).field_DC);
+        compareBitfield(name.c_str(), old[i].field_DC, current[i].field_DC, mapConfig.field_DC);
 
         name = mapNamePrefix + std::string("MapState::field_E0");
-        compareBitfield(name.c_str(), old[i].field_E0, current[i].field_E0, mapDataDesc.at(i).field_E0);
+        compareBitfield(name.c_str(), old[i].field_E0, current[i].field_E0, mapConfig.field_E0);
     }
 }
 

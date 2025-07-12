@@ -1,0 +1,5 @@
+# Map: FishingwithKokariInAgata
+
+worldStateBits:
+  2: "Set on first entry"
+  4: "First ever bite tutorial triggered"

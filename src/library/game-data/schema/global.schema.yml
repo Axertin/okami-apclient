@@ -1,0 +1,69 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+title: "Okami Global State Configuration"
+type: object
+properties:
+  brushUpgrades:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  areasRestored:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  commonStates:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  gameProgress:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  keyItemsFound:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  goldDustsFound:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  animalsFound:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+  animalsFedFirstTime:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
+additionalProperties: false

@@ -1,0 +1,14 @@
+# Map: KusaVillage
+
+worldStateBits:
+  1: "Mysterious Windmill quest ended; Canine Warrior Hunt quest started"
+  11: "Canine Warrior Hunt ended; Remaining Warriors started"
+  27: "Defeat Crimson Helm! ended; Powerful Brew started"
+  28: "Spoke to Gourd Farmer"
+  29: "Spoke to Gourd Farmer part 2; Animal Hating Couple quest started"
+  33: "Divine Wind's Cessation started"
+  41: "Spoke to Merchant"
+  78: "Orbs Reunited quest ended; Divine Wind's Cessation ended; Defeat Crimson Helm! started"
+
+npcs:
+  0: "Gourd Farmer"
