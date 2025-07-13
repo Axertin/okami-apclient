@@ -3,153 +3,8 @@
 #
 cmake_minimum_required(VERSION 3.21)
 
-function(enable_strict_warnings target)
-  set_property(GLOBAL PROPERTY ENABLE_STRICT_WARNINGS_DEFINED TRUE)
-  get_target_property(target_type ${target} TYPE)
-
-  if(NOT target_type STREQUAL "INTERFACE_LIBRARY")
-    set(extra_warnings TRUE)
-  endif()
-
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "GNU")
-    target_compile_options(${target} PRIVATE -Wall
-      -Wno-c++98-compat
-      -Wno-c++98-compat-pedantic
-      -Wno-c++17-extensions
-      -Wno-unused-lambda-capture
-      -Wno-missing-field-initializers)
-
-    if(extra_warnings)
-      target_compile_options(${target} PRIVATE -Wextra -Wshadow -Wconversion)
-    endif()
-
-    if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
-      # target_compile_options(${target} PRIVATE -Werror)
-    endif()
-
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-    target_compile_options(${target} PRIVATE /W4 /permissive-)
-
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      target_compile_options(${target} PRIVATE
-        /clang:-Wno-c++98-compat
-        /clang:-Wno-c++98-compat-pedantic
-        /clang:-Wno-c++17-extensions
-        /clang:-Wno-unused-lambda-capture
-        /clang:-Wno-missing-field-initializers
-      )
-
-      if(extra_warnings)
-        target_compile_options(${target} PRIVATE
-          /clang:-Wold-style-cast
-          /clang:-Wextra-semi
-          /clang:-Wmicrosoft-include
-          /clang:-Wshadow
-          /clang:-Wunused-parameter
-          /clang:-Wnon-virtual-dtor
-          /clang:-Wmissing-variable-declarations
-          /clang:-Wheader-hygiene
-          /clang:-Wnonportable-include-path
-          /clang:-Wpragma-pack
-        )
-      endif()
-    endif()
-
-    if(CMAKE_BUILD_TYPE MATCHES "Release|RelWithDebInfo")
-      # target_compile_options(${target} PRIVATE /WX)
-    endif()
-
-    # Prevent Edit-and-Continue even in Debug
-    if(POLICY CMP0141)
-      set_property(TARGET ${target} PROPERTY MSVC_DEBUG_INFORMATION_FORMAT ProgramDatabase)
-    endif()
-
-  endif()
-endfunction()
-
-function(apply_release_optimizations target)
-  if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-      target_compile_options(${target} PRIVATE /O2 /Ob2 /GL /Gy)
-      target_link_options(${target} PRIVATE /LTCG /OPT:REF /OPT:ICF /INCREMENTAL:NO)
-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-      target_compile_options(${target} PRIVATE -O3 -flto)
-      target_link_options(${target} PRIVATE -flto LINKER:--gc-sections)
-    endif()
-
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      target_compile_options(${target} PRIVATE -flto=thin)
-    endif()
-  endif()
-endfunction()
-
-# Function to generate Windows resources with version info
-function(add_windows_resources target)
-  if(NOT WIN32)
-    return()
-  endif()
-
-  # Ensure version info is available
-  get_target_property(VERSION_STRING ${target} VERSION_STRING)
-  if(NOT VERSION_STRING)
-    message(WARNING "No version string found for ${target} - call add_git_version_info() first")
-    return()
-  endif()
-
-  # Parse semantic version from git version string
-  # Handle your versioning formats: "1.2.3", "1.2.3-dev.4", "1.2.3-alpha.1.2", "0.0.42-dev"
-  if(VERSION_STRING MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)")
-    set(VERSION_MAJOR ${CMAKE_MATCH_1})
-    set(VERSION_MINOR ${CMAKE_MATCH_2})
-    set(VERSION_PATCH ${CMAKE_MATCH_3})
-
-    # Extract build number from your specific format patterns
-    set(VERSION_BUILD 0)
-    if(VERSION_STRING MATCHES "-dev\\.([0-9]+)")
-      # "1.2.3-dev.4" -> build = 4
-      set(VERSION_BUILD ${CMAKE_MATCH_1})
-    elseif(VERSION_STRING MATCHES "-[a-zA-Z]+\\.[0-9]+\\.([0-9]+)")
-      # "1.2.3-alpha.1.2" -> build = 2  
-      set(VERSION_BUILD ${CMAKE_MATCH_1})
-    endif()
-  else()
-    message(WARNING "Could not parse version from '${VERSION_STRING}' - using defaults")
-    set(VERSION_MAJOR 0)
-    set(VERSION_MINOR 0)
-    set(VERSION_PATCH 0)
-    set(VERSION_BUILD 0)
-  endif()
-
-  # Set up resource compiler
-  if(CMAKE_RC_COMPILER)
-    # Already found (MinGW case)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
-    # clang-cl case - use MSVC rc.exe
-    find_program(CMAKE_RC_COMPILER rc.exe HINTS ${MSVC_TOOLSET_DIR})
-    if(NOT CMAKE_RC_COMPILER)
-      find_program(CMAKE_RC_COMPILER rc.exe)
-    endif()
-  endif()
-
-  if(NOT CMAKE_RC_COMPILER)
-    message(WARNING "Resource compiler not found - ${target} will not have icon/version info")
-    return()
-  endif()
-
-  enable_language(RC)
-
-  # Generate the resource file
-  set(RC_FILE "${CMAKE_CURRENT_BINARY_DIR}/${target}_resources.rc")
-
-  configure_file(
-    "${CMAKE_SOURCE_DIR}/cmake/resources.rc.in"
-    "${RC_FILE}"
-    @ONLY
-  )
-
-  # Add to target
-  target_sources(${target} PRIVATE ${RC_FILE})
-endfunction()
+include(cmake/compiler_setup.cmake)
+include(cmake/resource_files.cmake)
 
 # option to build tests only (for Linux development)
 option(BUILD_TESTS_ONLY "Build only the test target, skip Windows-specific targets" OFF)
@@ -195,7 +50,6 @@ if(POLICY CMP0091)
   cmake_policy(SET CMP0091 NEW)
 endif()
 
-# Fallback default if not passed via preset
 set(CXX_STD "23" CACHE STRING "Requested C++ standard")
 set(STD_FEATURE "cxx_std_${CXX_STD}")
 
@@ -234,7 +88,6 @@ else()
   find_package(yaml-cpp CONFIG REQUIRED)
 endif()
 
-# Glob tree for sources and includes, and put them in lists
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
 # Game library (memory structures and such)
@@ -353,7 +206,6 @@ endif()
 add_executable(okami-tests ${tests} ${TESTED_UNITS})
 target_compile_definitions(okami-tests PRIVATE ASIO_STANDALONE AP_NO_SCHEMA)
 
-# Conditional linking based on platform and build mode
 if(BUILD_TESTS_ONLY)
   # Linux-only test build - exclude Windows-specific libraries
   target_link_libraries(okami-tests PRIVATE
@@ -365,8 +217,6 @@ if(BUILD_TESTS_ONLY)
     OpenSSL::Crypto
     ZLIB::ZLIB
   )
-  # target_include_directories(okami-tests SYSTEM PRIVATE /usr/x86_64-w64-mingw32ucrt/sys-root/mingw/include)
-  # Don't set _WIN32_WINNT for Linux builds
 else()
   # Full Windows build
   target_compile_definitions(okami-tests PRIVATE _WIN32_WINNT=0x0601)
