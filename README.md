@@ -2,7 +2,11 @@
 
 A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipelago.gg) support and integration, to be used in tandem with the [Okami APWorld](https://github.com/Ragmoa/Archipelago/tree/test_logic).
 
-**Note**: This mod is in active development. Instability, bugs, and missing features are to be expected.
+This project follows [Semantic Versioning 2.0.0](https://semver.org/):
+- **v0.x.x** = Pre-release, expect breaking changes and missing core functionality
+- **v1.0.0+** = Stable, public-sync-ready releases
+
+**While aspects of the mod may be functional or even playble in their current states, it is not recommended to run this in AP syncs yet!**
 
 ## Installing
 
@@ -78,8 +82,9 @@ When opening in Visual Studio, accept the .vsconfig prompt to install the Clang 
 - [vcpkg](https://github.com/microsoft/vcpkg)
 - [apclientpp](https://github.com/black-sliver/apclientpp)
 - [wswrap](https://github.com/black-sliver/wswrap)
-- [websocketpp](github.com/zaphoyd/websocketpp)
-- [imgui](github.com/ocornut/imgui)
+- [websocketpp](https://github.com/zaphoyd/websocketpp)
+- [imgui](https://github.com/ocornut/imgui)
+- [cpp-yaml](https://github.com/jbeder/yaml-cpp)
 
 This project uses [vcpkg](https://github.com/microsoft/vcpkg) for dependency management. Dependencies are automatically handled through the build system. Ensure you clone submodules recursively (`git clone --recursive git@github.com:Axertin/okami-apclient.git`).
 
@@ -124,7 +129,7 @@ Of course, if you're cross-compiling, use the cross-compile targets.
 Contributions are welcome! Please:
 
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
-2. Fork the repository
+2. Fork the repository (or request repo access)
 3. Create a feature branch from `master`
 4. Test your changes
 5. Run `format.sh` (use Git Bash on Windows)
