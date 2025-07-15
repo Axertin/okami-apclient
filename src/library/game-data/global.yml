@@ -30,13 +30,24 @@ gameProgress:
   12: "lily pad constellation appears"
 
 keyItemsFound:
-  6: "Pinwheel"
+  0: "Charcoal"
+  1: "Blinding Snow"
+  2: "Treasure Box"
+  4: "Herbal Medicine"
+  5: "Pinwheel"
+  6: "Marlin Rod"
 
 goldDustsFound:
   0: "Agata Forest Merchant 1"
   1: "Agata Forest Merchant 2"
   2: "Kusa Village Merchant 1"
   3: "Kusa Village Merchant 2"
+  4: "Sei-an City Merchant 1"
+  5: "Sei-an City Merchant 2"
+  6: "Wep'keer Merchant 1"
+  7: "Wep'keer Merchant 2"
+  8: "Ark of Yamato Merchant 1"
+  9: "Ark of Yamato Merchant 2"
 
 animalsFound:
   1: "Hana Valley campfire - Monkey"
