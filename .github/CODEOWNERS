@@ -1,0 +1,12 @@
+# Maintainer review required for all changes unless overridden later
+* @Axertin
+
+/src/client/ @heinermann @Axertin
+/src/library/ @heinermann @Axertin
+/include/okami @heinermann @Axertin
+
+
+# Allow all collaborators to approve changes in the below dirs
+/src/library/game-data/
+/docs/
+/test/
