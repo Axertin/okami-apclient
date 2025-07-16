@@ -47,7 +47,7 @@ typedef void(__fastcall *ItemPickupFn)(void *rcx, int edx, int r8);
 static ItemPickupFn oItemPickup = nullptr;
 void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, int NumItems)
 {
-    logDebug("[gamehooks] ItemPickup called with 0x%p, 0x%X, 0x%X", ItemID, NumItems);
+    logDebug("[gamehooks] ItemPickup called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, ItemID, NumItems);
     if (NumItems > 0)
     {
         if (checkItems(ItemID))
