@@ -1,0 +1,35 @@
+# Map: AgataForest
+
+worldStateBits:
+  3: "Doing Constellation"
+  # 4: "Doing Constellation" #set in gameplay / Unset in loading screens? #TODO: Needs testing
+  # 7: "Battle Paused" # TODO: Needs testing
+  # 8: "In Battle" # TODO: Needs testing
+  9: "Carrying Susano"
+  10: "Celestial Brush Locked"
+  16: "Remaining Warriors quest ended; Orbs Reunited quest started"
+  19: "Entered Cave"
+  22: "Taka Pass Sapling Healed"
+  31: "Festival quest ended; City Checkpoint quest started; To the Capital! quest started"
+  38: "Near a mermaid warp"
+  40: "Hana Valley sapling Healed"
+  41: "Shinshu Field sapling Healed"
+  42: "Agata Forest sapling Healed"
+  44: "Ryoshima Coast sapling Healed"
+  46: "Shinshu Field mermaid spring unlocked"
+  47: "Agata Forest mermaid spring unlocked"
+  48: "Taka Pass mermaid spring unlocked"
+  49: "Sasa Sanctuary mermaid spring unlocked"
+  50: "Ryoshima Coast mermaid spring unlocked"
+  51: "N.Ryoshima Coast mermaid spring unlocked"
+  52: "Dragon Palace mermaid spring unlocked"
+  53: "Kamui mermaid spring unlocked"
+  62: "Waka 1 defeated"
+  63: "Shinshu Adventure quest ended"
+  # 65: Agata fishing related, caught big fish? #TODO: Needs Testing
+  64: "Fishing in Agata Forest"
+  70: "Divine Springs tutorial (Power slash 2)"
+  71: "Donated to Divine Spring first time (Power slash 2)"
+  72: "Bandit Spider defeated"
+  84: "First dojo cutscene trigger"
+  97: "Fishing tutorial shown"
