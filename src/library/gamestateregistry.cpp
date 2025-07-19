@@ -90,7 +90,8 @@ std::string_view GameStateRegistry::getMapDescription(MapTypes::Enum map, std::s
     {
     }
 
-    const auto &config = getMapConfig(map);
+    static const MapStateConfig empty_config{};
+    const auto &config = (map_configs_.find(map) != map_configs_.end()) ? map_configs_.at(map) : empty_config;
 
     static const std::unordered_map<std::string_view, const std::unordered_map<unsigned, std::string> MapStateConfig::*> category_map = {
         {"worldStateBits", &MapStateConfig::worldStateBits},
