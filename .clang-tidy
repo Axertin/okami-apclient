@@ -1,0 +1,34 @@
+---
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -bugprone-suspicious-stringview-data-usage,
+  -bugprone-switch-missing-default-case,
+  performance-*,
+  -performance-avoid-endl,
+  -performance-no-int-to-ptr,
+  -performance-unnecessary-value-param,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-emplace,
+  readability-container-size-empty,
+  readability-delete-null-pointer,
+  readability-redundant-*,
+  readability-simplify-boolean-expr,
+  readability-string-compare,
+  misc-unused-parameters,
+  misc-unused-using-decls,
+  misc-redundant-expression,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-analyzer-optin.performance.Padding
+
+WarningsAsErrors: ""
+HeaderFilterRegex: ".*src/.*"
+FormatStyle: file
+
+CheckOptions:
+  - key: performance-for-range-copy.WarnOnAllAutoCopies
+    value: false

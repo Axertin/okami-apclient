@@ -121,7 +121,7 @@ template <unsigned int N> void checklistManyMapped(const char *groupName, const 
             }
             else
             {
-                checkboxBitField("", i, bits);
+                checkboxBitField("Unknown", i, bits);
                 if ((i + 1) % 8 != 0)
                 {
                     auto next_desc = registry.getMapDescription(map, category, i + 1);
@@ -154,7 +154,7 @@ template <unsigned int N> void checklistManyMappedGlobal(const char *groupName, 
             }
             else
             {
-                checkboxBitField("", i, bits);
+                checkboxBitField("Unknown", i, bits);
                 if ((i + 1) % 8 != 0)
                 {
                     auto next_desc = registry.getGlobalDescription(category, i + 1);

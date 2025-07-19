@@ -79,6 +79,26 @@
             }
         },
         {
+            "name": "x64-clang-debug-analysis",
+            "displayName": "x64 Debug (Clang) + Static Analysis",
+            "inherits": "x64-clang-debug",
+            "cacheVariables": {
+                "ENABLE_CLANG_TIDY": "ON",
+                "ENABLE_CPPCHECK": "ON",
+                "STATIC_ANALYSIS_AS_ERRORS": "OFF"
+            }
+        },
+        {
+            "name": "x64-clang-debug-analysis-strict",
+            "displayName": "x64 Debug (Clang) + Static Analysis (Errors)",
+            "inherits": "x64-clang-debug",
+            "cacheVariables": {
+                "ENABLE_CLANG_TIDY": "ON",
+                "ENABLE_CPPCHECK": "ON",
+                "STATIC_ANALYSIS_AS_ERRORS": "ON"
+            }
+        },
+        {
             "name": "linux-native-base",
             "hidden": true,
             "generator": "Ninja",
@@ -167,6 +187,22 @@
                 "all"
             ],
             "configuration": "Debug"
+        },
+        {
+            "name": "x64-clang-debug-analysis",
+            "configurePreset": "x64-clang-debug-analysis",
+            "description": "Build with static analysis enabled",
+            "targets": [
+                "all"
+            ]
+        },
+        {
+            "name": "x64-clang-debug-scan-build",
+            "configurePreset": "x64-clang-debug",
+            "description": "Run comprehensive scan-build analysis",
+            "targets": [
+                "scan-build"
+            ]
         }
     ],
     "vendor": {
