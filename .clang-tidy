@@ -1,0 +1,21 @@
+---
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-exception-escape,
+  -bugprone-narrowing-conversions,
+  -bugprone-suspicious-stringview-data-usage,
+  performance-*,
+  -performance-avoid-endl,
+  -performance-no-int-to-ptr,
+  modernize-use-nullptr,
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+
+WarningsAsErrors: ""
+HeaderFilterRegex: ".*src/.*"
+FormatStyle: file
+
+CheckOptions:
+  - key: performance-for-range-copy.WarnOnAllAutoCopies
+    value: false
