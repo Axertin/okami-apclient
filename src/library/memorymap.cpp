@@ -29,6 +29,8 @@ MemoryAccessor<TrackerData> AmmyTracker;
 MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
 
+MemoryAccessor<BitField<86>> GlobalGameStateFlags;
+
 MemoryAccessor<float> AmmyPosX;
 MemoryAccessor<float> AmmyPosY;
 MemoryAccessor<float> AmmyPosZ;
@@ -86,6 +88,8 @@ void initVariables()
     MapData.bind(okami::MainBase + 0xB322B0);
     DialogBits.bind(okami::MainBase + 0xB36CF0);
     // everything needed for a save file ^^^^^^^^
+
+    GlobalGameStateFlags.bind(okami::MainBase + 0xB6B2AC);
 
     BrushTargetInk.bind(okami::MainBase + 0x8928A4);
     BrushCurrentInk.bind(okami::MainBase + 0x8928A8);

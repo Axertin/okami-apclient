@@ -33,6 +33,7 @@ struct GlobalConfig
     std::unordered_map<unsigned, std::string> goldDustsFound;
     std::unordered_map<unsigned, std::string> animalsFound;
     std::unordered_map<unsigned, std::string> animalsFedFirstTime;
+    std::unordered_map<unsigned, std::string> globalGameState;
 };
 
 /**

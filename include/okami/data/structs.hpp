@@ -112,6 +112,7 @@ struct WorldStateData
     uint8_t brushUnknown[64];                     // set from BrushData (+0x8909C0 + 0x80)
     BitField<256> riverOfHeavensRejuvenationBits; // set from BrushData (+0x8909C0 + 0x1F60)
 
+    // From shops
     BitField<32> keyItemsAcquired;
     BitField<32> goldDustsAcquired;
 

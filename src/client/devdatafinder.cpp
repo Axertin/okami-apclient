@@ -17,6 +17,7 @@ okami::CharacterStats previousStats;
 okami::CollectionData previousCollection;
 okami::TrackerData previousTracker;
 std::array<okami::MapState, okami::MapTypes::NUM_MAP_TYPES> previousMapData;
+okami::BitField<86> previousGameStateFlags;
 
 const std::unordered_map<unsigned int, std::string> emptyMapDesc{};
 
@@ -73,7 +74,6 @@ template <> void compareInt<uint8_t>(const char *name, uint8_t old, uint8_t curr
 
 void comparePreviousStats()
 {
-    const auto &registry = okami::GameStateRegistry::instance();
     okami::CharacterStats &current = *okami::AmmyStats.get_ptr();
     okami::CharacterStats &old = previousStats;
 
@@ -237,12 +237,23 @@ void comparePreviousMapData()
     }
 }
 
+void compareOtherStates()
+{
+    const auto &registry = okami::GameStateRegistry::instance();
+    okami::BitField<86> &current = *okami::GlobalGameStateFlags.get_ptr();
+    okami::BitField<86> &old = previousGameStateFlags;
+
+    auto &doc = registry.getGlobalConfig().globalGameState;
+    compareBitfield("GlobalGameState", old, current, doc, true);
+}
+
 void saveData()
 {
     previousStats = *okami::AmmyStats.get_ptr();
     previousCollection = *okami::AmmyCollections.get_ptr();
     previousTracker = *okami::AmmyTracker.get_ptr();
     previousMapData = *okami::MapData.get_ptr();
+    previousGameStateFlags = *okami::GlobalGameStateFlags.get_ptr();
 }
 } // namespace
 
@@ -258,6 +269,7 @@ void devDataFinder_OnGameTick()
     comparePreviousCollection();
     compareTrackerData();
     comparePreviousMapData();
+    compareOtherStates();
 
     saveData();
 }

@@ -27,6 +27,7 @@ extern MemoryAccessor<CollectionData> AmmyCollections;
 extern MemoryAccessor<TrackerData> AmmyTracker;
 extern MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 extern MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
+extern MemoryAccessor<BitField<86>> GlobalGameStateFlags;
 
 extern MemoryAccessor<float> AmmyPosX;
 extern MemoryAccessor<float> AmmyPosY;
