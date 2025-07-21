@@ -2,13 +2,49 @@
 
 worldStateBits:
   1: "Mysterious Windmill quest ended; Canine Warrior Hunt quest started"
+  3: "Glowing bamboo cut"
+  4: "Chi freed from glowing bamboo"
+  5: "Area by flowers sign restored"
   11: "Canine Warrior Hunt ended; Remaining Warriors started"
+  21: "Curse cleared"
+  22: "Area by flowers sign restored"
   27: "Defeat Crimson Helm! ended; Powerful Brew started"
   28: "Spoke to Gourd Farmer"
   29: "Spoke to Gourd Farmer part 2; Animal Hating Couple quest started"
+  31: "Susano cutscene triggered"
+  32: "Mr Bamboo cutscene triggered"
   33: "Divine Wind's Cessation started"
+  38: "Spoke to Komuso first time"
   41: "Spoke to Merchant"
+  43: "Spoke to Mrs Plum first time"
+  49: "Spoke to Flower Girl first time"
+  50: "Spoke to Flower Girl after restoring flowers"
+  68: "Bonked Inn washroom door with Haruka"
+  73: "Fight triggered"
   78: "Orbs Reunited quest ended; Divine Wind's Cessation ended; Defeat Crimson Helm! started"
+  80: "Crack by Komuso bombed"
+  81: "Interacted with glowing bamboo"
+  86: "Interacted with glowing bamboo"
+  87: "Glowing bamboo cut"
+  99: "Interacting with Chi (cleared when not)"
+  101: "Interacting with Rei (cleared when not)"
+  106: "Near Princess Fuse (cursed)"
+
+userIndices:
+  0: "Warrior dogs met flags"
+
+collectedObjects:
+  4: "Clover behind where Susano is sleeping"
+  5: "Clover above ladder on path to Mr Bamboo's"
+  8: "Buried chest in Mr Bamboo's house (Stray Bead)"
+  9: "Buried chest by shallow pond outside Princess Fuse's (Stray Bead)"
+  14: "Chest in shallow pond right of Princess Fuse's (Dragonfly Bead)"
+  15: "Chest in shallow pond left of Princess Fuse's (Lacquerware Set)"
+
+areasRestored:
+  16: "In front of water the flowers sign"
 
 npcs:
   0: "Gourd Farmer"
+  3: "Princess Fuse"
+  7: "Flower Girl"

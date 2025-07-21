@@ -131,10 +131,11 @@ std::string_view GameStateRegistry::getGlobalDescription(std::string_view catego
     const auto &config = getGlobalConfig();
 
     static const std::unordered_map<std::string_view, const std::unordered_map<unsigned, std::string> GlobalConfig::*> category_map = {
-        {"brushUpgrades", &GlobalConfig::brushUpgrades}, {"areasRestored", &GlobalConfig::areasRestored},
-        {"commonStates", &GlobalConfig::commonStates},   {"gameProgress", &GlobalConfig::gameProgress},
-        {"keyItemsFound", &GlobalConfig::keyItemsFound}, {"goldDustsFound", &GlobalConfig::goldDustsFound},
-        {"animalsFound", &GlobalConfig::animalsFound},   {"animalsFedFirstTime", &GlobalConfig::animalsFedFirstTime}};
+        {"brushUpgrades", &GlobalConfig::brushUpgrades},    {"areasRestored", &GlobalConfig::areasRestored},
+        {"commonStates", &GlobalConfig::commonStates},      {"gameProgress", &GlobalConfig::gameProgress},
+        {"keyItemsFound", &GlobalConfig::keyItemsFound},    {"goldDustsFound", &GlobalConfig::goldDustsFound},
+        {"animalsFound", &GlobalConfig::animalsFound},      {"animalsFedFirstTime", &GlobalConfig::animalsFedFirstTime},
+        {"globalGameState", &GlobalConfig::globalGameState}};
 
     if (auto it = category_map.find(category); it != category_map.end())
     {
@@ -345,6 +346,7 @@ GlobalConfig GameStateRegistry::parseGlobalYamlFile(const std::filesystem::path 
     parseCategory("goldDustsFound", config.goldDustsFound);
     parseCategory("animalsFound", config.animalsFound);
     parseCategory("animalsFedFirstTime", config.animalsFedFirstTime);
+    parseCategory("globalGameState", config.globalGameState);
 
     return config;
 }

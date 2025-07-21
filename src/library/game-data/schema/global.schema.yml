@@ -66,4 +66,12 @@ properties:
         minLength: 1
     additionalProperties: false
 
+  globalGameState:
+    type: object
+    patternProperties:
+      "^[0-9]+$":
+        type: string
+        minLength: 1
+    additionalProperties: false
+
 additionalProperties: false
