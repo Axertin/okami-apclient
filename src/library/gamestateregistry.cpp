@@ -170,8 +170,14 @@ const MapStateConfig &GameStateRegistry::getMapConfig(MapTypes::Enum map) const
 
 const GlobalConfig &GameStateRegistry::getGlobalConfig() const
 {
-    // NOTE: This method should NOT lock mutex or call instance()
-    // It's only called from within other methods that already hold the lock
+    std::lock_guard<std::mutex> lock(mutex_);
+
+    // load global config if not already loaded
+    if (!global_loaded_)
+    {
+        const_cast<GameStateRegistry *>(this)->loadGlobalConfig();
+    }
+
     return global_config_;
 }
 
