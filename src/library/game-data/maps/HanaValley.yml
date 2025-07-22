@@ -39,6 +39,7 @@ worldStateBits:
   45: "Restoring cursed grass"
   47: "Post-campfire battle dialogue triggered"
   48: "Triggering sun cutscene without crystal"
+  50: "Issun scolding for trying to leave"
   51: "Set during distrub bear's sleep convo"
   53: "Issun constellation explanation if messing around"
   55: "Explanation for bloom"
@@ -54,10 +55,10 @@ worldStateBits:
   75: "Campfire lit/group active"
   76: "Cursed grass restored"
   77: "All trees restored (reward chest)"
-  78: "Sun can be drawn on mural"
+  78: "Lighting change toggle"
   80: "Constellation pulse"
   82: "Hana Valley restoration process"
-  83: "cursed tree related"
+  83: "In cursed tree introduction cutscene"
   85: "Interacting with constellation"
 
 collectedObjects:
