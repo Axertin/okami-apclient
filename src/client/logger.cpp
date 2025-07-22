@@ -163,7 +163,7 @@ void Logger::setupStreamCapture()
 {
     auto captureCallback = [this](const std::string &msg, LogLevel level) { this->addLogEntry(msg, level); };
 
-    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback, LogLevel::Info);
+    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback, LogLevel::Debug);
     stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback, LogLevel::Error);
 }
 

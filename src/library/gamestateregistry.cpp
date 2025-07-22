@@ -15,6 +15,9 @@
 #include <unistd.h>
 #endif
 
+#define REGISTRY_LOG(msg) std::cout << "[GameStateRegistry] " << msg << std::endl
+#define REGISTRY_ERR(msg) std::cerr << "[GameStateRegistry] ERROR: " << msg << std::endl
+
 namespace okami
 {
 
@@ -26,8 +29,9 @@ GameStateRegistry::GameStateRegistry(std::filesystem::path config_directory) : c
         {
             std::filesystem::create_directories(config_dir_);
         }
-        catch (const std::exception &)
+        catch (const std::exception &e)
         {
+            REGISTRY_ERR(std::format("Exception creating yaml directories: {}", e.what()));
             // If we can't create directories, just continue with empty config
         }
     }
@@ -54,10 +58,18 @@ IGameStateRegistry &GameStateRegistry::instance()
                            try
                            {
                                auto game_data_path = getModuleDirectory() / "game-data";
+                               REGISTRY_LOG(std::format("Looking for game-data at: {}", game_data_path.string()));
+
+                               if (!std::filesystem::exists(game_data_path))
+                               {
+                                   REGISTRY_ERR(std::format("game-data directory not found at: {}", game_data_path.string()));
+                               }
+
                                instance_ = new GameStateRegistry(game_data_path);
                            }
-                           catch (const std::exception &)
+                           catch (const std::exception &e)
                            {
+                               REGISTRY_ERR(std::format("Exception during initialization: {}", e.what()));
                                // Fallback to empty config if anything fails
                                instance_ = new GameStateRegistry({});
                            }
@@ -191,6 +203,7 @@ bool GameStateRegistry::hasMapConfig(MapTypes::Enum map) const
 
 void GameStateRegistry::reload()
 {
+    REGISTRY_LOG("Reloading yaml registry...");
     std::lock_guard<std::mutex> lock(mutex_);
     map_configs_.clear();
     global_config_ = GlobalConfig{};
@@ -232,10 +245,12 @@ void GameStateRegistry::loadMapConfig(MapTypes::Enum map)
 
     try
     {
+        REGISTRY_LOG(std::format("Loading map config: {}", file_path.filename().string()));
         map_configs_[map] = parseMapYamlFile(file_path);
     }
     catch (const std::exception &e)
     {
+        REGISTRY_ERR(std::format("Failed to parse {}: {}", file_path.filename().string(), e.what()));
         map_configs_[map] = MapStateConfig{};
     }
 }
@@ -250,15 +265,18 @@ void GameStateRegistry::loadGlobalConfig()
 
     if (config_dir_.empty())
     {
+        REGISTRY_LOG("Config directory is empty, using empty global config");
         global_config_ = GlobalConfig{};
         global_loaded_ = true;
         return;
     }
 
     auto file_path = config_dir_ / "global.yml";
+    REGISTRY_LOG(std::format("Loading global.yml from: {}", file_path.string()));
 
     if (!std::filesystem::exists(file_path))
     {
+        REGISTRY_ERR(std::format("global.yml not found at: {}", file_path.string()));
         global_config_ = GlobalConfig{};
         global_loaded_ = true;
         return;
@@ -268,8 +286,9 @@ void GameStateRegistry::loadGlobalConfig()
     {
         global_config_ = parseGlobalYamlFile(file_path);
     }
-    catch (const std::exception &)
+    catch (const std::exception &e)
     {
+        REGISTRY_ERR(std::format("Failed to parse global.yml: {}", e.what()));
         // Use empty config on parse failure
         global_config_ = GlobalConfig{};
     }
@@ -294,8 +313,9 @@ MapStateConfig GameStateRegistry::parseMapYamlFile(const std::filesystem::path &
                     std::string description = item.second.as<std::string>();
                     target_map[index] = std::move(description);
                 }
-                catch (const std::exception &)
+                catch (const std::exception &e)
                 {
+                    REGISTRY_ERR(std::format("Failed to parse map yaml entry: {}", e.what()));
                     // Skip malformed entries
                     continue;
                 }
@@ -335,8 +355,9 @@ GlobalConfig GameStateRegistry::parseGlobalYamlFile(const std::filesystem::path 
                     std::string description = item.second.as<std::string>();
                     target_map[index] = std::move(description);
                 }
-                catch (const std::exception &)
+                catch (const std::exception &e)
                 {
+                    REGISTRY_ERR(std::format("Failed to parse global yaml entry: {}", e.what()));
                     // Skip malformed entries
                     continue;
                 }
@@ -365,6 +386,7 @@ std::filesystem::path GameStateRegistry::getModuleDirectory()
     auto dummy = +[]() {};
     if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, reinterpret_cast<LPCWSTR>(dummy), &hModule))
     {
+        REGISTRY_ERR("Failed to get current module path, falling back to current path");
         // Fallback to current directory if we can't get module path
         return std::filesystem::current_path();
     }
@@ -372,6 +394,7 @@ std::filesystem::path GameStateRegistry::getModuleDirectory()
     wchar_t path[MAX_PATH];
     if (GetModuleFileNameW(hModule, path, MAX_PATH) == 0)
     {
+        REGISTRY_ERR("Failed to get current module filename, falling back to current path");
         // Fallback to current directory if we can't get module filename
         return std::filesystem::current_path();
     }
