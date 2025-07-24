@@ -501,9 +501,9 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
     }
 
     auto &globalGameStateDesc = okami::GameStateRegistry::instance().getGlobalConfig().globalGameState;
-    checklistColsMapped("Global Game State Bits", 2, "Gl", *okami::GlobalGameStateFlags.get_ptr(), globalGameStateDesc);
+    checklistColsMapped("Global Game State", 2, "Gl", *okami::GlobalGameStateFlags.get_ptr(), globalGameStateDesc);
 
-    GROUP("Ammy Stats", ImGuiTreeNodeFlags_DefaultOpen)
+    GROUP("Ammy Stats")
     {
         ImGui::Text("Pos: (%.2f, %.2f, %.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
 
