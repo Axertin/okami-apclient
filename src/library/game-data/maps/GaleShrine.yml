@@ -1,0 +1,8 @@
+# Map: GaleShrine
+
+worldStateBits:
+  2: "Speak to Yatsu first time"
+  3: "Speak to Yatsu second time"
+
+npcs:
+  0: "Yatsu"
