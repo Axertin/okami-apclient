@@ -1,3 +1,5 @@
+#pragma once
+
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -24,11 +26,15 @@ class ShopDefinition
     ShopDefinition();
 
     // Warning: Do NOT call when shop is currently open.
-    const std::uint8_t *GetData();
+    const uint8_t *GetData();
 
     void SetStock(const std::vector<okami::ItemShopStock> &stock);
-    void AddItem(okami::ItemTypes::Enum item, std::int32_t cost);
+    void AddItem(okami::ItemTypes::Enum item, int32_t cost);
     void ClearStock();
-    void SetSellValueOverride(okami::ItemTypes::Enum item, std::int32_t sellValue);
-    void SetSellValues(okami::SellValueArray sellValues);
+    void SetSellValueOverride(okami::ItemTypes::Enum item, int32_t sellValue);
+    void SetSellValues(const okami::SellValueArray &replacementSellValues);
 };
+
+void InitializeShopData();
+const void *GetCurrentItemShopData(uint32_t shopNum);
+okami::ItemShopStock *GetCurrentDemonFangShopData(uint32_t *pNumItems);

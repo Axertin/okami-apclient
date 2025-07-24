@@ -1,17 +1,135 @@
-// Regular Item Shops
-// TODO: override GetShopVariation to call GetShopMetadata without processing the result (eliminate variations)
-//+0x4420C0 __int64 __fastcall GetShopVariation(void*, int shopNum, char **pszShopTextureName);
+#include <cstdint>
+#include <vector>
 
-//+0x441E40 void *__fastcall GetShopMetadata(void*, int shopNum, _DWORD *pNumEvents, char **pszShopTextureName);
+#include "okami/items.hpp"
+#include "okami/maps.hpp"
+#include "shop.h"
 
-// nIdx is the resource index and shop number (when 2 shops are on the same map, I think only Seian city)
-// TODO: override this, and if pszType == "ISL" then return the data from our own shop definition based on ExteriorMapID and nIdx
-//       first arg ignored
-//+0x1B1770 void *__fastcall LoadRsc_0(void *pRscPackage, const char *pszType, int nIdx)
+static ShopDefinition AgataForestShop;
+static ShopDefinition ArkOfYamatoShop;
+static ShopDefinition CityCheckpointShop;
+static ShopDefinition DragonPalaceShop;
+static ShopDefinition KamikiPostTeiShop;
+static ShopDefinition KamikiShop;
+static ShopDefinition KamikiPastShop;
+static ShopDefinition KamuiShop;
+static ShopDefinition KusaShop;
+static ShopDefinition MoonCaveInteriorShop;
+static ShopDefinition MoonCaveStaircaseShop;
+static ShopDefinition NRyoshimaShop;
+static ShopDefinition OniIslandInteriorShop;
+static ShopDefinition PonctanShop;
+static ShopDefinition RyoshimaShop;
+static ShopDefinition SasaShop;
+static ShopDefinition SeianWeaponShop;
+static ShopDefinition SeianFishShop;
+static ShopDefinition ShinshuShop;
+static ShopDefinition TakaPassShop;
+static ShopDefinition WawkuShrineShop;
 
-// Demon Fang Shops
-// TODO: Override this and return the shop stocks directly based on ExteriorMapID, first arg ignored
-//+0x43F5A0 okami::ItemShopStock *__fastcall cKibaShop__GetShopStockList(void*, _DWORD *numItems)
+static std::vector<okami::ItemShopStock> AgataFangShop;
+static std::vector<okami::ItemShopStock> ArkOfYamatoFangShop;
+static std::vector<okami::ItemShopStock> ImperialPalaceFangShop;
 
-// TODO: Skill shop/dojo rando
-// LoadRsc_0 called with "SSL", use ExteriorMapID
+void InitializeShopData()
+{
+    // TODO update shops with AP information here
+
+    KamikiShop.SetStock({
+        {okami::ItemTypes::MarlinRod, 100},
+        {okami::ItemTypes::ExorcismSlipM, 100},
+    });
+
+    // Special sell prices for some fish
+    TakaPassShop.SetSellValues(okami::DefaultTakaPassItemSellPrices);
+    SeianFishShop.SetSellValues(okami::DefaultSeianFishShopItemSellPrices);
+}
+
+const void *GetCurrentItemShopData(uint32_t shopNum)
+{
+    auto mapID = static_cast<okami::MapID::Enum>(okami::ExteriorMapID.get());
+
+    switch (mapID)
+    {
+    case okami::MapID::AgataForestCursed:
+    case okami::MapID::AgataForestHealed:
+        return AgataForestShop.GetData();
+    case okami::MapID::ArkofYamato:
+        return ArkOfYamatoShop.GetData();
+    case okami::MapID::CityCheckpoint:
+        return CityCheckpointShop.GetData();
+    case okami::MapID::DragonPalace:
+        return DragonPalaceShop.GetData();
+    case okami::MapID::KamikiVillagePostTei:
+        return KamikiPostTeiShop.GetData();
+    case okami::MapID::KamikiVillageCursed:
+    case okami::MapID::KamikiVillage:
+        return KamikiShop.GetData();
+    case okami::MapID::KamikiVillagePast:
+        return KamikiPastShop.GetData();
+    case okami::MapID::KamuiCursed:
+    case okami::MapID::KamuiHealed:
+        return KamuiShop.GetData();
+    case okami::MapID::KusaVillage:
+        return KusaShop.GetData();
+    case okami::MapID::MoonCaveInterior:
+        return MoonCaveInteriorShop.GetData();
+    case okami::MapID::MoonCaveStaircaseAndOrochiArena:
+        return MoonCaveStaircaseShop.GetData();
+    case okami::MapID::NRyoshimaCoast:
+        return NRyoshimaShop.GetData();
+    case okami::MapID::OniIslandLowerInterior:
+        return OniIslandInteriorShop.GetData();
+    case okami::MapID::Ponctan:
+        return PonctanShop.GetData();
+    case okami::MapID::RyoshimaCoastCursed:
+    case okami::MapID::RyoshimaCoastHealed:
+        return RyoshimaShop.GetData();
+    case okami::MapID::SasaSanctuary:
+        return SasaShop.GetData();
+    case okami::MapID::SeianCityCommonersQuarter:
+        switch (shopNum)
+        {
+        case 0:
+            return SeianWeaponShop.GetData();
+        case 1:
+            return SeianFishShop.GetData();
+        }
+        break;
+    case okami::MapID::ShinshuFieldCursed:
+    case okami::MapID::ShinshuFieldHealed:
+        return ShinshuShop.GetData();
+    case okami::MapID::TakaPassCursed:
+    case okami::MapID::TakaPassHealed:
+        return TakaPassShop.GetData();
+    case okami::MapID::WawkuShrine:
+        return WawkuShrineShop.GetData();
+    default:
+        break;
+    }
+    return nullptr;
+}
+
+okami::ItemShopStock *GetCurrentDemonFangShopData(uint32_t *pNumItems)
+{
+    auto mapID = static_cast<okami::MapID::Enum>(okami::ExteriorMapID.get());
+
+    switch (mapID)
+    {
+    case okami::MapID::AgataForestCursed:
+    case okami::MapID::AgataForestHealed:
+        *pNumItems = AgataFangShop.size();
+        return AgataFangShop.data();
+    case okami::MapID::ArkofYamato:
+        *pNumItems = ArkOfYamatoFangShop.size();
+        return ArkOfYamatoFangShop.data();
+    case okami::MapID::ImperialPalaceAmmySize:
+        *pNumItems = ImperialPalaceFangShop.size();
+        return ImperialPalaceFangShop.data();
+    default:
+        break;
+    }
+
+    *pNumItems = 0;
+    return nullptr;
+}

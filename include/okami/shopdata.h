@@ -1,3 +1,4 @@
+#pragma once
 #include <array>
 
 #include "okami/data/itemtype.hpp"
@@ -11,6 +12,7 @@ extern SellValueArray DefaultItemSellPrices;
 extern SellValueArray DefaultTakaPassItemSellPrices;
 extern SellValueArray DefaultSeianFishShopItemSellPrices;
 
+#pragma pack(push, 1)
 struct ISLHeader
 {
     char magic[4];
@@ -31,5 +33,6 @@ struct ShopEntry
     std::int32_t num;
     ItemShopStock stock[1];
 };
+#pragma pack(pop)
 
 } // namespace okami

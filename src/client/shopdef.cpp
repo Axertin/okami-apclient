@@ -1,7 +1,7 @@
-#include "shop.h"
-
 #include <array>
 #include <cstdint>
+
+#include "shop.h"
 
 ShopDefinition::ShopDefinition()
 {
@@ -72,8 +72,8 @@ void ShopDefinition::SetSellValueOverride(okami::ItemTypes::Enum item, std::int3
     this->dirty = true;
 }
 
-void ShopDefinition::SetSellValues(okami::SellValueArray sellValues)
+void ShopDefinition::SetSellValues(const okami::SellValueArray &replacementSellValues)
 {
-    this->sellValues = sellValues;
+    this->sellValues = replacementSellValues;
     this->dirty = true;
 }

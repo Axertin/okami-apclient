@@ -7,6 +7,9 @@
 namespace okami
 {
 
+static_assert(sizeof(ISLHeader) == 16);
+static_assert(sizeof(ItemShopStock) == 12);
+
 SellValueArray DefaultItemSellPrices = {
     -1,    -1, -1, -1,
     1250, // HolyBoneL
