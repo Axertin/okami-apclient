@@ -35,7 +35,7 @@ cmake --preset x64-clang-debug
 cmake --build --preset x64-clang-debug
 ```
 
-See the [README](README.md) for detailed build instructions.
+See the [Development Guide](docs/development.md) for detailed build instructions.
 
 ## Code Contributions
 
