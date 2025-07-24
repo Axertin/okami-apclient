@@ -11,10 +11,33 @@ This guide covers the technical details of developing okami-apclient.
 - **Ninja** build system
 - **Git** with submodules support
 
-### Visual Studio Setup
+### Recommended: VSCode Setup
+For the easiest development experience:
+
+1. **Install VS2022** with C++ development workload (for compiler toolchain)
+   - You can also install Ninja, Clang, and the Windows SDK separately, if you prefer.
+2. **Install VSCode** or VSCodium, if you prefer
+3. **Open folder** in VSCode → repo root directory
+   - VSCode will prompt to install recommended extensions - click "Install All"
+4. **CMake: Configure** → select preset (`x64-clang-debug`, or your user preset, or similar)
+5. **CMake: Build** → select target or "all"
+
+VSCode automatically hides dependency targets and provides a clean interface.
+
+### Alternative: Visual Studio
+If you prefer Visual Studio IDE...
+
 When opening the project in Visual Studio, accept the `.vsconfig` prompt to install the Clang toolchain. If it doesn't prompt you, close and reopen the project after the initial load.
 
+For more specific Visual Studio guidance, see [Visual Studio Setup](#visual-studio-setup).
+
 ## Building
+
+### Before You Start - Verification
+Run these commands to verify your setup:
+- `ninja --version` (should show "1.10+" or similar, not "command not found")
+- `git --version` 
+- `cmake --version` (should show "3.21+" or higher)
 
 ### Quick Start
 ```bash
@@ -46,6 +69,45 @@ If Ninja isn't in your PATH, create `CMakeUserPresets.json`:
   ]
 }
 ```
+
+### Visual Studio Setup (Detailed)
+
+Visual Studio's CMake integration can be tricky with dependency-heavy projects. Follow these steps for the best experience:
+
+#### Initial Setup
+1. **Open Visual Studio** (if opening from start menu, select "Continue without code")
+2. **Open the project**: File → Open → CMake... → select the repository's root `CMakeLists.txt`
+   - **Do NOT** open any `.sln` files in the `external/` folder
+3. **Accept the `.vsconfig` prompt** to install the Clang toolchain
+   - If no prompt appears, close and reopen the project after initial configuration
+
+#### Configuration and Building
+3. **Wait for initial configure** to complete (watch the Output window)
+4. **Select build preset** in the toolbar: choose `x64-clang-debug` or `x64-clang-release`
+5. **Select build target** in the dropdown next to the build button:
+   - **Main targets**: `okami-apclient`, `okami-loader`, `okami-tests`
+   - **Ignore**: All the dependency targets (imgui examples, vcpkg packages, etc.)
+   - **Tip**: The target dropdown will be very long due to dependencies - scroll to find your targets
+
+#### Target Selection Tips
+- **Default startup**: The first target alphabetically will be selected initially
+- **Main targets to use**:
+  - `okami-loader` - The injector executable
+  - `okami-apclient` - The main mod DLL
+  - `okami-tests` - Unit tests
+- **Avoid**: Any targets with names like `example_*`, `*_test`, or vcpkg package names
+
+#### Building
+- **Single target**: Select target → press F7 or click Build
+- **All targets**: Use the command line instead: `cmake --build --preset x64-clang-debug`
+- **Clean build**: Build → Clean All, then rebuild
+
+#### Troubleshooting
+- **"Target not found" errors**: Make sure you selected the root `CMakeLists.txt`, not a subdirectory
+- **Clang not working**: Ensure the Clang toolchain is installed via the VS Installer
+- **Too many targets**: This is normal - dependencies expose many targets that can't be hidden in VS
+- **Git submodules missing**: Run `git submodule update --init --recursive`
+- **vcpkg errors**: Delete `out/` folder and reconfigure
 
 ## Code Style & Formatting
 
