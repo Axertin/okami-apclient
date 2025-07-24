@@ -6,7 +6,7 @@ This project follows [Semantic Versioning 2.0.0](https://semver.org/):
 - **v0.x.x** = Pre-release, expect breaking changes and missing core functionality
 - **v1.0.0+** = Stable, public-sync-ready releases
 
-**While aspects of the mod may be functional or even playble in their current states, it is not recommended to run this in AP syncs yet!**
+**While aspects of the mod may be functional or even playable in their current states, it is not recommended to run this in AP syncs yet!**
 
 ## Installing
 
@@ -67,83 +67,42 @@ The reason `protontricks` is required is to place the okami-loader.exe process i
 
 ## Building From Source
 
+For development setup and detailed build instructions, see [docs/development.md](docs/development.md).
+
+### Quick Start
+```bash
+git clone --recursive https://github.com/Axertin/okami-apclient.git
+cd okami-apclient
+cmake --preset x64-clang-debug
+cmake --build --preset x64-clang-debug
+```
+
 ### Prerequisites
+- **Visual Studio 2019/2022** or Windows SDK + Clang/MSVC
+- **CMake 3.21+**, **Ninja**, **Git** with submodules support
 
-- **Visual Studio 2019/2022** (Or Windows SDK + CLang/MSVC separately)
-  - When cross-compiling from Linux, you will instead need `mingw64-gcc-c++` and `mingw64-winpthreads-static`
-- **CMake 3.21+**
-- **Ninja**
-- **Your favorite text editor** (hopefully one with CMake support to make your life easier)
+Dependencies are automatically handled through vcpkg and git submodules.
 
-When opening in Visual Studio, accept the .vsconfig prompt to install the Clang toolchain. VS may not prompt you until you re-open the project after loading it for the first time.
-
-### Dependencies
-
-- [vcpkg](https://github.com/microsoft/vcpkg)
-- [apclientpp](https://github.com/black-sliver/apclientpp)
-- [wswrap](https://github.com/black-sliver/wswrap)
-- [websocketpp](https://github.com/zaphoyd/websocketpp)
-- [imgui](https://github.com/ocornut/imgui)
-- [cpp-yaml](https://github.com/jbeder/yaml-cpp)
-
-This project uses [vcpkg](https://github.com/microsoft/vcpkg) for dependency management. Dependencies are automatically handled through the build system. Ensure you clone submodules recursively (`git clone --recursive git@github.com:Axertin/okami-apclient.git`).
-
-### Building
-
-If Ninja is already in your `PATH`, no setup is required. If you're using Visual Studio, just make sure the Ninja component is installed (it will usually be auto-detected). If Ninja is installed but not on your `PATH`, you can tell CMake where to find it using a personal `CMakeUserPresets.json`:
-
-  ```json
-  {
-    "version": 3,
-    "configurePresets": [
-      {
-        "name": "my-local-debug",
-        "inherits": "x64-clang-debug",
-        "cacheVariables": {
-          "CMAKE_MAKE_PROGRAM": "C:/path/to/ninja/ninja.exe",
-          "CMAKE_INSTALL_PREFIX": "C:/path/to/Okami"
-        }
-      }
-    ]
-  }
-  ```
-
-This example also shows how to override the install path to your own okami install directory so that cmake install targets work on your machine.
-
-To build:
-
-  ```bash
-  # Debug build
-  cmake --preset x64-clang-debug
-  cmake --build --preset x64-clang-debug
-
-  # Release build  
-  cmake --preset x64-clang-release
-  cmake --build --preset x64-clang-release
-  ```
-
-Of course, if you're cross-compiling, use the cross-compile targets.
+For first-time contributors, detailed setup instructions, and troubleshooting, see the [development guide](docs/development.md).
 
 ## Contributing
 
 Contributions are welcome! Please:
 
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and [docs/development.md](docs/development.md)
 2. Fork the repository (or request repo access)
 3. Create a feature branch from `master`
-4. Test your changes
-5. Run `format.sh` (use Git Bash on Windows)
-   1. CI uses `clang-format` v20. You probably want to match this to ensure you're formatting the same as the CI does.
-6. Submit a pull request
+4. Test your changes and run `format.sh` (use Git Bash on Windows)
+5. Submit a pull request
 
 ## Project Structure
 
-- `src/client/`: Main mod DLL
-- `src/library/`: Library for game memory offsets, types, and structures
-- `src/loader/`: Okami Injector and DLL loader
-- `include/okami/`: Game-specific helpers, memory structures, and initializations
-- `external/`: Dependency Git submodules
-- `cmake/`: Build system utilities
+- `src/client/` - Main mod DLL
+- `src/library/` - Library for game memory offsets, types, and structures
+- `src/loader/` - Okami Injector and DLL loader
+- `include/okami/` - Game-specific helpers, memory structures, and initializations
+- `external/` - Dependency Git submodules
+- `cmake/` - Build system utilities
 
 ## Acknowledgements
 
