@@ -7,4 +7,5 @@ worldStateBits:
   12: "Rejection quest started"
   17: "Blocked Path ended"
   35: "Blocked Path started"
+  36: "Mermaid coin stock added to shops"
   61: "Spring No More started"

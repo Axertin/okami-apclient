@@ -11,4 +11,6 @@ set(client_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/logger.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/loginwindow.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/receive.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/shopdef.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/shops.cpp
 )
