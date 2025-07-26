@@ -55,6 +55,16 @@ template <unsigned int N> struct BitField
         return result;
     }
 
+    bool operator!=(const BitField<N> &other) const
+    {
+        for (unsigned i = 0; i < array_size; i++)
+        {
+            if (values[i] != other.values[i])
+                return true;
+        }
+        return false;
+    }
+
     // Checks if any bit has been set
     bool HasAnySet() const
     {
