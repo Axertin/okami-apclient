@@ -245,7 +245,7 @@ void GameStateRegistry::loadMapConfig(MapTypes::Enum map)
 
     try
     {
-        REGISTRY_LOG(std::format("Loading map config: {}", file_path.filename().string()));
+        // REGISTRY_LOG(std::format("Loading map config: {}", file_path.filename().string()));
         map_configs_[map] = parseMapYamlFile(file_path);
     }
     catch (const std::exception &e)

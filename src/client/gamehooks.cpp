@@ -1,5 +1,6 @@
 #include "gamehooks.h"
 
+#include "aplocationmonitor.h"
 #include "archipelagosocket.h"
 #include "checks.h"
 #include "devdatafinder.h"
@@ -42,6 +43,10 @@ void __cdecl GameHooks::onGameTick()
     auto &apsocket = ArchipelagoSocket::instance();
     apsocket.poll();
     apsocket.processMainThreadTasks();
+
+    APLocationMonitor::instance().update();
+
+    // call vanilla tick
     Main_FlowerTickOrigin();
 }
 
@@ -52,10 +57,15 @@ void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, 
     logDebug("[gamehooks] Picked up %d %s", NumItems, okami::ItemTypes::GetName(ItemID));
     if (NumItems > 0)
     {
-        if (checkItems(ItemID))
-        {
-            return;
-        }
+        logInfo("[gamehooks] Calling APLocationMonitor::onItemPickup with item=%d, quantity=%d", ItemID, NumItems);
+        APLocationMonitor::instance().onItemPickup(ItemID, NumItems);
+    }
+
+    // Check if we should supress vanilla
+    // TODO: determine if this is how we want to keep doing this
+    if (checkItems(ItemID))
+    {
+        return;
     }
 
     return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
