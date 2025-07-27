@@ -29,10 +29,10 @@ function(enable_strict_warnings target)
         endif()
 
         # Add threading-specific warnings for GCC
-        target_compile_options(${target} PRIVATE
-            -Wthread-safety
-            -Wno-thread-safety-analysis # Can be noisy, enable selectively
-        )
+        # target_compile_options(${target} PRIVATE
+        #     -Wthread-safety
+        #     -Wno-thread-safety-analysis # Can be noisy, enable selectively
+        # )
 
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
         target_compile_options(${target} PRIVATE /W4 /permissive-)

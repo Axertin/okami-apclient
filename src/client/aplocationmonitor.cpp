@@ -90,7 +90,7 @@ void APLocationMonitor::onWorldStateBitChange(int mapId, unsigned int bitIndex, 
         int64_t locationId = getWorldStateBitLocationId(mapId, bitIndex);
         sendLocation(locationId);
 
-        logDebug("[aplocation] WorldStateBit change: map=%d, bit=%u, location=%" PRId64, mapId, bitIndex, locationId);
+        logDebug("[aplocation] WorldStateBit change: %s, bit=%u, location=%" PRId64, okami::decodeMapName(mapId), bitIndex, locationId);
     }
 }
 
@@ -102,7 +102,7 @@ void APLocationMonitor::onCollectedObjectChange(int mapId, unsigned int bitIndex
         int64_t locationId = getCollectedObjectLocationId(mapId, bitIndex);
         sendLocation(locationId);
 
-        logDebug("[aplocation] CollectedObject change: map=%d, bit=%u, location=%" PRId64, mapId, bitIndex, locationId);
+        logDebug("[aplocation] CollectedObject change: %s, bit=%u, location=%" PRId64, okami::decodeMapName(mapId), bitIndex, locationId);
     }
 }
 
