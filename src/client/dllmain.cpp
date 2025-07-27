@@ -69,7 +69,7 @@ extern "C" __declspec(dllexport) LRESULT CALLBACK entry(int nCode, WPARAM wParam
         logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
 
         if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
+            return CallNextHookEx(nullptr, nCode, wParam, lParam);
         GameHooks::setup();
         guiInitHooks();
         checkInit();
@@ -78,5 +78,5 @@ extern "C" __declspec(dllexport) LRESULT CALLBACK entry(int nCode, WPARAM wParam
         APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
     }
 
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
+    return CallNextHookEx(nullptr, nCode, wParam, lParam);
 }

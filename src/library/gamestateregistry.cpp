@@ -15,8 +15,8 @@
 #include <unistd.h>
 #endif
 
-#define REGISTRY_LOG(msg) std::cout << "[GameStateRegistry] " << msg << std::endl
-#define REGISTRY_ERR(msg) std::cerr << "[GameStateRegistry] ERROR: " << msg << std::endl
+#define REGISTRY_LOG(msg) std::cout << "[GameStateRegistry] " << (msg) << std::endl
+#define REGISTRY_ERR(msg) std::cerr << "[GameStateRegistry] ERROR: " << (msg) << std::endl
 
 namespace okami
 {
