@@ -2,7 +2,6 @@
 
 #include "aplocationmonitor.h"
 #include "archipelagosocket.h"
-#include "checks.h"
 #include "devdatafinder.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
@@ -62,11 +61,11 @@ void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, 
     }
 
     // Check if we should supress vanilla
-    // TODO: determine if this is how we want to keep doing this
-    if (checkItems(ItemID))
-    {
-        return;
-    }
+    // TODO: determine a better way to tell what to supress
+    // if (checkItems(ItemID))
+    // {
+    //     return;
+    // }
 
     return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
 }
@@ -76,7 +75,6 @@ static EditBrushesFn oEditBrushes = nullptr;
 bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex, int Operation)
 {
     logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
-    checkBrushes(BitIndex);
 
     // return oEditBrushes(MaybeInventoryStruct, BitIndex, Operation);
 

@@ -2,7 +2,6 @@
 set(client_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/aplocationmonitor.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/archipelagosocket.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/client/checks.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/console.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devdatafinder.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/client/devtools.cpp
