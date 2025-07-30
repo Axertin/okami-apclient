@@ -26,7 +26,7 @@ enum class BrushOverlay : uint8_t
     inferno = 10,
     fireburst = 11,
     power_slash = 12,
-    watersprout = 13,
+    waterspout = 13,
     deluge = 14,
     fountain = 15,
 
