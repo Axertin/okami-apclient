@@ -483,7 +483,6 @@ std::optional<data_t> GetItemGraphic(uint32_t itemId)
 
     // TODO replacements for: 10 yen, 50 yen, 100 yen, 150 yen, 500 yen, Spirit Globe S + Ink Bottle
 
-    // TODO id/idsgfudecore.idd -> tex TBL for brush strokes
     // TODO ??? for dojo moves
     // TODO satome orbs
 
@@ -498,7 +497,20 @@ const std::unordered_map<uint32_t, uint32_t> BrushIconMapping = {
 std::optional<data_t> GetBrushGraphic(uint32_t brushId)
 {
     // TODO: IceStorm, MistWarp, Fountain, Deluge, Fireburst, Thunderbolt, Whirlwind, DotTrees, Greensprout
-    return std::nullopt;
+    static ResourcePackage pkg{"data_pc/id/idsgfudecore.idd"};
+    if (!pkg)
+        return std::nullopt;
+
+    static ResourcePackage texPkg{pkg.getEntryData({"TBL"}, 1).value_or({})};
+    if (!texPkg)
+        return std::nullopt;
+
+    auto icoData = texPkg.getEntryData(BrushIconMapping.at(brushId) - 1);
+    if (!icoData)
+    {
+        std::cerr << "DDS not found for brush " << brushId << std::endl;
+    }
+    return icoData;
 }
 
 void WriteNewPackage(const std::vector<data_t> &pkgData, const std::filesystem::path &filename)
@@ -511,6 +523,20 @@ void WriteNewPackage(const std::vector<data_t> &pkgData, const std::filesystem::
     pkg.write(filename);
 }
 
+std::optional<data_t> LoadAPIcon()
+{
+    std::string apIconFilename = "mods/apclient/game-data/icons/ap.dds";
+    std::ifstream apIconIn{apIconFilename, std::ios::binary};
+    if (!apIconIn)
+        return std::nullopt;
+
+    size_t apIconSize = std::filesystem::file_size(apIconFilename);
+    data_t apIcon(apIconSize);
+
+    apIconIn.read(reinterpret_cast<char *>(apIcon.data()), apIcon.size());
+    return apIcon;
+}
+
 void RecompileItemGraphics()
 {
     std::vector<data_t> newPkgTextures;
@@ -519,7 +545,18 @@ void RecompileItemGraphics()
     std::filesystem::create_directories("dump/");
     for (unsigned i = 0; i < ItemTypes::NUM_ITEM_TYPES; i++)
     {
-        auto iconTexData = GetItemGraphic(i);
+        // FIXME: this is temporary until suspend process hooks are fixed
+        if (i == okami::ItemTypes::Unused_52)
+        {
+            std::optional<data_t> apIcon = LoadAPIcon();
+            if (apIcon)
+            {
+                newPkgTextures.emplace_back(*apIcon);
+                continue;
+            }
+        }
+
+        std::optional<data_t> iconTexData = GetItemGraphic(i);
         if (iconTexData)
         {
             std::ofstream out{std::format("dump/item {:03} ({}).dds", i, okami::ItemTypes::GetName(i)), std::ios::binary};
@@ -536,6 +573,26 @@ void RecompileItemGraphics()
             {
                 newPkgTextures.emplace_back(newPkgTextures[0]);
             }
+        }
+    }
+
+    for (unsigned i = 0; i < BrushTypes::NUM_BRUSH_TYPES; i++)
+    {
+        std::optional<data_t> iconTexData = std::nullopt;
+        if (BrushIconMapping.contains(i))
+        {
+            iconTexData = GetBrushGraphic(i);
+        }
+
+        if (iconTexData)
+        {
+            std::ofstream out{std::format("dump/brush {:03} ({}).dds", i, okami::BrushTypes::GetName(i)), std::ios::binary};
+            out.write(reinterpret_cast<char *>(iconTexData->data()), iconTexData->size());
+        }
+        else
+        {
+            std::ofstream out{std::format("dump/brush {:03} ({}) NOT FOUND.dds", i, okami::BrushTypes::GetName(i))};
+            out << "oof" << std::endl;
         }
     }
 
