@@ -245,7 +245,7 @@ template <unsigned int N> void checklistColsUnnamed(const char *groupName, unsig
 
 template <unsigned int N, class Fn> void checklistColsTome(const char *groupName, const Fn &pNameFn, okami::BitField<N> &collected, okami::BitField<N> &viewed)
 {
-    std::string name;
+    // std::string name;
 
     GROUP(groupName)
     {

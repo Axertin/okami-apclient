@@ -1,7 +1,7 @@
 #include "gamehooks.h"
 
+#include "aplocationmonitor.h"
 #include "archipelagosocket.h"
-#include "checks.h"
 #include "devdatafinder.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
@@ -42,6 +42,10 @@ void __cdecl GameHooks::onGameTick()
     auto &apsocket = ArchipelagoSocket::instance();
     apsocket.poll();
     apsocket.processMainThreadTasks();
+
+    APLocationMonitor::instance().update();
+
+    // call vanilla tick
     Main_FlowerTickOrigin();
 }
 
@@ -52,11 +56,16 @@ void __fastcall GameHooks::onItemPickup(void *MaybeInventoryStruct, int ItemID, 
     logDebug("[gamehooks] Picked up %d %s", NumItems, okami::ItemTypes::GetName(ItemID));
     if (NumItems > 0)
     {
-        if (checkItems(ItemID))
-        {
-            return;
-        }
+        logInfo("[gamehooks] Calling APLocationMonitor::onItemPickup with item=%d, quantity=%d", ItemID, NumItems);
+        APLocationMonitor::instance().onItemPickup(ItemID, NumItems);
     }
+
+    // Check if we should supress vanilla
+    // TODO: determine a better way to tell what to supress
+    // if (checkItems(ItemID))
+    // {
+    //     return;
+    // }
 
     return oItemPickup(MaybeInventoryStruct, ItemID, NumItems);
 }
@@ -66,7 +75,6 @@ static EditBrushesFn oEditBrushes = nullptr;
 bool __fastcall GameHooks::onBrushEdit(void *MaybeInventoryStruct, int BitIndex, int Operation)
 {
     logDebug("[gamehooks] EditBrushes called with 0x%p, 0x%X, 0x%X", MaybeInventoryStruct, BitIndex, Operation);
-    checkBrushes(BitIndex);
 
     // return oEditBrushes(MaybeInventoryStruct, BitIndex, Operation);
 
