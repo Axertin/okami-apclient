@@ -274,4 +274,87 @@ struct MapState
     BitField<32> field_DC;
     BitField<32> field_E0;
 };
+
+struct DummyVirtTable
+{
+    void *vtable;
+};
+
+struct cObjGui
+{
+    int64_t field_0;
+    void *pUiElements;
+    int64_t field_10;
+    void *pUiIdxNum;
+    int32_t numUiElements;
+    int32_t field_24;
+    int32_t field_28;
+    char field_2C;
+    char field_2D;
+    char field_2E;
+    char field_2F;
+};
+
+struct ShopInventory
+{
+    uint32_t itemType;
+    uint32_t cost;
+};
+
+struct cShopBase : public DummyVirtTable
+{
+    cObjGui gui;
+    ShopInventory *inventory;
+    ShopInventory *inventorySorted;
+    void *shopSlots;
+    const char *pszShopNpcImgFile;
+    void *pShopRscPkg;
+    void *pIconsRsc;
+    void *pShopNPCImg;
+    hx::Texture *pShopNPCImgTexture;
+    char hasShopNPCTexture;
+    char field_71; // probably padding
+    char field_72;
+    char field_73;
+    int32_t shopIdRsc;
+    int32_t shopNPCTextureRsc;
+    char field_7C;
+    char field_7D;
+    int16_t purchaseQuantity;
+    char numSlots;
+    char numVisibleSlots;
+    char scrollOffset;
+    char visualSelectIndex;
+    char field_84;
+    char field_85;
+    char field_86;
+    char field_87;
+    int32_t field_88;
+    char interactSeqState;
+    char actionState;
+    char actionSubstate;
+    char field_8F;
+};
+
+struct cItemShop : cShopBase
+{
+    void *itemStockList;
+    void *itemSellCosts;
+    int32_t iconRef;
+    int32_t shopStockVariation;
+    float field_B0;
+    float field_B4;
+    float field_B8;
+    char field_BC;
+    char shopModeSel;
+    char field_BE;
+    char numItemSlots;
+    char field_C0;
+    char field_C1;
+    char field_C2;
+    char field_C3;
+    int32_t inputController;
+    int32_t lastPressedController;
+    int32_t field_CC;
+};
 } // namespace okami

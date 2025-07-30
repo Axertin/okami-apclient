@@ -111,3 +111,8 @@ MAP_CHECK(collectedObjects, 0x8C);
 MAP_CHECK(timeOfDay, 0x9C);
 MAP_CHECK(areasRestored, 0xA0);
 MAP_CHECK(npcHasMoreToSay, 0xC4);
+
+static_assert(sizeof(cObjGui) == 0x30);
+static_assert(sizeof(cShopBase) == 0x98);
+static_assert(sizeof(cItemShop) == 0xD0);
+static_assert(sizeof(ShopInventory) == 8);

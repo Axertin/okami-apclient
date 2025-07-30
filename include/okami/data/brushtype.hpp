@@ -26,7 +26,7 @@ enum Enum
     VeilOfMist,
     Fountain,
     Deluge,
-    Watersprout,
+    Waterspout,
     PowerSlash,
     Fireburst,
     Inferno,
