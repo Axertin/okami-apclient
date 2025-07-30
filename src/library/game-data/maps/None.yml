@@ -7,6 +7,8 @@ worldStateBits:
   # 8: "In Battle" # TODO: Needs testing
   9: "Carrying Susano"
   10: "Celestial Brush Locked"
+  # 13: "Obtained Hayabusa's Loyalty Orb" # TODO: test
+  # 14: "Obtained Ume's Justice Orb" # TODO: test
   16: "Remaining Warriors quest ended; Orbs Reunited quest started"
   19: "Entered Cave"
   22: "Taka Pass Sapling Healed"
