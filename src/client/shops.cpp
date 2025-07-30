@@ -34,11 +34,13 @@ static std::vector<okami::ItemShopStock> ImperialPalaceFangShop;
 void InitializeShopData()
 {
     // TODO update shops with AP information here
+    for (uint32_t i = 140; i < 150; i++)
+    {
+        if (i == okami::ItemTypes::Nothing)
+            continue;
 
-    KamikiShop.SetStock({
-        {okami::ItemTypes::MarlinRod, 100},
-        {okami::ItemTypes::ExorcismSlipM, 100},
-    });
+        KamikiShop.AddItem(static_cast<okami::ItemTypes::Enum>(i), 10);
+    }
 
     // Special sell prices for some fish
     TakaPassShop.SetSellValues(okami::DefaultTakaPassItemSellPrices);
