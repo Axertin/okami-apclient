@@ -1,7 +1,9 @@
 #include "logger.h"
 
+#include <chrono>
 #include <cstdio>
 #include <ctime>
+#include <format>
 #include <iomanip>
 #include <memory>
 #include <sstream>
@@ -11,11 +13,9 @@ Logger *g_Logger = nullptr;
 
 LogEntry::LogEntry(const std::string &msg, LogLevel lvl) : message(msg), level(lvl)
 {
-    auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
-    std::ostringstream oss;
-    oss << std::put_time(&tm, "%H:%M:%S");
-    timestamp = oss.str();
+    auto now = std::chrono::system_clock::now();
+    auto local_time = std::chrono::current_zone()->to_local(now);
+    timestamp = std::format("{:%H:%M:%S}", local_time);
 }
 
 ImVec4 LogEntry::getColor() const
@@ -147,12 +147,12 @@ void Logger::initializeLogFile()
     // Create logs directory if it doesn't exist
     std::filesystem::create_directories("logs");
 
-    auto now = std::time(nullptr);
-    auto tm = *std::localtime(&now);
-    std::ostringstream filename;
-    filename << "logs/okami_log_" << std::put_time(&tm, "%Y%m%d_%H%M%S") << ".txt";
+    auto now = std::chrono::system_clock::now();
+    auto local_time = std::chrono::current_zone()->to_local(now);
+    std::string filename;
+    filename = std::format("logs/okami_log_{:%Y%m%d_%H%M%S}.txt", local_time);
 
-    logFile_.open(filename.str(), std::ios::out | std::ios::app);
+    logFile_.open(filename, std::ios::out | std::ios::app);
     if (logFile_.is_open())
     {
         logFile_ << "=== Console Log Started ===" << std::endl;
@@ -163,8 +163,11 @@ void Logger::setupStreamCapture()
 {
     auto captureCallback = [this](const std::string &msg, LogLevel level) { this->addLogEntry(msg, level); };
 
-    stdoutCapture_ = std::make_unique<StreamCapture>(std::cout, captureCallback, LogLevel::Debug);
-    stderrCapture_ = std::make_unique<StreamCapture>(std::cerr, captureCallback, LogLevel::Error);
+    stdoutCapture_.reset();
+    stderrCapture_.reset();
+
+    stdoutCapture_.reset(new StreamCapture(std::cout, captureCallback, LogLevel::Debug));
+    stderrCapture_.reset(new StreamCapture(std::cerr, captureCallback, LogLevel::Error));
 }
 
 void Logger::cleanupStreamCapture()

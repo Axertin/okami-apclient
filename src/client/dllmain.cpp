@@ -1,6 +1,6 @@
 ﻿// dllmain.cpp : Defines the entry point for the DLL application.
+#include "aplocationmonitor.h"
 #include "archipelagosocket.h" // include the socket first, before any windows headers / minhook!
-#include "checks.h"
 #include "framework.h"
 #include "gamehooks.h"
 #include "gui.h"
@@ -68,11 +68,13 @@ extern "C" __declspec(dllexport) LRESULT CALLBACK entry(int nCode, WPARAM wParam
         logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
 
         if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
-            return CallNextHookEx(NULL, nCode, wParam, lParam);
+            return CallNextHookEx(nullptr, nCode, wParam, lParam);
         GameHooks::setup();
         guiInitHooks();
-        checkInit();
+
+        APLocationMonitor::instance().initialize();
+        APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
     }
 
-    return CallNextHookEx(NULL, nCode, wParam, lParam);
+    return CallNextHookEx(nullptr, nCode, wParam, lParam);
 }

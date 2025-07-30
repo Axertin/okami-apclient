@@ -203,7 +203,7 @@ std::string OkamiInjector::formatWindowsError(DWORD error)
 std::optional<DWORD> OkamiInjector::launchOkami(const std::wstring &exePath)
 {
     STARTUPINFOW si = {sizeof(si)};
-    PROCESS_INFORMATION pi = {0};
+    PROCESS_INFORMATION pi = {};
 
     if (!CreateProcessW(exePath.c_str(), nullptr, nullptr, nullptr, FALSE, CREATE_SUSPENDED, nullptr, nullptr, &si, &pi))
     {
