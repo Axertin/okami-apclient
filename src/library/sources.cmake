@@ -2,6 +2,7 @@
 set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/animals.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/bestiarytome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/blowfish.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/brushtype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dataverify.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/dojotech.cpp
@@ -12,6 +13,7 @@ set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/maptype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/memorymap.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/movelisttome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/resource.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/shopdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/straybeads.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/travelguides.cpp
