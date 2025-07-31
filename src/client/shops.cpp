@@ -31,14 +31,32 @@ static std::vector<okami::ItemShopStock> AgataFangShop;
 static std::vector<okami::ItemShopStock> ArkOfYamatoFangShop;
 static std::vector<okami::ItemShopStock> ImperialPalaceFangShop;
 
+/*
+Notes:
+
+Unused items:
+- 0, 82, 88, 90, 120, 130, 131, 162, 168, 172, 175
+
+Missing item desc:
+- Ruins Key
+- Oddly Shaped Turnip
+- Vista of the Gods
+
+Missing name and desc:
+- Hourglass Orb
+- 10/50/100/150/500 yen
+- Praise
+- Spirit Globe S + Ink Bottle
+
+*/
 void InitializeShopData()
 {
     // TODO update shops with AP information here
-
-    KamikiShop.SetStock({
-        {okami::ItemTypes::MarlinRod, 100},
-        {okami::ItemTypes::ExorcismSlipM, 100},
-    });
+    KamikiShop.AddItem(okami::ItemTypes::Unused_52, 2);
+    for (uint32_t i = 1; i < 10; i++)
+    {
+        KamikiShop.AddItem(static_cast<okami::ItemTypes::Enum>(i), 10);
+    }
 
     // Special sell prices for some fish
     TakaPassShop.SetSellValues(okami::DefaultTakaPassItemSellPrices);

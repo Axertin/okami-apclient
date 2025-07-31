@@ -5,6 +5,7 @@
 #include "devdatafinder.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
+#include "okami/resource.h"
 #include "okami/shopdata.h"
 #include "shop.h"
 
@@ -139,6 +140,56 @@ template <class T> void CreateHook(uintptr_t base, uintptr_t offset, T *pDetour,
     MH_CreateHook(reinterpret_cast<void *>(base + offset), reinterpret_cast<LPVOID>(pDetour), reinterpret_cast<LPVOID *>(ppOriginal));
 }
 
+static void *(__fastcall *oLoadRscIdx)(void *pPkg, uint32_t idx);
+static void *(__fastcall *oCItemShop_GetItemIcon)(okami::cItemShop *pShop, int item);
+void *__fastcall onCItemShop_GetItemIcon(okami::cItemShop *pShop, int item)
+{
+    if (item == 0 || !pShop->pIconsRsc)
+    {
+        // original call still needed as it returns a blank graphic from sgpCore20BinRsc
+        return oCItemShop_GetItemIcon(pShop, item);
+    }
+
+    // First item in a package is index 1
+    return oLoadRscIdx(pShop->pIconsRsc, item + 1);
+}
+
+static void(__fastcall *oCItemShop_SortInventory)(okami::cShopBase *pShop, uint8_t numSlots);
+void __fastcall onCItemShop_SortInventory(okami::cShopBase *pShop, uint8_t numSlots)
+{
+    // Enforces specific item ordering. Side effect of filtering out items that are "not valid".
+    // We don't care about either, and can use our shop definition ordering.
+    for (uint32_t i = 0; i < numSlots; i++)
+    {
+        pShop->inventorySorted[i] = pShop->inventory[i];
+    }
+}
+
+static void *(__fastcall *oLoadResourcePackageAsync)(void *pFilesystem, const char *pszFilename, void **pOutputRscData, void *pHeap, int32_t, int32_t, int32_t,
+                                                     int32_t);
+void *__fastcall onLoadResourcePackageAsync(void *pFilesystem, const char *pszFilename, void **pOutputRscData, void *pHeap, int32_t a5, int32_t a6, int32_t a7,
+                                            int32_t a8)
+{
+    // Intercept item shop icons
+    if (pszFilename && strcmp(pszFilename, "id/ItemShopBuyIcon.dat") == 0)
+    {
+        pszFilename = "archipelago/ItemPackage.dat";
+    }
+
+    return oLoadResourcePackageAsync(pFilesystem, pszFilename, pOutputRscData, pHeap, a5, a6, a7, a8);
+}
+
+static int64_t(__fastcall *oGXTextureManager_GetNumEntries)(void *pTextureManager, int32_t texGroup);
+int64_t __fastcall onGXTextureManager_GetNumEntries(void *pTextureManager, int32_t texGroup)
+{
+    if (texGroup == 4)
+    {
+        // Originally was 128 but we have more than 256 icons
+        // return 300; // FIXME: uncomment when injection on suspend is finished
+    }
+    return oGXTextureManager_GetNumEntries(pTextureManager, texGroup);
+}
+
 /**
  * @brief Setup game-related hooks
  *
@@ -161,8 +212,13 @@ void GameHooks::setup()
     CreateHook(okami::MainBase, 0x4420C0, &onGetShopVariation, &oGetShopVariation);
     CreateHook(okami::MainBase, 0x1B1770, &onLoadRsc, &oLoadRsc);
     CreateHook(okami::MainBase, 0x43F5A0, &onCKibaShop__GetShopStockList, &ocKibaShop__GetShopStockList);
+    CreateHook(okami::MainBase, 0x43BDA0, &onCItemShop_GetItemIcon, &oCItemShop_GetItemIcon);
+    CreateHook(okami::MainBase, 0x1AFC90, &onLoadResourcePackageAsync, &oLoadResourcePackageAsync);
+    CreateHook(okami::MainBase, 0x441A70, &onCItemShop_SortInventory, &oCItemShop_SortInventory);
+    CreateHook(okami::MainBase, 0x1412B0, &onGXTextureManager_GetNumEntries, &oGXTextureManager_GetNumEntries);
 
     oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
+    oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
 
     MH_EnableHook(MH_ALL_HOOKS);
 
