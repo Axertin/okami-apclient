@@ -17,6 +17,11 @@ bool receiveAPItem(int ItemID)
             logDebug("[receive] Receiving brush 0x%X", index);
             return giveBrush(index);
         }
+        else
+        {
+            logWarning("[receive] Received unknown item 0x%X (ignoring for now)", ItemID);
+            return true;
+        }
     }
     else
     {

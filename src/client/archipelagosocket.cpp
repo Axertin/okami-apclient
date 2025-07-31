@@ -1,5 +1,6 @@
 #include "archipelagosocket.h"
 
+#include "aplocationmonitor.h"
 #include "gamehooks.h"
 #include "logger.h"
 #include "receive.h"
@@ -197,6 +198,8 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
         {
             logInfo("[apsocket] Connected successfully!");
             connected_.store(true);
+
+            APLocationMonitor::instance().enableSending(true);
 
             queueMainThreadTask([this]() { setStatus("Connected successfully!"); });
 
