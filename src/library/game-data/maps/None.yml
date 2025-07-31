@@ -9,7 +9,9 @@ worldStateBits:
   10: "Celestial Brush Locked"
   # 13: "Obtained Hayabusa's Loyalty Orb" # TODO: test
   # 14: "Obtained Ume's Justice Orb" # TODO: test
+  # 15: "Obtained Take's Duty Orb" # TODO: test
   16: "Remaining Warriors quest ended; Orbs Reunited quest started"
+  18: "Defeated Orochi"
   19: "Entered Cave"
   22: "Taka Pass Sapling Healed"
   31: "Festival quest ended; City Checkpoint quest started; To the Capital! quest started"
