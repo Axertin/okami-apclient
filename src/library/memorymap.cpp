@@ -31,9 +31,7 @@ MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
 
 MemoryAccessor<BitField<86>> GlobalGameStateFlags;
 
-MemoryAccessor<float> AmmyPosX;
-MemoryAccessor<float> AmmyPosY;
-MemoryAccessor<float> AmmyPosZ;
+MemoryAccessor<cAmmyModel *> AmmyModel;
 MemoryAccessor<int32_t> BrushTargetInk;
 MemoryAccessor<int32_t> BrushCurrentInk;
 MemoryAccessor<uint8_t> InkUpgradeCount;
@@ -77,9 +75,7 @@ MemoryAccessor<std::array<uint8_t, 64>> AmmyBrushUpgrades; // why are there even
  */
 void initVariables()
 {
-    AmmyPosX.bind(okami::MainBase + 0xB1EC10 + 0); // read-only copies
-    AmmyPosY.bind(okami::MainBase + 0xB1EC10 + 4); // read-only copies
-    AmmyPosZ.bind(okami::MainBase + 0xB1EC10 + 8); // read-only copies
+    AmmyModel.bind(okami::MainBase + 0xB6B2D0);
 
     // everything needed for a save file vvvvvvvvv
     AmmyStats.bind(okami::MainBase + 0xB4DF90);

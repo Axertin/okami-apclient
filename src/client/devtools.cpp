@@ -505,7 +505,25 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
 
     GROUP("Ammy Stats")
     {
-        ImGui::Text("Pos: (%.2f, %.2f, %.2f)", okami::AmmyPosX.get(), okami::AmmyPosY.get(), okami::AmmyPosZ.get());
+        auto *pModel = okami::AmmyModel.get();
+        if (pModel && pModel->pPosition)
+        {
+            static wk::math::cVec frozenPosition;
+            static bool isFrozen = false;
+
+            if (!isFrozen)
+            {
+                frozenPosition = *pModel->pPosition;
+            }
+
+            ImGui::InputFloat3("Pos", &frozenPosition.x);
+            ImGui::Checkbox("Freeze Position", &isFrozen);
+
+            if (isFrozen)
+            {
+                *pModel->pPosition = frozenPosition;
+            }
+        }
 
         drawStatPair("Health", ImGuiDataType_U16, &okami::AmmyStats->currentHealth, &okami::AmmyStats->maxHealth);
         drawStatPair("Money", ImGuiDataType_U32, &okami::AmmyCollections->currentMoney, &okami::AmmyCollections->world.totalMoney);
