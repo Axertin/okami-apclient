@@ -29,9 +29,7 @@ extern MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 extern MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
 extern MemoryAccessor<BitField<86>> GlobalGameStateFlags;
 
-extern MemoryAccessor<float> AmmyPosX;
-extern MemoryAccessor<float> AmmyPosY;
-extern MemoryAccessor<float> AmmyPosZ;
+extern MemoryAccessor<cAmmyModel *> AmmyModel;
 extern MemoryAccessor<int32_t> BrushTargetInk;
 extern MemoryAccessor<int32_t> BrushCurrentInk;
 extern MemoryAccessor<uint8_t> InkUpgradeCount;

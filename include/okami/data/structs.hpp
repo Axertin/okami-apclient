@@ -12,6 +12,7 @@
 #include "bitfield.hpp"
 #include "itemtype.hpp"
 #include "maptype.hpp"
+#include "wkmath.hpp"
 
 namespace hx
 {
@@ -356,5 +357,12 @@ struct cItemShop : cShopBase
     int32_t inputController;
     int32_t lastPressedController;
     int32_t field_CC;
+};
+
+// Don't know about name, relationships, or size
+struct cAmmyModel
+{
+    int32_t whatever[42];
+    wk::math::cVec *pPosition;
 };
 } // namespace okami

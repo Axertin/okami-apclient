@@ -34,8 +34,10 @@ static std::vector<okami::ItemShopStock> ImperialPalaceFangShop;
 /*
 Notes:
 
-Unused items:
-- 0, 82, 88, 90, 120, 130, 131, 162, 168, 172, 175
+Unused items (candidates for our use):
+- 120, 130, 131, 162, 168, 172, 175
+
+0, 82, 88, and 90 are special cases which either don't spawn items from chests or have special meaning.
 
 Missing item desc:
 - Ruins Key
