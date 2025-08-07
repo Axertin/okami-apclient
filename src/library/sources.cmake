@@ -13,6 +13,7 @@ set(library_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/maptype.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/memorymap.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/movelisttome.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/library/msd.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/resource.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/shopdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/library/straybeads.cpp

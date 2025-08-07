@@ -55,6 +55,7 @@ void InitializeShopData()
 {
     // TODO update shops with AP information here
     KamikiShop.AddItem(okami::ItemTypes::Unused_52, 2);
+    KamikiShop.AddItem(okami::ItemTypes::Praise, 100);
     for (uint32_t i = 1; i < 10; i++)
     {
         KamikiShop.AddItem(static_cast<okami::ItemTypes::Enum>(i), 10);

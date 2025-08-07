@@ -5,6 +5,7 @@
 #include "devdatafinder.h"
 #include "logger.h"
 #include "okami/memorymap.hpp"
+#include "okami/msd.h"
 #include "okami/resource.h"
 #include "okami/shopdata.h"
 #include "shop.h"
@@ -190,6 +191,51 @@ int64_t __fastcall onGXTextureManager_GetNumEntries(void *pTextureManager, int32
     return oGXTextureManager_GetNumEntries(pTextureManager, texGroup);
 }
 
+// WARN: Update ppCore20MSD every time this changes
+//       Do NOT change during gameplay!
+// also maybe move logic out of here to elsewhere
+static okami::MSDManager Core20MSD;
+static std::vector<uint8_t> fixedAvailableData;
+constexpr uint32_t ItemStrBaseID = 294;
+
+static uint32_t TestItemTextID = 0;
+static void(__fastcall *oLoadCore20MSD)(void *pMsgStruct);
+static void **ppCore20MSD;
+void __fastcall onLoadCore20MSD(void *pMsgStruct)
+{
+    oLoadCore20MSD(pMsgStruct);
+    if (!*ppCore20MSD)
+        return;
+
+    if (fixedAvailableData.empty())
+    {
+        std::cerr << " LOADED " << std::endl;
+        Core20MSD.ReadMSD(*ppCore20MSD);
+        Core20MSD.OverrideString(okami::ItemTypes::HourglassOrb + ItemStrBaseID, "Hourglass Orb");
+        Core20MSD.OverrideString(okami::ItemTypes::Yen10 + ItemStrBaseID, "10 Yen");
+        Core20MSD.OverrideString(okami::ItemTypes::Yen50 + ItemStrBaseID, "50 Yen");
+        Core20MSD.OverrideString(okami::ItemTypes::Yen100 + ItemStrBaseID, "100 Yen");
+        Core20MSD.OverrideString(okami::ItemTypes::Yen150 + ItemStrBaseID, "150 Yen");
+        Core20MSD.OverrideString(okami::ItemTypes::Yen500 + ItemStrBaseID, "500 Yen");
+        Core20MSD.OverrideString(okami::ItemTypes::Praise + ItemStrBaseID, "Praise");
+
+        TestItemTextID = Core20MSD.AddString("Heinermann's Morph Ball");
+
+        fixedAvailableData = Core20MSD.GetData();
+    }
+    *ppCore20MSD = fixedAvailableData.data();
+}
+
+static uint16_t(__fastcall *oGetItemNameStrId)(void *, uint16_t item);
+uint16_t __fastcall onGetItemNameStrId(void *, uint16_t item)
+{
+    if (item == okami::ItemTypes::Unused_52)
+    {
+        return TestItemTextID;
+    }
+    return item + 294;
+}
+
 /**
  * @brief Setup game-related hooks
  *
@@ -216,9 +262,12 @@ void GameHooks::setup()
     CreateHook(okami::MainBase, 0x1AFC90, &onLoadResourcePackageAsync, &oLoadResourcePackageAsync);
     CreateHook(okami::MainBase, 0x441A70, &onCItemShop_SortInventory, &oCItemShop_SortInventory);
     CreateHook(okami::MainBase, 0x1412B0, &onGXTextureManager_GetNumEntries, &oGXTextureManager_GetNumEntries);
+    CreateHook(okami::MainBase, 0x1C9510, &onLoadCore20MSD, &oLoadCore20MSD);
+    CreateHook(okami::MainBase, 0x496F40, &onGetItemNameStrId, &oGetItemNameStrId);
 
     oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
     oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
+    ppCore20MSD = reinterpret_cast<void **>(okami::MainBase + 0x9C11B0);
 
     MH_EnableHook(MH_ALL_HOOKS);
 
