@@ -195,21 +195,20 @@ int64_t __fastcall onGXTextureManager_GetNumEntries(void *pTextureManager, int32
 //       Do NOT change during gameplay!
 // also maybe move logic out of here to elsewhere
 static okami::MSDManager Core20MSD;
-static std::vector<uint8_t> fixedAvailableData;
+static bool msdInitialized = false;
 constexpr uint32_t ItemStrBaseID = 294;
 
 static uint32_t TestItemTextID = 0;
 static void(__fastcall *oLoadCore20MSD)(void *pMsgStruct);
-static void **ppCore20MSD;
+static const void **ppCore20MSD;
 void __fastcall onLoadCore20MSD(void *pMsgStruct)
 {
     oLoadCore20MSD(pMsgStruct);
     if (!*ppCore20MSD)
         return;
 
-    if (fixedAvailableData.empty())
+    if (!msdInitialized)
     {
-        std::cerr << " LOADED " << std::endl;
         Core20MSD.ReadMSD(*ppCore20MSD);
         Core20MSD.OverrideString(okami::ItemTypes::HourglassOrb + ItemStrBaseID, "Hourglass Orb");
         Core20MSD.OverrideString(okami::ItemTypes::Yen10 + ItemStrBaseID, "10 Yen");
@@ -221,9 +220,9 @@ void __fastcall onLoadCore20MSD(void *pMsgStruct)
 
         TestItemTextID = Core20MSD.AddString("Heinermann's Morph Ball");
 
-        fixedAvailableData = Core20MSD.GetData();
+        msdInitialized = true;
     }
-    *ppCore20MSD = fixedAvailableData.data();
+    *ppCore20MSD = Core20MSD.GetData();
 }
 
 static uint16_t(__fastcall *oGetItemNameStrId)(void *, uint16_t item);
@@ -267,7 +266,7 @@ void GameHooks::setup()
 
     oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
     oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
-    ppCore20MSD = reinterpret_cast<void **>(okami::MainBase + 0x9C11B0);
+    ppCore20MSD = reinterpret_cast<const void **>(okami::MainBase + 0x9C11B0);
 
     MH_EnableHook(MH_ALL_HOOKS);
 

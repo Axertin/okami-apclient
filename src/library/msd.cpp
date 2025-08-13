@@ -132,6 +132,7 @@ void MSDManager::ReadMSD(const void *pData)
 
         const uint16_t *pStrOffset = reinterpret_cast<const uint16_t *>(&pDataPtr[pHead->offsets[i]]);
         const uint16_t *pStr = pStrOffset;
+        // This is how Okami tests for EndDialog internally
         for (; (*pStr & 0xFF00) != 0x8000; pStr++)
         {
             str.push_back(*pStr);
@@ -167,6 +168,7 @@ uint32_t MSDManager::AddString(const std::string &str)
     this->MakeDirty();
     return this->strings.size() - 1;
 }
+
 void MSDManager::OverrideString(uint32_t index, const std::string &str)
 {
     if (index >= this->strings.size())
@@ -188,40 +190,32 @@ void MSDManager::Rebuild()
     this->compiledMSD.clear();
     this->compiledMSD.reserve(sizeof(uint32_t) + newSize * sizeof(uint64_t) + newSize * sizeof(uint16_t));
 
-    auto appendData = [&](auto &value)
-    {
-        std::uint8_t *valBytes = reinterpret_cast<std::uint8_t *>(&value);
-        this->compiledMSD.insert(this->compiledMSD.end(), valBytes, valBytes + sizeof(value));
-    };
-
     // Rebuild MSD header
-    appendData(newSize);
+    this->compiledMSD.append(newSize);
 
     // Offsets
     uint64_t offset = sizeof(uint32_t) + this->strings.size() * sizeof(uint64_t);
     for (auto &str : this->strings)
     {
-        appendData(offset);
+        this->compiledMSD.append(offset);
         offset += str.size() * sizeof(uint16_t);
     }
 
     // Strings
     for (auto &str : this->strings)
     {
-        for (uint16_t c : str)
-        {
-            appendData(c);
-        }
+        this->compiledMSD.append_range(str);
     }
     this->dirty = false;
 }
-const std::vector<uint8_t> &MSDManager::GetData()
+
+const uint8_t *MSDManager::GetData()
 {
     if (this->dirty)
     {
         this->Rebuild();
     }
-    return this->compiledMSD;
+    return this->compiledMSD.data();
 }
 
 void MSDManager::MakeDirty()
