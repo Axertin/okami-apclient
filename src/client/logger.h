@@ -118,6 +118,7 @@ template <typename T> auto toCArg(T &&arg) -> decltype(auto)
 // Wrapper functions to suppress warnings at the call site
 template <typename... Args> int snprintf_wrapper(char *buffer, size_t size, const char *format, Args &&...args)
 {
+    // what is all this shit
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wformat-security"
@@ -146,7 +147,7 @@ template <typename... Args> int snprintf_wrapper(char *buffer, size_t size, cons
     return result;
 }
 
-template <typename... Args> std::string formatString(const char *format, Args... args)
+std::string formatString(const char *format, auto... args)
 {
     // Convert arguments to C-compatible types
     auto convertedArgs = std::make_tuple(toCArg(args)...);
@@ -170,7 +171,7 @@ template <typename... Args> std::string formatString(const char *format, Args...
 }
 
 // Format string variadic templates
-template <typename... Args> void logMessage(LogLevel level, const char *format, Args... args)
+void logMessage(LogLevel level, const char *format, auto... args)
 {
     extern Logger *g_Logger;
     if (g_Logger != nullptr)
@@ -179,45 +180,24 @@ template <typename... Args> void logMessage(LogLevel level, const char *format, 
     }
 }
 
-template <typename... Args> void logInfo(const char *format, Args... args)
+void logInfo(const char *format, auto... args)
 {
     logMessage(LogLevel::Info, format, args...);
 }
 
-template <typename... Args> void logWarning(const char *format, Args... args)
+void logWarning(const char *format, auto... args)
 {
     logMessage(LogLevel::Warning, format, args...);
 }
 
-template <typename... Args> void logError(const char *format, Args... args)
+void logError(const char *format, auto... args)
 {
     logMessage(LogLevel::Error, format, args...);
 }
 
-template <typename... Args> void logDebug(const char *format, Args... args)
+void logDebug(const char *format, auto... args)
 {
     logMessage(LogLevel::Debug, format, args...);
-}
-
-// Convenience hex logging functions
-template <typename T> void logInfoHex(const char *prefix, T value)
-{
-    logInfo("%s0x%X", prefix, value);
-}
-
-template <typename T> void logWarningHex(const char *prefix, T value)
-{
-    logWarning("%s0x%X", prefix, value);
-}
-
-template <typename T> void logErrorHex(const char *prefix, T value)
-{
-    logError("%s0x%X", prefix, value);
-}
-
-template <typename T> void logDebugHex(const char *prefix, T value)
-{
-    logDebug("%s0x%X", prefix, value);
 }
 
 // Initialization functions

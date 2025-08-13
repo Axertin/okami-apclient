@@ -170,7 +170,7 @@ template <unsigned int N> void checklistManyMappedGlobal(const char *groupName, 
     }
 }
 
-template <unsigned int N, class Fn> void checklistCols(const char *groupName, unsigned numCols, const Fn &pNameFn, okami::BitField<N> &bits)
+template <unsigned int N> void checklistCols(const char *groupName, unsigned numCols, const auto &pNameFn, okami::BitField<N> &bits)
 {
     ImGui::PushID(&bits);
     if (groupName ? ImGui::CollapsingHeader(groupName) : true)
@@ -243,7 +243,7 @@ template <unsigned int N> void checklistColsUnnamed(const char *groupName, unsig
     checklistCols(groupName, numCols, NameFn, bits);
 }
 
-template <unsigned int N, class Fn> void checklistColsTome(const char *groupName, const Fn &pNameFn, okami::BitField<N> &collected, okami::BitField<N> &viewed)
+template <unsigned int N> void checklistColsTome(const char *groupName, const auto &pNameFn, okami::BitField<N> &collected, okami::BitField<N> &viewed)
 {
     // std::string name;
 
