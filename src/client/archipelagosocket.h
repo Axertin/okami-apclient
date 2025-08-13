@@ -60,7 +60,7 @@ class ArchipelagoSocket : public ISocket
     void setStatus(const std::string &status);
     void setupHandlers(const std::string &slot, const std::string &password);
 
-    template <typename F> auto withClient(F &&func) const -> decltype(func(*client_))
+    auto withClient(auto &&func) const -> decltype(func(*client_))
     {
         std::lock_guard<std::mutex> lock(clientMutex_);
         if (!client_)
@@ -70,7 +70,7 @@ class ArchipelagoSocket : public ISocket
         return func(*client_);
     }
 
-    template <typename F> auto withClient(F &&func) -> decltype(func(*client_))
+    auto withClient(auto &&func) -> decltype(func(*client_))
     {
         std::lock_guard<std::mutex> lock(clientMutex_);
         if (!client_)

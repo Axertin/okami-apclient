@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "okami/filebuffer.h"
 #include "okami/shopdata.h"
 
 /***
@@ -13,7 +14,7 @@
 class ShopDefinition
 {
   private:
-    std::vector<std::uint8_t> dataISL;
+    FileBuffer dataISL;
 
     bool dirty = true;
     okami::SellValueArray sellValues = okami::DefaultItemSellPrices;

@@ -13,24 +13,14 @@ void ShopDefinition::RebuildISL()
     this->dataISL.reserve(sizeof(okami::ISLHeader) + sizeof(std::uint32_t) + sizeof(okami::ItemShopStock) * this->itemStock.size() +
                           sizeof(okami::SellValueArray));
 
-    auto appendData = [&](auto &value)
-    {
-        std::uint8_t *valBytes = reinterpret_cast<std::uint8_t *>(&value);
-        this->dataISL.insert(this->dataISL.end(), valBytes, valBytes + sizeof(value));
-    };
-
     okami::ISLHeader header = {"ISL", 1};
-    appendData(header);
+    this->dataISL.append(header);
 
     std::uint32_t numItems = this->itemStock.size();
-    appendData(numItems);
+    this->dataISL.append(numItems);
 
-    for (okami::ItemShopStock &item : this->itemStock)
-    {
-        appendData(item);
-    }
-
-    appendData(this->sellValues);
+    this->dataISL.append_range(this->itemStock);
+    this->dataISL.append(this->sellValues);
 }
 
 void ShopDefinition::CheckDirty()

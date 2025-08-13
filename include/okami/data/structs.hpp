@@ -6,6 +6,7 @@
 #include "../dojotech.hpp"
 #include "../fish.hpp"
 #include "../movelisttome.hpp"
+#include "../shopdata.h"
 #include "../straybeads.hpp"
 #include "../travelguides.hpp"
 #include "../treasures.hpp"
@@ -302,12 +303,25 @@ struct ShopInventory
     uint32_t cost;
 };
 
+struct ShopSlotData
+{
+    int32_t itemType;
+    int32_t field_4;
+    hx::Texture *pIcon;
+    int32_t itemCost;
+    int16_t itemNameStrId;
+    int16_t maxCount;
+    int16_t currentCount;
+    int16_t field_1A;
+    int32_t field_1C;
+};
+
 struct cShopBase : public DummyVirtTable
 {
     cObjGui gui;
     ShopInventory *inventory;
     ShopInventory *inventorySorted;
-    void *shopSlots;
+    ShopSlotData *shopSlots;
     const char *pszShopNpcImgFile;
     void *pShopRscPkg;
     void *pIconsRsc;
@@ -322,8 +336,8 @@ struct cShopBase : public DummyVirtTable
     char field_7C;
     char field_7D;
     int16_t purchaseQuantity;
-    char numSlots;
-    char numVisibleSlots;
+    uint8_t numSlots;
+    uint8_t numVisibleSlots;
     char scrollOffset;
     char visualSelectIndex;
     char field_84;
@@ -339,8 +353,8 @@ struct cShopBase : public DummyVirtTable
 
 struct cItemShop : cShopBase
 {
-    void *itemStockList;
-    void *itemSellCosts;
+    ItemShopStock *itemStockList;
+    int32_t *itemSellCosts;
     int32_t iconRef;
     int32_t shopStockVariation;
     float field_B0;
@@ -349,7 +363,7 @@ struct cItemShop : cShopBase
     char field_BC;
     char shopModeSel;
     char field_BE;
-    char numItemSlots;
+    uint8_t numItemSlots;
     char field_C0;
     char field_C1;
     char field_C2;

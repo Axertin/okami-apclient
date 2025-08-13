@@ -47,7 +47,7 @@ CharacterStats previousStats;
 CollectionData previousCollection;
 TrackerData previousTracker;
 
-template <typename... Args> void warn(const char *format, Args... args)
+void warn(const char *format, auto... args)
 {
     std::string newFmt = std::string("[Undocumented] ") + format;
     logWarning(newFmt.c_str(), args...);

@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "filebuffer.h"
+
 namespace okami
 {
 #pragma pack(push, 1)
@@ -22,7 +24,7 @@ class MSDManager
     std::vector<std::vector<uint16_t>> strings;
 
     bool dirty = false;
-    std::vector<uint8_t> compiledMSD;
+    FileBuffer compiledMSD;
 
     void MakeDirty();
     void Rebuild();
@@ -61,9 +63,9 @@ class MSDManager
      *
      * @warning Data becomes invalidated when MSD is modified after this call.
      *
-     * @return const std::vector<uint8_t>& MSD data.
+     * @return const uint8_t* MSD data.
      */
-    const std::vector<uint8_t> &GetData();
+    const uint8_t *GetData();
 
     /**
      * @brief Retreives number of strings in this MSD.
