@@ -24,6 +24,11 @@ class FileBuffer
         }
     }
 
+    void append_bytes(size_t count, uint8_t value = 0)
+    {
+        this->buffer.insert(this->buffer.end(), count, value);
+    }
+
     size_t size() const
     {
         return this->buffer.size();
@@ -42,5 +47,10 @@ class FileBuffer
     const uint8_t *data() const
     {
         return this->buffer.data();
+    }
+
+    std::vector<uint8_t> &get_buffer()
+    {
+        return this->buffer;
     }
 };

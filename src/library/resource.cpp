@@ -12,6 +12,7 @@
 
 #include "okami/blowfish.h"
 #include "okami/data/brushtype.hpp"
+#include "okami/filebuffer.h"
 #include "okami/items.hpp"
 #include "okami/memorymap.hpp"
 
@@ -169,17 +170,11 @@ class ResourcePackage
     void write(std::filesystem::path filename)
     {
         std::filesystem::create_directories(filename.parent_path());
-
-        data_t result;
-        auto writeResult = [&]<class T>(const T &value)
-        {
-            const uint8_t *valueRaw = reinterpret_cast<const uint8_t *>(&value);
-            result.insert(result.end(), valueRaw, valueRaw + sizeof(T));
-        };
+        FileBuffer result;
 
         // +1 to add ROF
         uint32_t numElems = this->size() + 1;
-        writeResult(numElems);
+        result.append(numElems);
 
         // Save these to write the ROF section later
         std::vector<uint32_t> entryOffsets;
@@ -189,44 +184,41 @@ class ResourcePackage
         for (auto &data : this->entryData)
         {
             entryOffsets.emplace_back(offset);
-            writeResult(offset);
+            result.append(offset);
             offset += data.size();
         }
         // ROF offset
         entryOffsets.emplace_back(offset);
-        writeResult(offset);
+        result.append(offset);
 
         // Write types
-        for (auto &type : this->entryTypes)
-        {
-            writeResult(type);
-        }
-        writeResult(ResourceType{"ROF"});
+        result.append_range(this->entryTypes);
+        result.append(ResourceType{"ROF"});
 
         // Write data
         for (auto &data : this->entryData)
         {
-            result.insert(result.end(), data.begin(), data.end());
+            result.append_range(data);
         }
 
         // Write ROF
-        const uint8_t *rofHead = reinterpret_cast<const uint8_t *>("RUNOFS64");
-        result.insert(result.end(), rofHead, rofHead + 8);
+        std::string rofHead = "RUNOFS64";
+        result.append_range(rofHead);
 
         for (uint32_t entryOffset : entryOffsets)
         {
             uint64_t entryOffset64 = entryOffset;
-            writeResult(entryOffset64);
+            result.append(entryOffset64);
         }
 
         // Align to 32 bytes to be safe
-        result.insert(result.end(), 32 - result.size() % 32, '\0');
+        result.append_bytes(32 - result.size() % 32);
 
         InitBlowfish();
-        Nippon::BlowFish::Encrypt(result);
+        Nippon::BlowFish::Encrypt(result.get_buffer());
 
         std::ofstream out{filename, std::ios::binary};
-        out.write(reinterpret_cast<char *>(result.data()), result.size());
+        out.write(reinterpret_cast<const char *>(result.data()), result.size());
     }
 };
 
