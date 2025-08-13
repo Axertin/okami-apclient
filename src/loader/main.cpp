@@ -1,11 +1,20 @@
 #include <chrono>
 #include <filesystem>
+#include <format>
 #include <iostream>
 #include <thread>
 
 #include "injector.h"
 
 namespace fs = std::filesystem;
+
+int error(const std::string &message)
+{
+    std::cerr << "Error: " << message << std::endl;
+    std::cout << "Press Enter to exit..." << std::endl;
+    std::cin.get();
+    return 1;
+}
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 {
@@ -23,19 +32,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     // Check if DLL exists
     if (!fs::exists(dllPath))
     {
-        std::cerr << "Error: Cannot find okami-apclient.dll at: " << dllPath.string() << std::endl;
-        std::cout << "Press Enter to exit..." << std::endl;
-        std::cin.get();
-        return 1;
+        return error(std::format("Cannot find okami-apclient.dll at: {}", dllPath.string()));
     }
 
     // Check if game exe exists
     if (!fs::exists(okamiExe))
     {
-        std::cerr << "Error: Cannot find okami.exe at: " << okamiExe.string() << std::endl;
-        std::cout << "Press Enter to exit..." << std::endl;
-        std::cin.get();
-        return 1;
+        return error(std::format("Cannot find okami.exe at: {}", okamiExe.string()));
     }
 
     // Check if game is already running
@@ -48,14 +51,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         processId = OkamiInjector::launchOkami(okamiExe.wstring());
         if (!processId)
         {
-            std::cerr << "Failed to launch Okami HD!" << std::endl;
-            std::cout << "Press Enter to exit..." << std::endl;
-            std::cin.get();
-            return 1;
+            return error("Failed to launch Okami HD!");
         }
     }
 
     std::cout << "Found Okami HD process (PID: " << *processId << ")" << std::endl;
+
     std::cout << "Injecting: " << dllPath.filename().string() << std::endl;
 
     // Perform injection and call entry point
@@ -68,9 +69,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     }
     else
     {
-        std::cerr << "Injection failed!" << std::endl;
-        std::cout << "Press Enter to exit..." << std::endl;
-        std::cin.get();
-        return 1;
+        return error("Injection failed!");
     }
 }

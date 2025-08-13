@@ -14,8 +14,7 @@ Console::Console() : Window("Console"), logger_(*g_Logger), autoScroll_(true), s
     // Ensure logger is initialized
     if (g_Logger == nullptr)
     {
-        throw std::runtime_error("Console created before Logger initialization. Call "
-                                 "initializeLogger() first.");
+        throw std::runtime_error("Console created before Logger initialization. Call initializeLogger() first.");
     }
 
     // Initialize level filters - all enabled by default
