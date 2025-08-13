@@ -1,5 +1,7 @@
 #include "gamehooks.h"
 
+#include <algorithm>
+
 #include "aplocationmonitor.h"
 #include "archipelagosocket.h"
 #include "devdatafinder.h"
@@ -94,7 +96,6 @@ static int64_t __fastcall onGetShopVariation(void *pUnk, uint32_t shopNum, char 
     // This prevents the use of variations (and therefore requiring defining multiple duplicate shops with just 1 item difference)
     uint32_t n;
     oGetShopMetadata(pUnk, shopNum, &n, pszShopTextureName);
-
     return 0;
 }
 
@@ -115,10 +116,7 @@ static const void *__fastcall onLoadRsc(void *pRscPackage, const char *pszType, 
         // TODO
         return oLoadRsc(pRscPackage, pszType, nIdx);
     }
-    else
-    {
-        return oLoadRsc(pRscPackage, pszType, nIdx);
-    }
+    return oLoadRsc(pRscPackage, pszType, nIdx);
 }
 
 static okami::ItemShopStock *__fastcall onCKibaShop__GetShopStockList(void *pKibaShop, uint32_t *numItems)
@@ -142,8 +140,8 @@ template <class T> void CreateHook(uintptr_t base, uintptr_t offset, T *pDetour,
 }
 
 static void *(__fastcall *oLoadRscIdx)(void *pPkg, uint32_t idx);
-static void *(__fastcall *oCItemShop_GetItemIcon)(okami::cItemShop *pShop, int item);
-void *__fastcall onCItemShop_GetItemIcon(okami::cItemShop *pShop, int item)
+static hx::Texture *(__fastcall *oCItemShop_GetItemIcon)(okami::cItemShop *pShop, int item);
+hx::Texture *__fastcall GetItemIcon(okami::cItemShop *pShop, int item)
 {
     if (item == 0 || !pShop->pIconsRsc)
     {
@@ -152,18 +150,7 @@ void *__fastcall onCItemShop_GetItemIcon(okami::cItemShop *pShop, int item)
     }
 
     // First item in a package is index 1
-    return oLoadRscIdx(pShop->pIconsRsc, item + 1);
-}
-
-static void(__fastcall *oCItemShop_SortInventory)(okami::cShopBase *pShop, uint8_t numSlots);
-void __fastcall onCItemShop_SortInventory(okami::cShopBase *pShop, uint8_t numSlots)
-{
-    // Enforces specific item ordering. Side effect of filtering out items that are "not valid".
-    // We don't care about either, and can use our shop definition ordering.
-    for (uint32_t i = 0; i < numSlots; i++)
-    {
-        pShop->inventorySorted[i] = pShop->inventory[i];
-    }
+    return reinterpret_cast<hx::Texture *>(oLoadRscIdx(pShop->pIconsRsc, item + 1));
 }
 
 static void *(__fastcall *oLoadResourcePackageAsync)(void *pFilesystem, const char *pszFilename, void **pOutputRscData, void *pHeap, int32_t, int32_t, int32_t,
@@ -225,14 +212,39 @@ void __fastcall onLoadCore20MSD(void *pMsgStruct)
     *ppCore20MSD = Core20MSD.GetData();
 }
 
-static uint16_t(__fastcall *oGetItemNameStrId)(void *, uint16_t item);
-uint16_t __fastcall onGetItemNameStrId(void *, uint16_t item)
+uint16_t __fastcall GetItemNameStrId(uint16_t item)
 {
     if (item == okami::ItemTypes::Unused_52)
     {
         return TestItemTextID;
     }
     return item + 294;
+}
+
+constexpr uint8_t MaxVisibleSlots = 4;
+static uint32_t(__fastcall *oCItemShop_UpdatePurchaseList)(okami::cItemShop *pItemShop);
+uint32_t __fastcall onCItemShop_UpdatePurchaseList(okami::cItemShop *pItemShop)
+{
+    // Just rewrite it because why not, I have the POWER
+    pItemShop->numSlots = pItemShop->numItemSlots;
+    pItemShop->numVisibleSlots = std::min(pItemShop->numSlots, MaxVisibleSlots);
+
+    for (uint32_t i = 0; i < pItemShop->numSlots; i++)
+    {
+        int32_t itemType = pItemShop->itemStockList[i].itemType;
+        pItemShop->shopSlots[i].itemType = itemType;
+
+        // TODO: This is where we choose a different icon and text for the same item type
+        pItemShop->shopSlots[i].pIcon = GetItemIcon(pItemShop, itemType);
+        pItemShop->shopSlots[i].itemNameStrId = GetItemNameStrId(itemType);
+
+        // Decide the max count for purchases: 0 / #
+        pItemShop->shopSlots[i].maxCount = 1;
+
+        pItemShop->shopSlots[i].currentCount = okami::AmmyCollections->inventory[itemType];
+        pItemShop->shopSlots[i].itemCost = pItemShop->itemStockList[i].cost;
+    }
+    return pItemShop->numItemSlots;
 }
 
 /**
@@ -257,13 +269,13 @@ void GameHooks::setup()
     CreateHook(okami::MainBase, 0x4420C0, &onGetShopVariation, &oGetShopVariation);
     CreateHook(okami::MainBase, 0x1B1770, &onLoadRsc, &oLoadRsc);
     CreateHook(okami::MainBase, 0x43F5A0, &onCKibaShop__GetShopStockList, &ocKibaShop__GetShopStockList);
-    CreateHook(okami::MainBase, 0x43BDA0, &onCItemShop_GetItemIcon, &oCItemShop_GetItemIcon);
     CreateHook(okami::MainBase, 0x1AFC90, &onLoadResourcePackageAsync, &oLoadResourcePackageAsync);
-    CreateHook(okami::MainBase, 0x441A70, &onCItemShop_SortInventory, &oCItemShop_SortInventory);
     CreateHook(okami::MainBase, 0x1412B0, &onGXTextureManager_GetNumEntries, &oGXTextureManager_GetNumEntries);
     CreateHook(okami::MainBase, 0x1C9510, &onLoadCore20MSD, &oLoadCore20MSD);
-    CreateHook(okami::MainBase, 0x496F40, &onGetItemNameStrId, &oGetItemNameStrId);
 
+    CreateHook(okami::MainBase, 0x43E250, &onCItemShop_UpdatePurchaseList, &oCItemShop_UpdatePurchaseList);
+
+    oCItemShop_GetItemIcon = reinterpret_cast<decltype(oCItemShop_GetItemIcon)>(okami::MainBase + 0x43BDA0);
     oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
     oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
     ppCore20MSD = reinterpret_cast<const void **>(okami::MainBase + 0x9C11B0);
