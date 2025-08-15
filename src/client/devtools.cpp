@@ -791,7 +791,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             for (int i = 0; i < 64; i++)
             {
-                std::string name = std::string("BrushUnk") + std::to_string(i);
+                std::string name = "BrushUnk" + std::to_string(i);
                 drawStat(name.c_str(), ImGuiDataType_U8, &okami::AmmyBrushUpgrades->data()[i]);
             }
         }
