@@ -44,7 +44,6 @@ extern MemoryAccessor<int16_t> MoneyUpgradeBar;
 extern MemoryAccessor<int16_t> InkUpgradeBar;
 
 // Other important things
-extern MemoryAccessor<uint8_t> LoadingZoneTrigger;
 extern MemoryAccessor<float> CameraFOV;
 
 extern void *MaybeAmmyObject;

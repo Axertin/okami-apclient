@@ -100,8 +100,10 @@ void drawStat(const char *name, int type, void *pCurrent)
 
 template <unsigned int N> void checkboxBitField(const char *label, unsigned idx, okami::BitField<N> &bits)
 {
+    ImGui::PushID(idx);
     ImGui::CheckboxFlags(label, bits.GetIdxPtr(idx), bits.GetIdxMask(idx));
     ImGui::SetItemTooltip("%d (0x%X)", idx, idx);
+    ImGui::PopID();
 }
 
 template <unsigned int N> void checklistManyMapped(const char *groupName, const char *category, okami::MapTypes::Enum map, okami::BitField<N> &bits)
@@ -814,7 +816,7 @@ void DevTools::draw(int OuterWidth, int OuterHeight, float UIScale)
         {
             okami::ExteriorMapID.set(MapID);
             okami::CurrentMapID.set(MapID);
-            okami::LoadingZoneTrigger.set(0x2);
+            okami::GlobalGameStateFlags->Set(6);
         }
 
         checklistManyMappedGlobal("Global Event Bits", "commonStates", okami::AmmyCollections->world.mapStateBits[0]);

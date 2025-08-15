@@ -46,7 +46,6 @@ MemoryAccessor<int16_t> MoneyUpgradeBar;
 MemoryAccessor<int16_t> InkUpgradeBar;
 
 // Other important things
-MemoryAccessor<uint8_t> LoadingZoneTrigger;
 MemoryAccessor<float> CameraFOV;
 
 void *MaybeAmmyObject;
@@ -113,7 +112,6 @@ void initVariables()
     VestigialMapID1.bind(okami::MainBase + 0xB4F0B4);
     VestigialMapID2.bind(okami::MainBase + 0xB6B246);
 
-    LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
     CameraFOV.bind(okami::MainBase + 0xB663B0);
 
     MaybeAmmyObject = reinterpret_cast<void *>(okami::MainBase + 0xB6B2D0);
