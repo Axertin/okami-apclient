@@ -374,9 +374,16 @@ struct cItemShop : cShopBase
 };
 
 // Don't know about name, relationships, or size
+// This is pl00 I think?
 struct cAmmyModel
 {
-    int32_t whatever[42];
+    void *vtable;
+    int32_t whatever[14];
+    wk::math::cVec savedPos;
+    wk::math::cMatrix mtx;
+    int32_t field_90[4];
+    wk::math::cVec *pSpawnPosition;
     wk::math::cVec *pPosition;
+    // lots more below but we don't care
 };
 } // namespace okami
