@@ -321,7 +321,10 @@ struct cShopBase : public DummyVirtTable
     cObjGui gui;
     ShopInventory *inventory;
     ShopInventory *inventorySorted;
+
+    // Size allocated is only for 50 slots max, for all shop types
     ShopSlotData *shopSlots;
+
     const char *pszShopNpcImgFile;
     void *pShopRscPkg;
     void *pIconsRsc;

@@ -1,5 +1,6 @@
 #include <array>
 #include <cstdint>
+#include <iostream>
 
 #include "shop.h"
 
@@ -40,13 +41,27 @@ const std::uint8_t *ShopDefinition::GetData()
 
 void ShopDefinition::SetStock(const std::vector<okami::ItemShopStock> &stock)
 {
-    this->itemStock = stock;
+    if (stock.size() < MaxShopStockSize)
+    {
+        this->itemStock = stock;
+    }
+    else
+    {
+        std::cerr << "Max stock size in SetStock exceeded" << std::endl;
+    }
     this->dirty = true;
 }
 
 void ShopDefinition::AddItem(okami::ItemTypes::Enum item, std::int32_t cost)
 {
-    this->itemStock.emplace_back(okami::ItemShopStock{item, cost});
+    if (this->itemStock.size() < MaxShopStockSize)
+    {
+        this->itemStock.emplace_back(okami::ItemShopStock{item, cost});
+    }
+    else
+    {
+        std::cerr << "Max stock size in AddItem exceeded" << std::endl;
+    }
     this->dirty = true;
 }
 

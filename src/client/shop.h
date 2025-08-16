@@ -7,6 +7,10 @@
 #include "okami/filebuffer.h"
 #include "okami/shopdata.h"
 
+// Hardcoded max shop stock size unless we want to hook the memory allocation for it
+// It always allocates this much regardless of how much stock was loaded.
+constexpr size_t MaxShopStockSize = 50;
+
 /***
  * Simple shop data definition (no variations as in vanilla).
  * In order to work, shop variations need to also be eliminated.
