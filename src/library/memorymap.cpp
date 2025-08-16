@@ -28,6 +28,7 @@ MemoryAccessor<CollectionData> AmmyCollections;
 MemoryAccessor<TrackerData> AmmyTracker;
 MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
+static MemoryAccessor<std::array<ItemParam, ItemTypes::NUM_ITEM_TYPES>> ItemParams;
 
 MemoryAccessor<BitField<86>> GlobalGameStateFlags;
 
@@ -121,6 +122,10 @@ void initVariables()
     AmmyUsableBrushes.bind(okami::MainBase + 0x890A30);
     AmmyObtainedBrushes.bind(okami::MainBase + 0x890A38);
     AmmyBrushUpgrades.bind(okami::MainBase + 0x8909C0 + 0x80);
+    ItemParams.bind(okami::MainBase + 0x7AB220);
+
+    // TODO test each value up to and including 7
+    ItemParams->at(ItemTypes::ArchipelagoTestItem1).category = 0;
 }
 
 /**

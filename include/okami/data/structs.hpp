@@ -373,6 +373,45 @@ struct cItemShop : cShopBase
     int32_t field_CC;
 };
 
+struct cKibaShop : cShopBase
+{
+    ItemShopStock *itemStockList;
+    uint32_t numShopItems;
+    int32_t field_A4;
+    float field_A8;
+    float field_AC;
+    float field_B0;
+    char field_B4;
+    char field_B5;
+    char field_B6;
+    char field_B7;
+    int32_t inputController;
+    int32_t lastPressedController;
+};
+
+struct SkillShopStock
+{
+    uint16_t skillId;
+    uint16_t field_2;
+    int32_t cost;
+    int32_t field_8;
+    int32_t field_C;
+};
+
+struct cSkillShop : cShopBase
+{
+    SkillShopStock *skillList;
+    int32_t field_A0;
+    int32_t purchasedSkillId;
+    float field_A8;
+    float field_AC;
+    float field_B0;
+    uint8_t numSkillSlots;
+    uint8_t field_B5[3];
+    int32_t inputController;
+    int32_t lastPressedController;
+};
+
 // Don't know about name, relationships, or size
 // This is pl00 I think?
 struct cAmmyModel
@@ -385,5 +424,14 @@ struct cAmmyModel
     wk::math::cVec *pSpawnPosition;
     wk::math::cVec *pPosition;
     // lots more below but we don't care
+};
+
+struct ItemParam
+{
+    uint16_t maxCount;
+    int16_t value;
+    uint32_t flags;
+    uint8_t category;
+    uint8_t padding[3];
 };
 } // namespace okami

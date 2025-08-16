@@ -116,3 +116,4 @@ static_assert(sizeof(cObjGui) == 0x30);
 static_assert(sizeof(cShopBase) == 0x98);
 static_assert(sizeof(cItemShop) == 0xD0);
 static_assert(sizeof(ShopInventory) == 8);
+static_assert(sizeof(ItemParam) == 0xC);
