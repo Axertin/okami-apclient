@@ -264,7 +264,15 @@ enum Enum
     GaleShrineMap,
     Whopper,
     CutlassFish,
-    NUM_ITEM_TYPES
+    NUM_ITEM_TYPES,
+
+    ArchipelagoTestItem1 = Unused_78,
+    ArchipelagoTestItem2 = Chestnut,
+    ArchipelagoTestItem3 = Unused_82,
+    ArchipelagoTestItem4 = Unused_A2,
+    ArchipelagoTestItem5 = Unused_A8,
+    ArchipelagoTestItem6 = Unused_AC,
+    ArchipelagoTestItem7 = Unused_AF,
 };
 
 const char *GetName(unsigned value);

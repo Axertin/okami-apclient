@@ -28,6 +28,7 @@ MemoryAccessor<CollectionData> AmmyCollections;
 MemoryAccessor<TrackerData> AmmyTracker;
 MemoryAccessor<std::array<MapState, MapTypes::NUM_MAP_TYPES>> MapData;
 MemoryAccessor<std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>> DialogBits;
+static MemoryAccessor<std::array<ItemParam, ItemTypes::NUM_ITEM_TYPES>> ItemParams;
 
 MemoryAccessor<BitField<86>> GlobalGameStateFlags;
 
@@ -46,7 +47,6 @@ MemoryAccessor<int16_t> MoneyUpgradeBar;
 MemoryAccessor<int16_t> InkUpgradeBar;
 
 // Other important things
-MemoryAccessor<uint8_t> LoadingZoneTrigger;
 MemoryAccessor<float> CameraFOV;
 
 void *MaybeAmmyObject;
@@ -113,7 +113,6 @@ void initVariables()
     VestigialMapID1.bind(okami::MainBase + 0xB4F0B4);
     VestigialMapID2.bind(okami::MainBase + 0xB6B246);
 
-    LoadingZoneTrigger.bind(okami::MainBase + 0xB6B2AF);
     CameraFOV.bind(okami::MainBase + 0xB663B0);
 
     MaybeAmmyObject = reinterpret_cast<void *>(okami::MainBase + 0xB6B2D0);
@@ -123,6 +122,24 @@ void initVariables()
     AmmyUsableBrushes.bind(okami::MainBase + 0x890A30);
     AmmyObtainedBrushes.bind(okami::MainBase + 0x890A38);
     AmmyBrushUpgrades.bind(okami::MainBase + 0x8909C0 + 0x80);
+    ItemParams.bind(okami::MainBase + 0x7AB220);
+
+    // TODO test each value up to and including 7
+    // 0 = grey
+    // 1 = peach - pickups, food
+    // 2 = peach - consumable items, KT
+    // 3 = cyan
+    // 4 = red - divine instrument
+    // 5 = purple - treasure
+    // 6 = cyan - fish
+    // 7 = yellow - key item, travel guide, map, stray bead
+    ItemParams->at(ItemTypes::ArchipelagoTestItem1).category = 1;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem2).category = 2;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem3).category = 3;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem4).category = 4;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem5).category = 5;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem6).category = 6;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem7).category = 7;
 }
 
 /**

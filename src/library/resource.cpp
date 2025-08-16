@@ -538,7 +538,7 @@ void RecompileItemGraphics()
     for (unsigned i = 0; i < ItemTypes::NUM_ITEM_TYPES; i++)
     {
         // FIXME: this is temporary until suspend process hooks are fixed
-        if (i == okami::ItemTypes::Unused_52)
+        if (i == okami::ItemTypes::ArchipelagoTestItem1)
         {
             std::optional<data_t> apIcon = LoadAPIcon();
             if (apIcon)

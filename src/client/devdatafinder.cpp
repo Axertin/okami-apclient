@@ -304,7 +304,7 @@ void comparePreviousCollection()
 
     for (unsigned i = 0; i < 56; i++)
     {
-        std::string name = std::string("WorldStateData::unk11[") + std::to_string(i) + "]";
+        std::string name = "WorldStateData::unk11[" + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk11[i], current.world.unk11[i]);
     }
 
@@ -312,7 +312,7 @@ void comparePreviousCollection()
 
     for (unsigned i = 0; i < 3; i++)
     {
-        std::string name = std::string("WorldStateData::unk15[") + std::to_string(i) + "]";
+        std::string name = "WorldStateData::unk15[" + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk15[i], current.world.unk15[i]);
     }
 
@@ -320,7 +320,7 @@ void comparePreviousCollection()
 
     for (unsigned i = 0; i < 4; i++)
     {
-        std::string name = std::string("WorldStateData::unk17[") + std::to_string(i) + "]";
+        std::string name = "WorldStateData::unk17[" + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk17[i], current.world.unk17[i]);
     }
 
@@ -330,13 +330,13 @@ void comparePreviousCollection()
 
     for (unsigned i = 0; i < 194; i++)
     {
-        std::string name = std::string("WorldStateData::unk22[") + std::to_string(i) + "]";
+        std::string name = "WorldStateData::unk22[" + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk22[i], current.world.unk22[i]);
     }
 
     for (unsigned i = 0; i < 7; i++)
     {
-        std::string name = std::string("WorldStateData::unk24[") + std::to_string(i) + "]";
+        std::string name = "WorldStateData::unk24[" + std::to_string(i) + "]";
         compareInt(name.c_str(), old.world.unk24[i], current.world.unk24[i]);
     }
 }
@@ -370,7 +370,7 @@ void comparePreviousMapData()
             if (mapConfig.userIndices.contains(j))
                 continue;
 
-            std::string name = mapNamePrefix + std::string("MapState::user[") + std::to_string(j) + "]";
+            std::string name = mapNamePrefix + "MapState::user[" + std::to_string(j) + "]";
             compareInt(name.c_str(), old[i].user[j], current[i].user[j]);
         }
 

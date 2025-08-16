@@ -10,6 +10,7 @@
 #pragma warning(pop)
 
 #include <filesystem>
+#include <string>
 
 // File-local constants
 static const std::string CERT_STORE = "mods/apclient/cacert.pem";
