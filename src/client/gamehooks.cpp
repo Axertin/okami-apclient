@@ -193,6 +193,8 @@ static bool msdInitialized = false;
 constexpr uint32_t ItemStrBaseID = 294;
 
 static uint32_t TestItemTextID = 0;
+static uint32_t TestItemDescID = 0;
+
 static void(__fastcall *oLoadCore20MSD)(void *pMsgStruct);
 static const void **ppCore20MSD;
 void __fastcall onLoadCore20MSD(void *pMsgStruct)
@@ -216,6 +218,7 @@ void __fastcall onLoadCore20MSD(void *pMsgStruct)
 
         // Test item string
         TestItemTextID = Core20MSD.AddString("Heinermann's Morph Ball");
+        TestItemDescID = Core20MSD.AddString("This item seems important.");
 
         msdInitialized = true;
     }
@@ -230,18 +233,10 @@ static std::unordered_set<uint16_t> ArchipelagoItemTypes = {
 
 constexpr uint8_t MaxVisibleSlots = 4;
 
+static void(__fastcall *oSetUIStrId)(void *gui, uint8_t ctrlId, uint16_t strId);
+
 /*
 TODO:
-  Item descriptions are loaded from id/iditemshop.idd -> bin TBL -> PAC -> MSD.
-  Index in the UI is `0x2000 + itemId`, just `0 + itemId` in MSD file.
-
-  However we can modify the description by modifying the GUI directly,
-  in a post-hook on 0x43C6F0 void cItemShop::ShopInteractUpdate(cItemShop*),
-  using 0x1B6CA0 void __fastcall _SetUIStrId(cObjGui *gui, unsigned __int8 ctrlId, __int16 strId)
-
-  // 11 is the control index for the description textbox
-  _SetUIStrId(pShop->gui, 11, itemDescId);
-
   Vanilla items that have missing descriptions:
   - Ruins Key
   - Oddly Shaped Turnip
@@ -345,6 +340,19 @@ static bool __fastcall onCItemShop_IsPurchasable(okami::cItemShop *pShop, uint32
     return oCItemShop_IsPurchasable(pShop, shopIdx);
 }
 
+static void(__fastcall *oCItemShop_ShopInteractUpdate)(okami::cItemShop *pShop);
+static void __fastcall onCItemShop_ShopInteractUpdate(okami::cItemShop *pShop)
+{
+    // For default desc add 0x2000 to item type
+    oCItemShop_ShopInteractUpdate(pShop);
+
+    uint8_t selIdx = pShop->scrollOffset + pShop->visualSelectIndex;
+    if (selIdx == 0) // TODO testing only
+    {
+        oSetUIStrId(&pShop->gui, 11, TestItemDescID);
+    }
+}
+
 uint32_t __fastcall onCKibaShop_UpdatePurchaseList(okami::cKibaShop *pShop)
 {
     // Rewrite - don't call original
@@ -440,6 +448,19 @@ static bool __fastcall onCKibaShop_IsPurchasable(okami::cKibaShop *pShop, uint32
     return oCKibaShop_IsPurchasable(pShop, shopIdx);
 }
 
+static void(__fastcall *oCKibaShop_ShopInteractUpdate)(okami::cKibaShop *pShop);
+static void __fastcall onCKibaShop_ShopInteractUpdate(okami::cKibaShop *pShop)
+{
+    // For default desc add 0x200D to item type
+    oCKibaShop_ShopInteractUpdate(pShop);
+
+    uint8_t selIdx = pShop->scrollOffset + pShop->visualSelectIndex;
+    if (selIdx == 0) // TODO testing only
+    {
+        oSetUIStrId(&pShop->gui, 11, TestItemDescID);
+    }
+}
+
 uint32_t __fastcall onCSkillShop_UpdatePurchaseList(okami::cSkillShop *pShop)
 {
     // Rewrite - don't call original
@@ -514,6 +535,19 @@ static bool __fastcall onCSkillShop_IsPurchasable(okami::cSkillShop *pShop, uint
     return oCSkillShop_IsPurchasable(pShop, shopIdx);
 }
 
+static void(__fastcall *oCSkillShop_ShopInteractUpdate)(okami::cSkillShop *pShop);
+static void __fastcall onCSkillShop_ShopInteractUpdate(okami::cSkillShop *pShop)
+{
+    // For default desc add 0x2017 to skill type
+    oCSkillShop_ShopInteractUpdate(pShop);
+
+    uint8_t selIdx = pShop->scrollOffset + pShop->visualSelectIndex;
+    if (selIdx == 0) // TODO testing only
+    {
+        oSetUIStrId(&pShop->gui, 11, TestItemDescID);
+    }
+}
+
 /**
  * @brief Setup game-related hooks
  *
@@ -544,6 +578,7 @@ void GameHooks::setup()
     CreateHook(okami::MainBase, 0x43CA30, &onCItemShop_PurchaseItem, &oCItemShop_PurchaseItem);
     CreateHook(okami::MainBase, 0x43BAE0, &onCItemShop_IsSoldOut, &oCItemShop_IsSoldOut);
     CreateHook(okami::MainBase, 0x43B6A0, &onCItemShop_IsPurchasable, &oCItemShop_IsPurchasable);
+    CreateHook(okami::MainBase, 0x43C6F0, &onCItemShop_ShopInteractUpdate, &oCItemShop_ShopInteractUpdate);
 
     // Demon fang shop
     CreateHook(okami::MainBase, 0x43F5A0, &onCKibaShop__GetShopStockList, &ocKibaShop__GetShopStockList);
@@ -551,16 +586,20 @@ void GameHooks::setup()
     CreateHook(okami::MainBase, 0x43FD30, &onCKibaShop_PurchaseItem, &oCKibaShop_PurchaseItem);
     CreateHook(okami::MainBase, 0x43F440, &onCKibaShop_IsSoldOut, &oCKibaShop_IsSoldOut);
     CreateHook(okami::MainBase, 0x43F2F0, &onCKibaShop_IsPurchasable, &oCKibaShop_IsPurchasable);
+    CreateHook(okami::MainBase, 0x43FA90, &onCKibaShop_ShopInteractUpdate, &oCKibaShop_ShopInteractUpdate);
 
     // Skill shop
     CreateHook(okami::MainBase, 0x4431B0, &onCSkillShop_UpdatePurchaseList);
     CreateHook(okami::MainBase, 0x442570, &onCSkillShop_IsSkillNotLearned, &oCSkillShop_IsSkillNotLearned);
+    CreateHook(okami::MainBase, 0x442C40, &onCSkillShop_PurchaseSkill, &oCSkillShop_PurchaseSkill);
     CreateHook(okami::MainBase, 0x4423C0, &onCSkillShop_IsSoldOut, &oCSkillShop_IsSoldOut);
     CreateHook(okami::MainBase, 0x4421C0, &onCSkillShop_IsPurchasable, &oCSkillShop_IsPurchasable);
+    CreateHook(okami::MainBase, 0x442A50, &onCSkillShop_ShopInteractUpdate, &oCSkillShop_ShopInteractUpdate);
 
     oCItemShop_GetItemIcon = reinterpret_cast<decltype(oCItemShop_GetItemIcon)>(okami::MainBase + 0x43BDA0);
     oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
     oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
+    oSetUIStrId = reinterpret_cast<decltype(oSetUIStrId)>(okami::MainBase + 0x1B6CA0);
     ppCore20MSD = reinterpret_cast<const void **>(okami::MainBase + 0x9C11B0);
 
     MH_EnableHook(MH_ALL_HOOKS);

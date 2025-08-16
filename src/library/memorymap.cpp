@@ -125,7 +125,21 @@ void initVariables()
     ItemParams.bind(okami::MainBase + 0x7AB220);
 
     // TODO test each value up to and including 7
-    ItemParams->at(ItemTypes::ArchipelagoTestItem1).category = 0;
+    // 0 = grey
+    // 1 = peach - pickups, food
+    // 2 = peach - consumable items, KT
+    // 3 = cyan
+    // 4 = red - divine instrument
+    // 5 = purple - treasure
+    // 6 = cyan - fish
+    // 7 = yellow - key item, travel guide, map, stray bead
+    ItemParams->at(ItemTypes::ArchipelagoTestItem1).category = 1;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem2).category = 2;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem3).category = 3;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem4).category = 4;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem5).category = 5;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem6).category = 6;
+    ItemParams->at(ItemTypes::ArchipelagoTestItem7).category = 7;
 }
 
 /**

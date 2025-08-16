@@ -55,6 +55,12 @@ void InitializeShopData()
 {
     // TODO update shops with AP information here
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem1, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem2, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem3, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem4, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem5, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem6, 2);
+    KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem7, 2);
     KamikiShop.AddItem(okami::ItemTypes::Praise, 100);
     for (uint32_t i = 1; i < 10; i++)
     {

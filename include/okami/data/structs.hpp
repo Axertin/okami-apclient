@@ -338,8 +338,8 @@ struct cShopBase : public DummyVirtTable
     int16_t purchaseQuantity;
     uint8_t numSlots;
     uint8_t numVisibleSlots;
-    char scrollOffset;
-    char visualSelectIndex;
+    uint8_t scrollOffset;
+    uint8_t visualSelectIndex;
     char field_84;
     char field_85;
     char field_86;
