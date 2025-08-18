@@ -11,24 +11,6 @@
 
 #include <MinHook.h>
 
-BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]] LPVOID lpReserved)
-{
-    switch (ul_reason_for_call)
-    {
-    case DLL_PROCESS_ATTACH:
-    case DLL_THREAD_ATTACH:
-    case DLL_THREAD_DETACH:
-        break;
-    case DLL_PROCESS_DETACH:
-        MH_DisableHook(MH_ALL_HOOKS);
-        MH_Uninitialize();
-        guiCleanup();
-        break;
-    }
-
-    return TRUE;
-}
-
 /** @brief Find Base Addresses of both vanilla DLLs
  *  @param MainDllModuleHandle Handle of main.dll
  *  @param FlowerDllModuleHandle Handle of flower_kernel.dll
@@ -59,24 +41,47 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     return true;
 }
 
-extern "C" __declspec(dllexport) LRESULT CALLBACK entry(int nCode, WPARAM wParam, LPARAM lParam)
+void hook()
 {
     static bool initialized = false;
-    if (!initialized)
+    if (initialized)
+        return;
+
+    initialized = true;
+
+    initializeLogger();
+    logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
+
+    if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+        return;
+
+    GameHooks::setup();
+    guiInitHooks();
+
+    APLocationMonitor::instance().initialize();
+    APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
+}
+
+void unhook()
+{
+    MH_DisableHook(MH_ALL_HOOKS);
+    MH_Uninitialize();
+    guiCleanup();
+}
+
+BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]] LPVOID lpReserved)
+{
+    switch (ul_reason_for_call)
     {
-        initialized = true;
-
-        initializeLogger();
-        logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
-
-        if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
-            return CallNextHookEx(nullptr, nCode, wParam, lParam);
-        GameHooks::setup();
-        guiInitHooks();
-
-        APLocationMonitor::instance().initialize();
-        APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
+    case DLL_PROCESS_ATTACH:
+    case DLL_THREAD_ATTACH:
+    case DLL_THREAD_DETACH:
+        hook();
+        break;
+    case DLL_PROCESS_DETACH:
+        unhook();
+        break;
     }
 
-    return CallNextHookEx(nullptr, nCode, wParam, lParam);
+    return TRUE;
 }

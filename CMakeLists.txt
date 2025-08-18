@@ -175,11 +175,9 @@ if(NOT BUILD_TESTS_ONLY)
   ##################################################
   add_executable(okami-loader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/injector.cpp
   )
   target_precompile_headers(okami-loader PRIVATE
     <iostream>
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
   )
   target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
@@ -197,6 +195,20 @@ if(NOT BUILD_TESTS_ONLY)
   apply_release_optimizations(okami-loader)
   add_windows_resources(okami-loader)
 
+  
+  ##################################################
+  # Proxy DLL
+  ##################################################
+  add_library(okami-proxy-dll SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/d3d11.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/modloader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/d3d11.def
+  )
+  target_compile_features(okami-proxy-dll PRIVATE ${STD_FEATURE})
+  enable_strict_warnings(okami-proxy-dll)
+  apply_release_optimizations(okami-proxy-dll)
+  add_git_version_info(okami-proxy-dll)
+  add_windows_resources(okami-proxy-dll)
 endif()
 
 ##################################################
@@ -298,8 +310,9 @@ if(DEFINED ENV{OKAMI_PATH})
 endif()
 
 if(NOT BUILD_TESTS_ONLY)
-  install(TARGETS okami-loader DESTINATION .)
-  install(TARGETS okami-apclient DESTINATION mods/apclient)
+  install(TARGETS okami-loader RUNTIME DESTINATION .)
+  install(PROGRAMS $<TARGET_FILE:okami-proxy-dll> DESTINATION . RENAME d3d11.dll)
+  install(TARGETS okami-apclient RUNTIME DESTINATION mods/apclient)
   install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/library/game-data DESTINATION mods/apclient)
 endif()
