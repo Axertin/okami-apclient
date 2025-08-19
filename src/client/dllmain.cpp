@@ -53,8 +53,8 @@ void hook()
     APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
 }
 
-static void *(__fastcall *oGetSteamSyncObjectAddress)(void *arg);
-static void *__fastcall onGetSteamSyncObjectAddress(void *arg)
+static int64_t(__fastcall *oSCGetLanguage)();
+static int64_t __fastcall onSCGetLanguage()
 {
     static bool calledOnce = false;
     if (!calledOnce)
@@ -62,7 +62,7 @@ static void *__fastcall onGetSteamSyncObjectAddress(void *arg)
         calledOnce = true;
         hook();
     }
-    return oGetSteamSyncObjectAddress(arg);
+    return oSCGetLanguage();
 }
 
 bool hookFlowerKernel()
@@ -78,8 +78,8 @@ bool hookFlowerKernel()
     }
 
     // This can be just ANY function that gets called early
-    LPVOID pTarget = reinterpret_cast<LPVOID>(GetProcAddress(hFlowerDll, "?GetSteamSyncObjectAddress@m2@@YAPEAVSyncObject@sync@1@XZ"));
-    MH_CreateHook(pTarget, reinterpret_cast<LPVOID>(&onGetSteamSyncObjectAddress), reinterpret_cast<LPVOID *>(&oGetSteamSyncObjectAddress));
+    LPVOID pTarget = reinterpret_cast<LPVOID>(GetProcAddress(hFlowerDll, "SCGetLanguage"));
+    MH_CreateHook(pTarget, reinterpret_cast<LPVOID>(&onSCGetLanguage), reinterpret_cast<LPVOID *>(&oSCGetLanguage));
     MH_STATUS result = MH_EnableHook(pTarget);
 
     if (result != MH_OK)

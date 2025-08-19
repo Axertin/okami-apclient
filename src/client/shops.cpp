@@ -54,6 +54,7 @@ Missing name and desc:
 void InitializeShopData()
 {
     // TODO update shops with AP information here
+    /*
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem1, 2);
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem2, 2);
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem3, 2);
@@ -61,8 +62,8 @@ void InitializeShopData()
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem5, 2);
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem6, 2);
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem7, 2);
-    KamikiShop.AddItem(okami::ItemTypes::Praise, 100);
-    for (uint32_t i = 1; i < 10; i++)
+    KamikiShop.AddItem(okami::ItemTypes::Praise, 100);*/
+    for (uint32_t i = 200; i < 250; i++)
     {
         KamikiShop.AddItem(static_cast<okami::ItemTypes::Enum>(i), 10);
     }

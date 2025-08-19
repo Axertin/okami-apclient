@@ -199,7 +199,7 @@ int64_t __fastcall onGXTextureManager_GetNumEntries(void *pTextureManager, int32
     if (texGroup == 4)
     {
         // Originally was 128 but we have more than 256 icons
-        // return 300; // FIXME: uncomment when injection on suspend is finished
+        return 300;
     }
     return oGXTextureManager_GetNumEntries(pTextureManager, texGroup);
 }
