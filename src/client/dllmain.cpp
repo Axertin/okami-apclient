@@ -13,45 +13,37 @@
 
 /** @brief Find Base Addresses of both vanilla DLLs
  *  @param MainDllModuleHandle Handle of main.dll
- *  @param FlowerDllModuleHandle Handle of flower_kernel.dll
  *  @return success boolean
  */
-inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
+inline bool initializeMain()
 {
-    logInfo("[apclient] Initializing Modules...");
-    okami::MainBase = reinterpret_cast<uintptr_t>(MainDllModuleHandle);
+    logInfo("[apclient] Initializing main.dll module...");
+    HMODULE hMainDll = GetModuleHandleW(L"main.dll");
+    okami::MainBase = reinterpret_cast<uintptr_t>(hMainDll);
     if (okami::MainBase == 0)
     {
         logError("[apclient] Main.dll BaseAddress not found!");
         return false;
     }
-    okami::FlowerBase = reinterpret_cast<uintptr_t>(FlowerDllModuleHandle);
-    if (okami::FlowerBase == 0)
-    {
-        logError("[apclient] flower_kernel.dll BaseAddress not found!");
-        return false;
-    }
-
     okami::initVariables();
-    okami::RecompileItemGraphics();
 
     logInfo("[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
 
     return true;
 }
 
-void hook()
+void initializePrerequisites()
 {
-    static bool initialized = false;
-    if (initialized)
-        return;
-
-    initialized = true;
-
     initializeLogger();
     logInfo("[apclient] Initializing okami_apclient v%s (%s)", version::string(), version::hash());
 
-    if (!initialize(GetModuleHandleW(L"main.dll"), GetModuleHandleW(L"flower_kernel.dll")))
+    okami::RecompileItemGraphics();
+    GameHooks::initialize();
+}
+
+void hook()
+{
+    if (!initializeMain())
         return;
 
     GameHooks::setup();
@@ -59,6 +51,43 @@ void hook()
 
     APLocationMonitor::instance().initialize();
     APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
+}
+
+static void *(__fastcall *oGetSteamSyncObjectAddress)(void *arg);
+static void *__fastcall onGetSteamSyncObjectAddress(void *arg)
+{
+    static bool calledOnce = false;
+    if (!calledOnce)
+    {
+        calledOnce = true;
+        hook();
+    }
+    return oGetSteamSyncObjectAddress(arg);
+}
+
+bool hookFlowerKernel()
+{
+    logInfo("[apclient] Initializing flower_kernel.dll module...");
+
+    HMODULE hFlowerDll = GetModuleHandleW(L"flower_kernel.dll");
+    okami::FlowerBase = reinterpret_cast<uintptr_t>(hFlowerDll);
+    if (okami::FlowerBase == 0)
+    {
+        logError("[apclient] flower_kernel.dll BaseAddress not found!");
+        return false;
+    }
+
+    // This can be just ANY function that gets called early
+    LPVOID pTarget = reinterpret_cast<LPVOID>(GetProcAddress(hFlowerDll, "?GetSteamSyncObjectAddress@m2@@YAPEAVSyncObject@sync@1@XZ"));
+    MH_CreateHook(pTarget, reinterpret_cast<LPVOID>(&onGetSteamSyncObjectAddress), reinterpret_cast<LPVOID *>(&oGetSteamSyncObjectAddress));
+    MH_STATUS result = MH_EnableHook(pTarget);
+
+    if (result != MH_OK)
+    {
+        logInfo("[apclient] Failed to hook early in flower_kernel...");
+        return false;
+    }
+    return true;
 }
 
 void unhook()
@@ -73,7 +102,8 @@ BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule, DWORD ul_reason_for_call
     switch (ul_reason_for_call)
     {
     case DLL_PROCESS_ATTACH:
-        hook();
+        initializePrerequisites();
+        hookFlowerKernel();
         break;
     case DLL_PROCESS_DETACH:
         unhook();

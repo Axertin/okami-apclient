@@ -567,16 +567,28 @@ static void __fastcall onCSkillShop_ShopInteractUpdate(okami::cSkillShop *pShop)
     }
 }
 
+bool GameHooks::initialize()
+{
+    logInfo("[gamehooks] Initializing MinHook...");
+
+    MH_STATUS result = MH_Initialize();
+    if (result != MH_OK && result != MH_ERROR_ALREADY_INITIALIZED)
+    {
+        logError("[gamehooks] Failed to initialize MinHook!");
+        return false;
+    }
+    return true;
+}
+
 /**
  * @brief Setup game-related hooks
  *
  */
 void GameHooks::setup()
 {
-    logInfo("[gamehooks] Initializing MinHook...");
-    if (MH_Initialize() != MH_OK)
+    if (!GameHooks::initialize())
     {
-        logError("[gamehooks] Failed to initialize MinHook!");
+        logError("[gamehooks] Failed to initialize MinHook in setup!");
         return;
     }
 
