@@ -56,14 +56,6 @@ void *MaybePlayerClassPtr;
 // Game function pointers
 
 void *D3D11PresentFnPtr;
-char *GetSaveDataRootDirectoryFnPtr;
-void *MainFlowerStartupFnPtr;
-void *MainFlowerStopFnPtr;
-void *MainFlowerTickFnPtr;
-void *MainFlowerLoadPtr;
-void *MainFlowerTreasurePickedUpPtr;
-void *MainFlowerItemPickupFnPtr;
-void *EditBrushesFnPtr;
 
 MemoryAccessor<BitField<32>> AmmyUsableBrushes;
 MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
@@ -142,22 +134,4 @@ void initVariables()
     ItemParams->at(ItemTypes::ArchipelagoTestItem7).category = 7;
 }
 
-/**
- * @brief Initialize major engine function pointers from known okami::MainBase
- * offsets.
- */
-void initFunctions()
-{
-    // edit brushbitfield = mainBase + 17C270 (void setBrushes(void* <ammy
-    // class? this?>, uint32_t index, int op)) --> op
-    GetSaveDataRootDirectoryFnPtr = reinterpret_cast<char *>(okami::FlowerBase + 0x22F7);
-    MainFlowerStartupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6240);
-    MainFlowerStopFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B6230);
-    MainFlowerTickFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4B63B0);
-    MainFlowerLoadPtr = reinterpret_cast<void *>(okami::MainBase + 0x4390A0);
-    MainFlowerTreasurePickedUpPtr = reinterpret_cast<void *>(okami::MainBase + 0x436AE0);
-    MainFlowerItemPickupFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x4965D0);
-
-    EditBrushesFnPtr = reinterpret_cast<void *>(okami::MainBase + 0x17C270);
-}
 } // namespace okami

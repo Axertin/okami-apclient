@@ -33,7 +33,6 @@ inline bool initialize(void *MainDllModuleHandle, void *FlowerDllModuleHandle)
     }
 
     okami::initVariables();
-    okami::initFunctions();
     okami::RecompileItemGraphics();
 
     logInfo("[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
