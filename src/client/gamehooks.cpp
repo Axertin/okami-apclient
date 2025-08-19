@@ -7,6 +7,7 @@
 #include "archipelagosocket.h"
 #include "devdatafinder.h"
 #include "logger.h"
+#include "okami/data/brushtype.hpp"
 #include "okami/memorymap.hpp"
 #include "okami/msd.h"
 #include "okami/resource.h"
@@ -214,6 +215,8 @@ constexpr uint32_t ItemStrBaseID = 294;
 static uint32_t TestItemTextID = 0;
 static uint32_t TestItemDescID = 0;
 
+static std::unordered_map<uint32_t, uint32_t> brushTextIDs;
+
 static void(__fastcall *oLoadCore20MSD)(void *pMsgStruct);
 static const void **ppCore20MSD;
 void __fastcall onLoadCore20MSD(void *pMsgStruct)
@@ -239,6 +242,31 @@ void __fastcall onLoadCore20MSD(void *pMsgStruct)
         TestItemTextID = Core20MSD.AddString("Heinermann's Morph Ball");
         TestItemDescID = Core20MSD.AddString("This item seems important.");
 
+        brushTextIDs.emplace(okami::BrushTypes::Catwalk, Core20MSD.AddString("Catwalk"));
+        brushTextIDs.emplace(okami::BrushTypes::CherryBomb, Core20MSD.AddString("Cherry Bomb"));
+        brushTextIDs.emplace(okami::BrushTypes::IceStorm, Core20MSD.AddString("Ice Storm"));
+        brushTextIDs.emplace(okami::BrushTypes::Blizzard, Core20MSD.AddString("Blizzard"));
+        brushTextIDs.emplace(okami::BrushTypes::Rejuvenation, Core20MSD.AddString("Rejuvenation"));
+        brushTextIDs.emplace(okami::BrushTypes::VineBase, Core20MSD.AddString("Vine"));
+        brushTextIDs.emplace(okami::BrushTypes::Crescent, Core20MSD.AddString("Crescent"));
+        brushTextIDs.emplace(okami::BrushTypes::MistWarp, Core20MSD.AddString("Mist Warp"));
+        brushTextIDs.emplace(okami::BrushTypes::VeilOfMist, Core20MSD.AddString("Veil of Mist"));
+        brushTextIDs.emplace(okami::BrushTypes::Fountain, Core20MSD.AddString("Fountain"));
+        brushTextIDs.emplace(okami::BrushTypes::Deluge, Core20MSD.AddString("Deluge"));
+        brushTextIDs.emplace(okami::BrushTypes::Waterspout, Core20MSD.AddString("Waterspout"));
+        brushTextIDs.emplace(okami::BrushTypes::PowerSlash, Core20MSD.AddString("Power Slash"));
+        brushTextIDs.emplace(okami::BrushTypes::Fireburst, Core20MSD.AddString("Fireburst"));
+        brushTextIDs.emplace(okami::BrushTypes::Inferno, Core20MSD.AddString("Inferno"));
+        brushTextIDs.emplace(okami::BrushTypes::Thunderbolt, Core20MSD.AddString("Thunderbolt"));
+        brushTextIDs.emplace(okami::BrushTypes::ThunderStorm, Core20MSD.AddString("Thunder Storm"));
+        brushTextIDs.emplace(okami::BrushTypes::Whirlwind, Core20MSD.AddString("Whirlwind"));
+        brushTextIDs.emplace(okami::BrushTypes::Galestorm, Core20MSD.AddString("Galestorm"));
+        brushTextIDs.emplace(okami::BrushTypes::WaterLily, Core20MSD.AddString("Water Lily"));
+        brushTextIDs.emplace(okami::BrushTypes::Bloom, Core20MSD.AddString("Bloom"));
+        brushTextIDs.emplace(okami::BrushTypes::DotTrees, Core20MSD.AddString("Dot Trees"));
+        brushTextIDs.emplace(okami::BrushTypes::Greensprout, Core20MSD.AddString("Greensprout"));
+        brushTextIDs.emplace(okami::BrushTypes::Sunrise, Core20MSD.AddString("Sunrise"));
+
         msdInitialized = true;
     }
     *ppCore20MSD = Core20MSD.GetData();
@@ -248,6 +276,15 @@ static std::unordered_set<uint16_t> ArchipelagoItemTypes = {
     okami::ItemTypes::ArchipelagoTestItem1, okami::ItemTypes::ArchipelagoTestItem2, okami::ItemTypes::ArchipelagoTestItem3,
     okami::ItemTypes::ArchipelagoTestItem4, okami::ItemTypes::ArchipelagoTestItem5, okami::ItemTypes::ArchipelagoTestItem6,
     okami::ItemTypes::ArchipelagoTestItem7,
+};
+
+static std::vector<okami::BrushTypes::Enum> ShopBrushes = {
+    okami::BrushTypes::Catwalk,      okami::BrushTypes::CherryBomb, okami::BrushTypes::IceStorm,    okami::BrushTypes::Blizzard,
+    okami::BrushTypes::Rejuvenation, okami::BrushTypes::VineBase,   okami::BrushTypes::Crescent,    okami::BrushTypes::MistWarp,
+    okami::BrushTypes::VeilOfMist,   okami::BrushTypes::Fountain,   okami::BrushTypes::Deluge,      okami::BrushTypes::Waterspout,
+    okami::BrushTypes::PowerSlash,   okami::BrushTypes::Fireburst,  okami::BrushTypes::Inferno,     okami::BrushTypes::Thunderbolt,
+    okami::BrushTypes::ThunderStorm, okami::BrushTypes::Whirlwind,  okami::BrushTypes::Galestorm,   okami::BrushTypes::WaterLily,
+    okami::BrushTypes::Bloom,        okami::BrushTypes::DotTrees,   okami::BrushTypes::Greensprout, okami::BrushTypes::Sunrise,
 };
 
 constexpr uint8_t MaxVisibleSlots = 4;
@@ -277,10 +314,10 @@ uint32_t __fastcall onCItemShop_UpdatePurchaseList(okami::cItemShop *pShop)
         pShop->shopSlots[i].itemType = itemType;
 
         // TODO: This is where we choose a different icon and text for the same item type
-        if (ArchipelagoItemTypes.contains(itemType))
+        if (ArchipelagoItemTypes.contains(itemType) && i < ShopBrushes.size())
         {
-            pShop->shopSlots[i].pIcon = GetItemIcon(pShop, okami::ItemTypes::ArchipelagoTestItem1);
-            pShop->shopSlots[i].itemNameStrId = TestItemTextID;
+            pShop->shopSlots[i].pIcon = GetItemIcon(pShop, 256 + ShopBrushes[i]);
+            pShop->shopSlots[i].itemNameStrId = brushTextIDs[ShopBrushes[i]];
         }
         else
         {

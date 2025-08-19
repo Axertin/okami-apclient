@@ -63,9 +63,9 @@ void InitializeShopData()
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem6, 2);
     KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem7, 2);
     KamikiShop.AddItem(okami::ItemTypes::Praise, 100);*/
-    for (uint32_t i = 200; i < 250; i++)
+    for (uint32_t i = 0; i < 25; i++)
     {
-        KamikiShop.AddItem(static_cast<okami::ItemTypes::Enum>(i), 10);
+        KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem1, 10);
     }
 
     // Special sell prices for some fish
