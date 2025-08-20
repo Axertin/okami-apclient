@@ -90,7 +90,9 @@ endif()
 
 file(GLOB_RECURSE tests CONFIGURE_DEPENDS "test/*.cpp")
 
+##################################################
 # Game library (memory structures and such)
+##################################################
 add_library(okami-library STATIC ${library_SOURCES})
 target_include_directories(okami-library PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_compile_features(okami-library PUBLIC ${STD_FEATURE})
@@ -98,7 +100,9 @@ target_link_libraries(okami-library PUBLIC yaml-cpp::yaml-cpp)
 enable_strict_warnings(okami-library)
 
 if(NOT BUILD_TESTS_ONLY)
+  ##################################################
   # imgui
+  ##################################################
   add_library(imgui STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
@@ -111,7 +115,9 @@ if(NOT BUILD_TESTS_ONLY)
   target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
   target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
+  ##################################################
   # Primary program
+  ##################################################
   add_library(okami-apclient SHARED ${client_SOURCES})
   target_precompile_headers(okami-apclient PRIVATE
     <algorithm>
@@ -164,14 +170,14 @@ if(NOT BUILD_TESTS_ONLY)
   get_target_property(_version okami-apclient VERSION_STRING)
   add_windows_resources(okami-apclient)
 
+  ##################################################
   # Injector
+  ##################################################
   add_executable(okami-loader
     ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/main.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/loader/injector.cpp
   )
   target_precompile_headers(okami-loader PRIVATE
     <iostream>
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/loader/framework.h"
   )
   target_include_directories(okami-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/loader)
   target_compile_features(okami-loader PRIVATE ${STD_FEATURE})
@@ -189,8 +195,25 @@ if(NOT BUILD_TESTS_ONLY)
   apply_release_optimizations(okami-loader)
   add_windows_resources(okami-loader)
 
+  
+  ##################################################
+  # Proxy DLL
+  ##################################################
+  add_library(okami-proxy-dll SHARED
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/dinput8.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/modloader.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/dinput8.def
+  )
+  target_compile_features(okami-proxy-dll PRIVATE ${STD_FEATURE})
+  enable_strict_warnings(okami-proxy-dll)
+  apply_release_optimizations(okami-proxy-dll)
+  add_git_version_info(okami-proxy-dll)
+  add_windows_resources(okami-proxy-dll)
 endif()
 
+##################################################
+# Test package
+##################################################
 if(WIN32)
   set(TESTED_UNITS ${client_SOURCES} ${library_SOURCES})
 else()
@@ -275,13 +298,21 @@ if(NOT CMAKE_CROSSCOMPILING)
   catch_discover_tests(okami-tests)
 endif()
 
+##################################################
 # Install
+##################################################
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "d:/SteamLibrary/steamapps/common/Okami")
 endif()
+
+if(DEFINED ENV{OKAMI_PATH})
+  set_property(CACHE CMAKE_INSTALL_PREFIX PROPERTY VALUE "$ENV{OKAMI_PATH}")
+endif()
+
 if(NOT BUILD_TESTS_ONLY)
-  install(TARGETS okami-loader DESTINATION .)
-  install(TARGETS okami-apclient DESTINATION mods/apclient)
+  install(TARGETS okami-loader RUNTIME DESTINATION .)
+  install(PROGRAMS $<TARGET_FILE:okami-proxy-dll> DESTINATION . RENAME dinput8.dll)
+  install(TARGETS okami-apclient RUNTIME DESTINATION mods/apclient)
   install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION mods/apclient)
   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/library/game-data DESTINATION mods/apclient)
 endif()

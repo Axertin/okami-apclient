@@ -1,10 +1,8 @@
-#include <chrono>
+#include <Windows.h>
+
 #include <filesystem>
 #include <format>
 #include <iostream>
-#include <thread>
-
-#include "injector.h"
 
 namespace fs = std::filesystem;
 
@@ -14,6 +12,24 @@ int error(const std::string &message)
     std::cout << "Press Enter to exit..." << std::endl;
     std::cin.get();
     return 1;
+}
+
+std::string formatWindowsError(DWORD error)
+{
+    if (error == 0)
+        return "Success";
+
+    LPSTR messageBuffer = nullptr;
+    FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, error, 0, reinterpret_cast<LPSTR>(&messageBuffer), 0, nullptr);
+
+    std::string message(messageBuffer);
+    LocalFree(messageBuffer);
+
+    // Remove trailing newlines
+    while (!message.empty() && (message.back() == '\n' || message.back() == '\r'))
+        message.pop_back();
+
+    return message;
 }
 
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
@@ -26,14 +42,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
     fs::path loaderDir = fs::path(exePath).parent_path();
 
     // Build paths
-    fs::path dllPath = loaderDir / "mods" / "apclient" / "okami-apclient.dll";
     fs::path okamiExe = loaderDir / "okami.exe";
-
-    // Check if DLL exists
-    if (!fs::exists(dllPath))
-    {
-        return error(std::format("Cannot find okami-apclient.dll at: {}", dllPath.string()));
-    }
 
     // Check if game exe exists
     if (!fs::exists(okamiExe))
@@ -41,34 +50,14 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         return error(std::format("Cannot find okami.exe at: {}", okamiExe.string()));
     }
 
-    // Check if game is already running
-    std::cout << "Checking for Okami HD process..." << std::endl;
-    std::optional<DWORD> processId = OkamiInjector::findOkamiProcess(1);
-
-    if (!processId)
+    STARTUPINFOW si{};
+    PROCESS_INFORMATION pi{};
+    std::wstring wideOkamiExe = okamiExe;
+    wchar_t args[256] = L" -MODDED";
+    if (!CreateProcessW(wideOkamiExe.c_str(), args, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
     {
-        std::cout << "Okami HD not running. Launching game..." << std::endl;
-        processId = OkamiInjector::launchOkami(okamiExe.wstring());
-        if (!processId)
-        {
-            return error("Failed to launch Okami HD!");
-        }
+        return error(std::format("Failed to launch okami.exe: {}", formatWindowsError(GetLastError())));
     }
 
-    std::cout << "Found Okami HD process (PID: " << *processId << ")" << std::endl;
-
-    std::cout << "Injecting: " << dllPath.filename().string() << std::endl;
-
-    // Perform injection and call entry point
-    if (OkamiInjector::inject(*processId, dllPath.wstring()))
-    {
-        std::cout << "Injection successful!" << std::endl;
-        std::cout << "Closing in 3 seconds..." << std::endl;
-        std::this_thread::sleep_for(std::chrono::seconds(3));
-        return 0;
-    }
-    else
-    {
-        return error("Injection failed!");
-    }
+    return 0;
 }

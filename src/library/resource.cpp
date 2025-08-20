@@ -580,11 +580,18 @@ void RecompileItemGraphics()
         {
             std::ofstream out{std::format("dump/brush {:03} ({}).dds", i, okami::BrushTypes::GetName(i)), std::ios::binary};
             out.write(reinterpret_cast<char *>(iconTexData->data()), iconTexData->size());
+
+            newPkgTextures.emplace_back(*iconTexData);
         }
         else
         {
             std::ofstream out{std::format("dump/brush {:03} ({}) NOT FOUND.dds", i, okami::BrushTypes::GetName(i))};
             out << "oof" << std::endl;
+
+            if (!newPkgTextures.empty())
+            {
+                newPkgTextures.emplace_back(newPkgTextures[0]);
+            }
         }
     }
 

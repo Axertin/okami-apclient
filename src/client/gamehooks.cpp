@@ -7,6 +7,7 @@
 #include "archipelagosocket.h"
 #include "devdatafinder.h"
 #include "logger.h"
+#include "okami/data/brushtype.hpp"
 #include "okami/memorymap.hpp"
 #include "okami/msd.h"
 #include "okami/resource.h"
@@ -145,6 +146,25 @@ template <class T> void CreateHook(uintptr_t base, uintptr_t offset, T *pDetour)
     MH_CreateHook(reinterpret_cast<void *>(base + offset), reinterpret_cast<LPVOID>(pDetour), nullptr);
 }
 
+template <class T> void CreateMainHook(uintptr_t offset, T *pDetour, T **ppOriginal)
+{
+    CreateHook(okami::MainBase, offset, pDetour, ppOriginal);
+}
+template <class T> void CreateMainHook(uintptr_t offset, T *pDetour)
+{
+    CreateHook(okami::MainBase, offset, pDetour);
+}
+
+template <class T> void GetFnAddress(T &storage, uintptr_t base, uintptr_t offset)
+{
+    storage = reinterpret_cast<T>(base + offset);
+}
+
+template <class T> void GetMainFnAddress(T &storage, uintptr_t offset)
+{
+    GetFnAddress(storage, okami::MainBase, offset);
+}
+
 static void *(__fastcall *oLoadRscIdx)(void *pPkg, uint32_t idx);
 
 static hx::Texture *(__fastcall *oCItemShop_GetItemIcon)(okami::cItemShop *pShop, int item);
@@ -180,7 +200,7 @@ int64_t __fastcall onGXTextureManager_GetNumEntries(void *pTextureManager, int32
     if (texGroup == 4)
     {
         // Originally was 128 but we have more than 256 icons
-        // return 300; // FIXME: uncomment when injection on suspend is finished
+        return 300;
     }
     return oGXTextureManager_GetNumEntries(pTextureManager, texGroup);
 }
@@ -194,6 +214,8 @@ constexpr uint32_t ItemStrBaseID = 294;
 
 static uint32_t TestItemTextID = 0;
 static uint32_t TestItemDescID = 0;
+
+static std::unordered_map<uint32_t, uint32_t> brushTextIDs;
 
 static void(__fastcall *oLoadCore20MSD)(void *pMsgStruct);
 static const void **ppCore20MSD;
@@ -220,6 +242,31 @@ void __fastcall onLoadCore20MSD(void *pMsgStruct)
         TestItemTextID = Core20MSD.AddString("Heinermann's Morph Ball");
         TestItemDescID = Core20MSD.AddString("This item seems important.");
 
+        brushTextIDs.emplace(okami::BrushTypes::Catwalk, Core20MSD.AddString("Catwalk"));
+        brushTextIDs.emplace(okami::BrushTypes::CherryBomb, Core20MSD.AddString("Cherry Bomb"));
+        brushTextIDs.emplace(okami::BrushTypes::IceStorm, Core20MSD.AddString("Ice Storm"));
+        brushTextIDs.emplace(okami::BrushTypes::Blizzard, Core20MSD.AddString("Blizzard"));
+        brushTextIDs.emplace(okami::BrushTypes::Rejuvenation, Core20MSD.AddString("Rejuvenation"));
+        brushTextIDs.emplace(okami::BrushTypes::VineBase, Core20MSD.AddString("Vine"));
+        brushTextIDs.emplace(okami::BrushTypes::Crescent, Core20MSD.AddString("Crescent"));
+        brushTextIDs.emplace(okami::BrushTypes::MistWarp, Core20MSD.AddString("Mist Warp"));
+        brushTextIDs.emplace(okami::BrushTypes::VeilOfMist, Core20MSD.AddString("Veil of Mist"));
+        brushTextIDs.emplace(okami::BrushTypes::Fountain, Core20MSD.AddString("Fountain"));
+        brushTextIDs.emplace(okami::BrushTypes::Deluge, Core20MSD.AddString("Deluge"));
+        brushTextIDs.emplace(okami::BrushTypes::Waterspout, Core20MSD.AddString("Waterspout"));
+        brushTextIDs.emplace(okami::BrushTypes::PowerSlash, Core20MSD.AddString("Power Slash"));
+        brushTextIDs.emplace(okami::BrushTypes::Fireburst, Core20MSD.AddString("Fireburst"));
+        brushTextIDs.emplace(okami::BrushTypes::Inferno, Core20MSD.AddString("Inferno"));
+        brushTextIDs.emplace(okami::BrushTypes::Thunderbolt, Core20MSD.AddString("Thunderbolt"));
+        brushTextIDs.emplace(okami::BrushTypes::ThunderStorm, Core20MSD.AddString("Thunder Storm"));
+        brushTextIDs.emplace(okami::BrushTypes::Whirlwind, Core20MSD.AddString("Whirlwind"));
+        brushTextIDs.emplace(okami::BrushTypes::Galestorm, Core20MSD.AddString("Galestorm"));
+        brushTextIDs.emplace(okami::BrushTypes::WaterLily, Core20MSD.AddString("Water Lily"));
+        brushTextIDs.emplace(okami::BrushTypes::Bloom, Core20MSD.AddString("Bloom"));
+        brushTextIDs.emplace(okami::BrushTypes::DotTrees, Core20MSD.AddString("Dot Trees"));
+        brushTextIDs.emplace(okami::BrushTypes::Greensprout, Core20MSD.AddString("Greensprout"));
+        brushTextIDs.emplace(okami::BrushTypes::Sunrise, Core20MSD.AddString("Sunrise"));
+
         msdInitialized = true;
     }
     *ppCore20MSD = Core20MSD.GetData();
@@ -229,6 +276,15 @@ static std::unordered_set<uint16_t> ArchipelagoItemTypes = {
     okami::ItemTypes::ArchipelagoTestItem1, okami::ItemTypes::ArchipelagoTestItem2, okami::ItemTypes::ArchipelagoTestItem3,
     okami::ItemTypes::ArchipelagoTestItem4, okami::ItemTypes::ArchipelagoTestItem5, okami::ItemTypes::ArchipelagoTestItem6,
     okami::ItemTypes::ArchipelagoTestItem7,
+};
+
+static std::vector<okami::BrushTypes::Enum> ShopBrushes = {
+    okami::BrushTypes::Catwalk,      okami::BrushTypes::CherryBomb, okami::BrushTypes::IceStorm,    okami::BrushTypes::Blizzard,
+    okami::BrushTypes::Rejuvenation, okami::BrushTypes::VineBase,   okami::BrushTypes::Crescent,    okami::BrushTypes::MistWarp,
+    okami::BrushTypes::VeilOfMist,   okami::BrushTypes::Fountain,   okami::BrushTypes::Deluge,      okami::BrushTypes::Waterspout,
+    okami::BrushTypes::PowerSlash,   okami::BrushTypes::Fireburst,  okami::BrushTypes::Inferno,     okami::BrushTypes::Thunderbolt,
+    okami::BrushTypes::ThunderStorm, okami::BrushTypes::Whirlwind,  okami::BrushTypes::Galestorm,   okami::BrushTypes::WaterLily,
+    okami::BrushTypes::Bloom,        okami::BrushTypes::DotTrees,   okami::BrushTypes::Greensprout, okami::BrushTypes::Sunrise,
 };
 
 constexpr uint8_t MaxVisibleSlots = 4;
@@ -258,10 +314,10 @@ uint32_t __fastcall onCItemShop_UpdatePurchaseList(okami::cItemShop *pShop)
         pShop->shopSlots[i].itemType = itemType;
 
         // TODO: This is where we choose a different icon and text for the same item type
-        if (ArchipelagoItemTypes.contains(itemType))
+        if (ArchipelagoItemTypes.contains(itemType) && i < ShopBrushes.size())
         {
-            pShop->shopSlots[i].pIcon = GetItemIcon(pShop, okami::ItemTypes::ArchipelagoTestItem1);
-            pShop->shopSlots[i].itemNameStrId = TestItemTextID;
+            pShop->shopSlots[i].pIcon = GetItemIcon(pShop, 256 + ShopBrushes[i]);
+            pShop->shopSlots[i].itemNameStrId = brushTextIDs[ShopBrushes[i]];
         }
         else
         {
@@ -548,59 +604,71 @@ static void __fastcall onCSkillShop_ShopInteractUpdate(okami::cSkillShop *pShop)
     }
 }
 
+bool GameHooks::initialize()
+{
+    logInfo("[gamehooks] Initializing MinHook...");
+
+    MH_STATUS result = MH_Initialize();
+    if (result != MH_OK && result != MH_ERROR_ALREADY_INITIALIZED)
+    {
+        logError("[gamehooks] Failed to initialize MinHook!");
+        return false;
+    }
+    return true;
+}
+
 /**
  * @brief Setup game-related hooks
  *
  */
 void GameHooks::setup()
 {
-    logInfo("[gamehooks] Initializing MinHook...");
-    if (MH_Initialize() != MH_OK)
+    if (!GameHooks::initialize())
     {
-        logError("[gamehooks] Failed to initialize MinHook!");
+        logError("[gamehooks] Failed to initialize MinHook in setup!");
         return;
     }
 
-    MH_CreateHook(okami::MainFlowerStartupFnPtr, reinterpret_cast<LPVOID>(&onReturnToMenu), reinterpret_cast<LPVOID *>(&Flower_ReturnToMenu));
-    MH_CreateHook(okami::MainFlowerStopFnPtr, reinterpret_cast<LPVOID>(&onGameStop), reinterpret_cast<LPVOID *>(&Main_FlowerStopOrigin));
-    MH_CreateHook(okami::MainFlowerTickFnPtr, reinterpret_cast<LPVOID>(&onGameTick), reinterpret_cast<LPVOID *>(&Main_FlowerTickOrigin));
-    MH_CreateHook(okami::MainFlowerItemPickupFnPtr, reinterpret_cast<LPVOID>(&onItemPickup), reinterpret_cast<LPVOID *>(&oItemPickup));
-    MH_CreateHook(okami::EditBrushesFnPtr, reinterpret_cast<LPVOID>(&onBrushEdit), reinterpret_cast<LPVOID *>(&oEditBrushes));
+    CreateMainHook(0x4B6240, &onReturnToMenu, &Flower_ReturnToMenu);
+    CreateMainHook(0x4B6230, &onGameStop, &Main_FlowerStopOrigin);
+    CreateMainHook(0x4B63B0, &onGameTick, &Main_FlowerTickOrigin);
+    CreateMainHook(0x4965D0, &onItemPickup, &oItemPickup);
+    CreateMainHook(0x17C270, &onBrushEdit, &oEditBrushes);
 
-    CreateHook(okami::MainBase, 0x4420C0, &onGetShopVariation, &oGetShopVariation);
-    CreateHook(okami::MainBase, 0x1B1770, &onLoadRsc, &oLoadRsc);
-    CreateHook(okami::MainBase, 0x1AFC90, &onLoadResourcePackageAsync, &oLoadResourcePackageAsync);
-    CreateHook(okami::MainBase, 0x1412B0, &onGXTextureManager_GetNumEntries, &oGXTextureManager_GetNumEntries);
-    CreateHook(okami::MainBase, 0x1C9510, &onLoadCore20MSD, &oLoadCore20MSD);
+    CreateMainHook(0x4420C0, &onGetShopVariation, &oGetShopVariation);
+    CreateMainHook(0x1B1770, &onLoadRsc, &oLoadRsc);
+    CreateMainHook(0x1AFC90, &onLoadResourcePackageAsync, &oLoadResourcePackageAsync);
+    CreateMainHook(0x1412B0, &onGXTextureManager_GetNumEntries, &oGXTextureManager_GetNumEntries);
+    CreateMainHook(0x1C9510, &onLoadCore20MSD, &oLoadCore20MSD);
 
     // Item shop
-    CreateHook(okami::MainBase, 0x43E250, &onCItemShop_UpdatePurchaseList);
-    CreateHook(okami::MainBase, 0x43CA30, &onCItemShop_PurchaseItem, &oCItemShop_PurchaseItem);
-    CreateHook(okami::MainBase, 0x43BAE0, &onCItemShop_IsSoldOut, &oCItemShop_IsSoldOut);
-    CreateHook(okami::MainBase, 0x43B6A0, &onCItemShop_IsPurchasable, &oCItemShop_IsPurchasable);
-    CreateHook(okami::MainBase, 0x43C6F0, &onCItemShop_ShopInteractUpdate, &oCItemShop_ShopInteractUpdate);
+    CreateMainHook(0x43E250, &onCItemShop_UpdatePurchaseList);
+    CreateMainHook(0x43CA30, &onCItemShop_PurchaseItem, &oCItemShop_PurchaseItem);
+    CreateMainHook(0x43BAE0, &onCItemShop_IsSoldOut, &oCItemShop_IsSoldOut);
+    CreateMainHook(0x43B6A0, &onCItemShop_IsPurchasable, &oCItemShop_IsPurchasable);
+    CreateMainHook(0x43C6F0, &onCItemShop_ShopInteractUpdate, &oCItemShop_ShopInteractUpdate);
 
     // Demon fang shop
-    CreateHook(okami::MainBase, 0x43F5A0, &onCKibaShop__GetShopStockList, &ocKibaShop__GetShopStockList);
-    CreateHook(okami::MainBase, 0x440380, &onCKibaShop_UpdatePurchaseList);
-    CreateHook(okami::MainBase, 0x43FD30, &onCKibaShop_PurchaseItem, &oCKibaShop_PurchaseItem);
-    CreateHook(okami::MainBase, 0x43F440, &onCKibaShop_IsSoldOut, &oCKibaShop_IsSoldOut);
-    CreateHook(okami::MainBase, 0x43F2F0, &onCKibaShop_IsPurchasable, &oCKibaShop_IsPurchasable);
-    CreateHook(okami::MainBase, 0x43FA90, &onCKibaShop_ShopInteractUpdate, &oCKibaShop_ShopInteractUpdate);
+    CreateMainHook(0x43F5A0, &onCKibaShop__GetShopStockList, &ocKibaShop__GetShopStockList);
+    CreateMainHook(0x440380, &onCKibaShop_UpdatePurchaseList);
+    CreateMainHook(0x43FD30, &onCKibaShop_PurchaseItem, &oCKibaShop_PurchaseItem);
+    CreateMainHook(0x43F440, &onCKibaShop_IsSoldOut, &oCKibaShop_IsSoldOut);
+    CreateMainHook(0x43F2F0, &onCKibaShop_IsPurchasable, &oCKibaShop_IsPurchasable);
+    CreateMainHook(0x43FA90, &onCKibaShop_ShopInteractUpdate, &oCKibaShop_ShopInteractUpdate);
 
     // Skill shop
-    CreateHook(okami::MainBase, 0x4431B0, &onCSkillShop_UpdatePurchaseList);
-    CreateHook(okami::MainBase, 0x442570, &onCSkillShop_IsSkillNotLearned, &oCSkillShop_IsSkillNotLearned);
-    CreateHook(okami::MainBase, 0x442C40, &onCSkillShop_PurchaseSkill, &oCSkillShop_PurchaseSkill);
-    CreateHook(okami::MainBase, 0x4423C0, &onCSkillShop_IsSoldOut, &oCSkillShop_IsSoldOut);
-    CreateHook(okami::MainBase, 0x4421C0, &onCSkillShop_IsPurchasable, &oCSkillShop_IsPurchasable);
-    CreateHook(okami::MainBase, 0x442A50, &onCSkillShop_ShopInteractUpdate, &oCSkillShop_ShopInteractUpdate);
+    CreateMainHook(0x4431B0, &onCSkillShop_UpdatePurchaseList);
+    CreateMainHook(0x442570, &onCSkillShop_IsSkillNotLearned, &oCSkillShop_IsSkillNotLearned);
+    CreateMainHook(0x442C40, &onCSkillShop_PurchaseSkill, &oCSkillShop_PurchaseSkill);
+    CreateMainHook(0x4423C0, &onCSkillShop_IsSoldOut, &oCSkillShop_IsSoldOut);
+    CreateMainHook(0x4421C0, &onCSkillShop_IsPurchasable, &oCSkillShop_IsPurchasable);
+    CreateMainHook(0x442A50, &onCSkillShop_ShopInteractUpdate, &oCSkillShop_ShopInteractUpdate);
 
-    oCItemShop_GetItemIcon = reinterpret_cast<decltype(oCItemShop_GetItemIcon)>(okami::MainBase + 0x43BDA0);
-    oGetShopMetadata = reinterpret_cast<decltype(oGetShopMetadata)>(okami::MainBase + 0x441E40);
-    oLoadRscIdx = reinterpret_cast<decltype(oLoadRscIdx)>(okami::MainBase + 0x1B16C0);
-    oSetUIStrId = reinterpret_cast<decltype(oSetUIStrId)>(okami::MainBase + 0x1B6CA0);
-    ppCore20MSD = reinterpret_cast<const void **>(okami::MainBase + 0x9C11B0);
+    GetMainFnAddress(oCItemShop_GetItemIcon, 0x43BDA0);
+    GetMainFnAddress(oGetShopMetadata, 0x441E40);
+    GetMainFnAddress(oLoadRscIdx, 0x1B16C0);
+    GetMainFnAddress(oSetUIStrId, 0x1B6CA0);
+    GetMainFnAddress(ppCore20MSD, 0x9C11B0);
 
     MH_EnableHook(MH_ALL_HOOKS);
 

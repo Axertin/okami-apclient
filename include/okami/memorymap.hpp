@@ -52,14 +52,6 @@ extern void *MaybePlayerClassPtr;
 
 // Game function pointers
 extern void *D3D11PresentFnPtr;
-extern char *GetSaveDataRootDirectoryFnPtr;
-extern void *MainFlowerStartupFnPtr;
-extern void *MainFlowerStopFnPtr;
-extern void *MainFlowerTickFnPtr;
-extern void *MainFlowerLoadPtr;
-extern void *MainFlowerTreasurePickedUpPtr;
-extern void *MainFlowerItemPickupFnPtr;
-extern void *EditBrushesFnPtr;
 
 extern MemoryAccessor<BitField<32>> AmmyUsableBrushes;
 extern MemoryAccessor<BitField<32>> AmmyObtainedBrushes;
@@ -70,10 +62,4 @@ extern MemoryAccessor<std::array<uint8_t, 64>> AmmyBrushUpgrades;
  * Must be called after `okami::MainBase` is assigned.
  */
 extern void initVariables();
-
-/**
- * @brief Initialize major engine function pointers from known okami::MainBase
- * offsets.
- */
-extern void initFunctions();
 } // namespace okami
