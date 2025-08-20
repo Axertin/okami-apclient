@@ -2,7 +2,9 @@
 
 #include <filesystem>
 #include <format>
+#include <fstream>
 #include <iostream>
+#include <string>
 
 namespace fs = std::filesystem;
 
@@ -32,6 +34,13 @@ std::string formatWindowsError(DWORD error)
     return message;
 }
 
+void createModdedSignal()
+{
+    fs::path temp = fs::temp_directory_path() / "okami_modded_signal.txt";
+    fs::remove(temp);
+    std::ofstream{temp};
+}
+
 int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
 {
     std::cout << "Okami APClient Loader" << std::endl;
@@ -50,11 +59,12 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char *argv[])
         return error(std::format("Cannot find okami.exe at: {}", okamiExe.string()));
     }
 
+    createModdedSignal();
+
     STARTUPINFOW si{};
     PROCESS_INFORMATION pi{};
     std::wstring wideOkamiExe = okamiExe;
-    wchar_t args[256] = L" -MODDED";
-    if (!CreateProcessW(wideOkamiExe.c_str(), args, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
+    if (!CreateProcessW(wideOkamiExe.c_str(), nullptr, nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi))
     {
         return error(std::format("Failed to launch okami.exe: {}", formatWindowsError(GetLastError())));
     }
