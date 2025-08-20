@@ -204,6 +204,7 @@ if(NOT BUILD_TESTS_ONLY)
     ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/modloader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/proxy-dll/dinput8.def
   )
+  target_link_libraries(okami-proxy-dll PRIVATE minhook::minhook)
   target_compile_features(okami-proxy-dll PRIVATE ${STD_FEATURE})
   enable_strict_warnings(okami-proxy-dll)
   apply_release_optimizations(okami-proxy-dll)

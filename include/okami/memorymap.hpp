@@ -20,7 +20,6 @@ namespace okami
 {
 // Base addresses
 extern uintptr_t MainBase;
-extern uintptr_t FlowerBase;
 
 extern MemoryAccessor<CharacterStats> AmmyStats;
 extern MemoryAccessor<CollectionData> AmmyCollections;

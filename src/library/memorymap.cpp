@@ -21,7 +21,6 @@ namespace okami
 {
 // Base addresses
 uintptr_t MainBase;
-uintptr_t FlowerBase;
 
 MemoryAccessor<CharacterStats> AmmyStats;
 MemoryAccessor<CollectionData> AmmyCollections;
@@ -55,7 +54,7 @@ void *MaybePlayerClassPtr;
 
 // Game function pointers
 
-void *D3D11PresentFnPtr;
+void *D3D11PresentFnPtr = nullptr;
 
 MemoryAccessor<BitField<32>> AmmyUsableBrushes;
 MemoryAccessor<BitField<32>> AmmyObtainedBrushes;

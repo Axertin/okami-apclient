@@ -27,7 +27,7 @@ inline bool initializeMain()
     }
     okami::initVariables();
 
-    logInfo("[apclient] Module Addresses: main.dll->0x%p flower_kernel.dll->0x%p", okami::MainBase, okami::FlowerBase);
+    logInfo("[apclient] Module Addresses: main.dll->0x%p", okami::MainBase);
 
     return true;
 }
@@ -53,43 +53,6 @@ void hook()
     APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
 }
 
-static int64_t(__fastcall *oSCGetLanguage)();
-static int64_t __fastcall onSCGetLanguage()
-{
-    static bool calledOnce = false;
-    if (!calledOnce)
-    {
-        calledOnce = true;
-        hook();
-    }
-    return oSCGetLanguage();
-}
-
-bool hookFlowerKernel()
-{
-    logInfo("[apclient] Initializing flower_kernel.dll module...");
-
-    HMODULE hFlowerDll = GetModuleHandleW(L"flower_kernel.dll");
-    okami::FlowerBase = reinterpret_cast<uintptr_t>(hFlowerDll);
-    if (okami::FlowerBase == 0)
-    {
-        logError("[apclient] flower_kernel.dll BaseAddress not found!");
-        return false;
-    }
-
-    // This can be just ANY function that gets called early
-    LPVOID pTarget = reinterpret_cast<LPVOID>(GetProcAddress(hFlowerDll, "SCGetLanguage"));
-    MH_CreateHook(pTarget, reinterpret_cast<LPVOID>(&onSCGetLanguage), reinterpret_cast<LPVOID *>(&oSCGetLanguage));
-    MH_STATUS result = MH_EnableHook(pTarget);
-
-    if (result != MH_OK)
-    {
-        logInfo("[apclient] Failed to hook early in flower_kernel...");
-        return false;
-    }
-    return true;
-}
-
 void unhook()
 {
     MH_DisableHook(MH_ALL_HOOKS);
@@ -103,7 +66,7 @@ BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule, DWORD ul_reason_for_call
     {
     case DLL_PROCESS_ATTACH:
         initializePrerequisites();
-        hookFlowerKernel();
+        hook();
         break;
     case DLL_PROCESS_DETACH:
         unhook();
