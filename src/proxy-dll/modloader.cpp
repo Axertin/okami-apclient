@@ -1,18 +1,36 @@
 #include <Windows.h>
 
+#include <chrono>
 #include <filesystem>
 #include <string>
 #include <vector>
 
+namespace fs = std::filesystem;
+using namespace std::chrono_literals;
+
 static std::vector<HMODULE> loadedMods;
+static fs::path moddedTemp = fs::temp_directory_path() / "okami_modded_signal.txt";
 
 bool IsModded()
 {
     LPCSTR cmdLine = GetCommandLineA();
-    if (cmdLine == nullptr)
-        return false;
+    if (cmdLine != nullptr && strstr(cmdLine, "-MODDED") != nullptr)
+    {
+        return true;
+    }
 
-    return strstr(cmdLine, "-MODDED") != nullptr;
+    if (fs::exists(moddedTemp))
+    {
+        auto lastWrite = fs::last_write_time(moddedTemp);
+        auto diff = decltype(lastWrite)::clock::now() - lastWrite;
+
+        // If older than 30 seconds, assume not modded.
+        if (diff < 30s)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void LoadMods()
@@ -21,9 +39,12 @@ void LoadMods()
     if (alreadyLoaded || !IsModded())
         return;
 
+    // Remove the temp file so that subsequent launch attempt in a short time span doesn't open modded
+    fs::remove(moddedTemp);
+
     alreadyLoaded = true;
 
-    for (const auto &dll : std::filesystem::recursive_directory_iterator("mods"))
+    for (const auto &dll : fs::recursive_directory_iterator("mods"))
     {
         const auto &path = dll.path();
         if (path.extension().string() == ".dll")

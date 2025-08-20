@@ -300,13 +300,9 @@ void guiInitHooks()
             {
                 std::this_thread::sleep_for(std::chrono::seconds(2));
                 getPresentFunctionPtr();
-
-                if (okami::D3D11PresentFnPtr)
-                {
-                    MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
-                    MH_EnableHook(okami::D3D11PresentFnPtr);
-                }
             }
+            MH_CreateHook(okami::D3D11PresentFnPtr, reinterpret_cast<LPVOID>(&onRenderPresent), reinterpret_cast<LPVOID *>(&oPresent));
+            MH_EnableHook(okami::D3D11PresentFnPtr);
         })
         .detach();
 }

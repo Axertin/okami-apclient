@@ -127,6 +127,7 @@ void LoadOriginalLibrary()
     dinput8.OriginalGetdfDIJoystick = GetProcAddress(dinput8.dll, "GetdfDIJoystick");
 }
 
+// This module is loaded while flower_kernel is loading, but before main.dll gets loaded, so not all hooking can happen immediately
 BOOL APIENTRY DllMain([[maybe_unused]] HMODULE hModule, DWORD ul_reason_for_call, [[maybe_unused]] LPVOID lpReserved)
 {
     switch (ul_reason_for_call)
