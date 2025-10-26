@@ -1,0 +1,151 @@
+#pragma once
+#include <unordered_map>
+
+// Auto-generated from src/devtools/game-data/maps/MoonCaveInterior.yml
+// Do not edit manually - regenerate with scripts/generate_gamestate_headers.py
+
+namespace okami::game_state::maps::MoonCaveInterior
+{
+
+const std::unordered_map<unsigned, const char *> worldStateBits = {{1, "Interior intro camera pan"},
+                                                                   {2, "Orochi's Appetizer quest started"},
+                                                                   {3, "Amiji rescued"},
+                                                                   {4, "Defeat first Lockjaw"},
+                                                                   {5, "Slashed first eyeball lock"},
+                                                                   {6, "Door to Ogre Liver opened"},
+                                                                   {7, "Spawned Ogre Liver chest"},
+                                                                   {8, "Fragile bridge broke"},
+                                                                   {9, "Fragile bridge primed to break"},
+                                                                   {10, "Defeated Demon Gate in bamboo switch area"},
+                                                                   {11, "Water level lowered"},
+                                                                   {12, "Defeated Black Imp under elevator"},
+                                                                   {13, "Power Slashed eyeball under elevator"},
+                                                                   {14, "Opened floor under elevator"},
+                                                                   {15, "Power Slash all eyes leading to Inferno"},
+                                                                   {17, "Completed Inferno constellation"},
+                                                                   {18, "Issun text after Inferno"},
+                                                                   {19, "Open door to Inferno"},
+                                                                   {20, "Orochi roars post-Eyeball of Fire"},
+                                                                   {21, "Slashed eyeball in sand room"},
+                                                                   {22, "Wind started first time to make bridge"},
+                                                                   {23, "Stone ball torches turned on"},
+                                                                   {24, "Blew up wall with cannon"},
+                                                                   {25, "Blew up wall with cannon"},
+                                                                   {26, "Orochi's Appetizer quest ended"},
+                                                                   {28, "Orochi's appetizer completed"},
+                                                                   {29, "Rung bell before appetizer is ready"},
+                                                                   {30, "Started ringing bell after appetizer is ready"},
+                                                                   {31, "Rung bell 8 times after appetizer is ready"},
+                                                                   {32, "Started bringing appetizer to Orochi cutscene"},
+                                                                   {33, "Appetizer rising up elevator"},
+                                                                   {34, "Too scared to go see Orochi"},
+                                                                   {50, "Elevator being raised"},
+                                                                   {54, "Spawned Eyeball of Fire chest"},
+                                                                   {55, "Lips of Ice chest spawned"},
+                                                                   {56, "Black Demon Horn chest spawned"},
+                                                                   {57, "Obtained Ogre Liver"},
+                                                                   {58, "Obtained Lips of Ice"},
+                                                                   {59, "Obtained Eyeball of Fire"},
+                                                                   {60, "Obtained Black Demon Horn"},
+                                                                   {61, "Able to give an ingredient to Amiji"},
+                                                                   {64, "Sand room stone ball checkpoint #1 (before wind bridge)"},
+                                                                   {65, "Sand room stone ball checkpoint #2 (after wind bridge)"},
+                                                                   {66, "Defeated Ice Lips for Inferno"},
+                                                                   {69, "Started Moegami cutscene"},
+                                                                   {70, "Failed Inferno tutorial"},
+                                                                   {71, "Cleared Inferno tutorial"},
+                                                                   {73, "Kitchen intro camera pan cutscene"},
+                                                                   {74, "First Waterspout cutscene deactivated"},
+                                                                   {75, "Showing basement eyes cutscene"},
+                                                                   {77, "2nd floor main room camera pan cutscene"},
+                                                                   {81, "Rejuvinate broken bridge"},
+                                                                   {82, "Started Fire Eye cutscene"},
+                                                                   {83, "Started Fire Eye fight"},
+                                                                   {84, "Galestorm sand bridge first time"},
+                                                                   {85, "Spoke to Amiji (unset after leaving room)"},
+                                                                   {86, "Spoke to Amiji with no ingredients (unset after leaving room)"},
+                                                                   {87, "Spoke to Amiji with Ogre Liver"},
+                                                                   {90, "Spoke to Imp near Calcified Cavern door first time"},
+                                                                   {91, "Spoke to bell guard Imp first time"},
+                                                                   {92, "Spoke to bell guard Imp after finishing Orochi's apprtizer"},
+                                                                   {93, "Spoke to Imp operating elevator first time"},
+                                                                   {94, "Spoke to elevator Imp after lowering water level"},
+                                                                   {95, "Spoke to Imp at bottom of elevator shaft"},
+                                                                   {97, "Spoke to post-Inferno elevator Imp first time"},
+                                                                   {98, "Spoke to Imp in pit with bamboo switch"},
+                                                                   {99, "Spoke to Merchant first time"},
+                                                                   {100, "Spoke to Imp chef before rescuing Amiji"},
+                                                                   {101, "Spoke to Imp chef after rescuing Amiji"},
+                                                                   {102, "Spoke to Imp chef after finding all ingredients"},
+                                                                   {103, "Blew up wall past Inferno"},
+                                                                   {104, "Blew up wall in pit of sand room"},
+                                                                   {105, "Bombed crack in wall at mid-point of vine flower room"},
+                                                                   {106, "Used Power Slash on elevator Imp first time"},
+                                                                   {107, "Watching Demon Scroll appear after ringing bell early"},
+                                                                   {109, "Issun text coming back to broken bridge"},
+                                                                   {110, "Used Power Slash on elevator Imp first time"}};
+
+const std::unordered_map<unsigned, const char *> userIndices = {};
+
+const std::unordered_map<unsigned, const char *> collectedObjects = {{0, "Chest past Vine Flower path (Ogre Liver)"},
+                                                                     {1, "Chest after Demon Gate past cannon-blasted hallway (Black Demon Horn)"},
+                                                                     {2, "Chest after Demon Gate past ice wall in kitchen (Lips of Ice)"},
+                                                                     {3, "Chest after Demon Gate past fragile bridge room (Eyeball of Fire)"},
+                                                                     {4, "Chest past bomb wall in post-Inferno room (Inkfinity Stone)"},
+                                                                     {5, "Chest on 2nd level of main room (Crystal)"},
+                                                                     {6, "Clover in main room post-Lips of Ice"},
+                                                                     {7, "Frozen chest in main area post-Black Demon Horn (Golden Peach)"},
+                                                                     {8, "Chest in main room post-Eyeball of Fire (Kutani Pottery)"},
+                                                                     {9, "Chest at end of sand room (Dungeon Map)"},
+                                                                     {10, "Bulb behind wall crack in Vine Flower room (Vengance Slip)"},
+                                                                     {11, "Chest above Amiji (Exorcism Slip M)"},
+                                                                     {12, "Frozen chest next to Merchant (Incense Burner)"},
+                                                                     {13, "Chest in bamboo switch room (Exorcism Slip S)"},
+                                                                     {16, "Chest in pit of sand room (Pearl)"},
+                                                                     {17, "Frozen chest in middle of far room past fragile bridge (Exorcism Slip L)"},
+                                                                     {18, "Frozen chest on right in far room past fragile bridge (Bull Horn)"},
+                                                                     {19, "Frozen chest on left in far room past fragile bridge (Steel Fist Sake)"},
+                                                                     {21, "Frozen chest on upper platform in cannon-broken "},
+                                                                     {22, "Clover on ledge in beginning of sand room"},
+                                                                     {23, "Clover near pits past wind bridge"}};
+
+const std::unordered_map<unsigned, const char *> areasRestored = {
+    {17, "Restored pond in bamboo switch area"}, {18, "Eyeball of Fire chest"}, {19, "Lips of Ice chest"}, {20, "Black Demon Horn chest"}};
+
+const std::unordered_map<unsigned, const char *> treesBloomed = {};
+
+const std::unordered_map<unsigned, const char *> cursedTreesBloomed = {};
+
+const std::unordered_map<unsigned, const char *> fightsCleared = {{0, "Ice Lips in Inferno room"},
+                                                                  {1, "Demon Gate for Ogre Liver chest"},
+                                                                  {2, "Demon Gate in bamboo switch area"},
+                                                                  {3, "Started Fire Eye fight"},
+                                                                  {4, "Black Imp in room below elevator"},
+                                                                  {5, "Demon Gate for Lips of Ice chest"},
+                                                                  {6, "Demon Gate for Black Demon Horn chest"},
+                                                                  {7, "Imps before Inferno room"},
+                                                                  {8, "Black Imp past cannon-blasted wall"},
+                                                                  {10, "Cleared Fire Eye fight"}};
+
+const std::unordered_map<unsigned, const char *> npcs = {{2, "Imp (Epicurean Bell guard)"}};
+
+const std::unordered_map<unsigned, const char *> mapsExplored = {{2, "Amiji's Kitchen"},
+                                                                 {3, "Vine Flower room"},
+                                                                 {4, "Treasure room behind crack in Vine Flower room"},
+                                                                 {5, "Past first eyeball lock"},
+                                                                 {7, "Fragile bridge room"},
+                                                                 {8, "Basement area"},
+                                                                 {9, "Inferno room"},
+                                                                 {10, "Post-Inferno room"},
+                                                                 {11, "Post-Inferno room past bomb wall"},
+                                                                 {12, "Past ice wall in kitchen"},
+                                                                 {13, "Past ice in fragile bridge room"},
+                                                                 {15, "Sand room"},
+                                                                 {17, "Behind broken 4F wall"},
+                                                                 {18, "Demon Gate room in Black Demon Horn hallway"}};
+
+const std::unordered_map<unsigned, const char *> field_DC = {};
+
+const std::unordered_map<unsigned, const char *> field_E0 = {};
+
+} // namespace okami::game_state::maps::MoonCaveInterior

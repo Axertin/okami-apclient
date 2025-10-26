@@ -1,14 +1,16 @@
 
 #pragma once
 #include <cstdint>
+#include <string>
 #include <unordered_map>
-
-#include "memoryaccessor.hpp"
 
 namespace okami
 {
-inline MemoryAccessor<uint16_t> InventoryItemID;
-inline MemoryAccessor<uint16_t> InventoryStringID;
+/// Current inventory item ID
+constexpr uintptr_t inventoryItemID = 0x7A9814; // uint16_t
+
+/// Current inventory string ID
+constexpr uintptr_t inventoryStringID = 0x9C148E; // uint16_t
 
 enum class ItemCategory
 {

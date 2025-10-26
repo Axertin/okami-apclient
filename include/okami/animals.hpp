@@ -31,7 +31,19 @@ enum Enum
     Crane,
     NUM_ANIMALS
 };
-const char *GetName(unsigned index);
+static const char *name[NUM_ANIMALS] = {
+    "Sparrow", "Chicken", "Dog",   "Hare",  "Boar",  "Boar Piglet", "Monkey", "Pig",  "Deer",  "Nightingale",
+    "Fox",     "Raccoon", "Horse", "Tiger", "Mouse", "Cat",         "Cow",    "Bear", "Sheep", "Crane",
+};
+
+inline const char *GetName(unsigned index)
+{
+    if (index < NUM_ANIMALS)
+    {
+        return name[index];
+    }
+    return "invalid";
+}
 
 } // namespace Animals
 } // namespace okami

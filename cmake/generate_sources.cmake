@@ -17,9 +17,9 @@ set(TARGET_DIR "${SOURCE_DIR}/src/${TARGET_NAME}")
 set(OUTPUT_FILE "${TARGET_DIR}/sources.cmake")
 set(TEMP_FILE "${OUTPUT_FILE}.tmp")
 
-# Find all .cpp files relative to SOURCE_DIR
+# Find all .cpp files relative to TARGET_DIR
 file(GLOB_RECURSE CPP_FILES
-    RELATIVE "${SOURCE_DIR}"
+    RELATIVE "${TARGET_DIR}"
     "${SOURCE_DIR}/${SEARCH_DIR}/*.cpp"
 )
 

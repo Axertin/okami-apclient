@@ -5,7 +5,7 @@
             "name": "windows-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CXX_STD": "23",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
@@ -43,7 +43,7 @@
             "name": "windows-clang-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CXX_STD": "23",
                 "CMAKE_C_COMPILER": "clang-cl",
@@ -102,15 +102,15 @@
             "name": "linux-native-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
-            "installDir": "${sourceDir}/out/install/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/build/install/${presetName}",
             "cacheVariables": {
                 "CXX_STD": "23",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
                 "VCPKG_HOST_TRIPLET": "x64-linux",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/mingw-w64.cmake",
-                "VCPKG_INSTALLED_DIR": "${sourceDir}/out/build/${presetName}/vcpkg_installed"
+                "VCPKG_INSTALLED_DIR": "${sourceDir}/build/${presetName}/vcpkg_installed"
             },
             "condition": {
                 "type": "equals",
@@ -133,7 +133,7 @@
             "name": "linux-cross-base",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "binaryDir": "${sourceDir}/build/${presetName}",
             "cacheVariables": {
                 "CXX_STD": "23",
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
@@ -207,7 +207,7 @@
     ],
     "vendor": {
         "microsoft.com/VisualStudioSettings/1.0": {
-            "buildRoot": "${sourceDir}/out/build/${presetName}",
+            "buildRoot": "${sourceDir}/build/${presetName}",
             "intelliSenseMode": "windows-clang-x64",
             "toolset": "ClangCL",
             "hostOS": [

@@ -1,0 +1,776 @@
+# Archipelago Item Definitions for Okami HD
+# This file defines how items received from the AP server should be handled
+# Format matches Python Items.py from the APWorld
+
+items:
+  # Brush Techniques (0x100 - 0x115)
+  - id: 0x100
+    name: "Sunrise"
+    type: brush
+    brush_index: 0
+
+  - id: 0x101
+    name: "Rejuvenation"
+    type: brush
+    brush_index: 1
+
+  # Power Slash and Cherry Bomb are progressive brushes
+  - id: 0x102
+    name: "Power Slash"
+    type: progressive_brush
+    brush_index: 2
+    upgrade_bits: [0, 10] # Power Slash 2 (bit 0), Power Slash 3 (bit 10)
+
+  - id: 0x103
+    name: "Cherry Bomb"
+    type: progressive_brush
+    brush_index: 3
+    upgrade_bits: [6, 11] # Cherry Bomb 2 (bit 6), Cherry Bomb 3 (bit 11)
+
+  - id: 0x104
+    name: "Greensprout (Bloom)"
+    type: brush
+    brush_index: 4
+
+  - id: 0x105
+    name: "Greensprout (Waterlily)"
+    type: brush
+    brush_index: 5
+
+  - id: 0x106
+    name: "Greensprout (Vine)"
+    type: brush
+    brush_index: 6
+
+  - id: 0x107
+    name: "Watersprout"
+    type: brush
+    brush_index: 7
+
+  - id: 0x108
+    name: "Crescent"
+    type: brush
+    brush_index: 8
+
+  - id: 0x109
+    name: "Galestorm"
+    type: brush
+    brush_index: 9
+
+  - id: 0x10A
+    name: "Inferno"
+    type: brush
+    brush_index: 10
+
+  - id: 0x10B
+    name: "Veil of Mist"
+    type: brush
+    brush_index: 11
+
+  - id: 0x10C
+    name: "Catwalk"
+    type: brush
+    brush_index: 12
+
+  - id: 0x10D
+    name: "Thunderstorm"
+    type: brush
+    brush_index: 13
+
+  - id: 0x10E
+    name: "Blizzard"
+    type: brush
+    brush_index: 14
+
+  - id: 0x10F
+    name: "Mist Warp"
+    type: brush
+    brush_index: 15
+
+  - id: 0x110
+    name: "Fireburst"
+    type: brush
+    brush_index: 16
+
+  - id: 0x111
+    name: "Whirlwind"
+    type: brush
+    brush_index: 17
+
+  - id: 0x112
+    name: "Deluge"
+    type: brush
+    brush_index: 18
+
+  - id: 0x113
+    name: "Fountain"
+    type: brush
+    brush_index: 19
+
+  - id: 0x114
+    name: "Thunderbolt"
+    type: brush
+    brush_index: 20
+
+  - id: 0x115
+    name: "Icestorm"
+    type: brush
+    brush_index: 21
+
+  # Equipment Items
+  - id: 0x0B
+    name: "Peace Bell"
+    type: inventory
+    item_id: 0x0B
+
+  - id: 0x95
+    name: "Golden Lucky Cat"
+    type: inventory
+    item_id: 0x95
+
+  - id: 0x96
+    name: "Thief's Glove"
+    type: inventory
+    item_id: 0x96
+
+  - id: 0x97
+    name: "Wood Mat"
+    type: inventory
+    item_id: 0x97
+
+  - id: 0x98
+    name: "Golden Ink Pot"
+    type: inventory
+    item_id: 0x98
+
+  - id: 0x9D
+    name: "Fire Tablet"
+    type: inventory
+    item_id: 0x9D
+
+  # Quest Items
+  - id: 0x42
+    name: "Canine Tracker"
+    type: inventory
+    item_id: 0x42
+
+  - id: 0x43
+    name: "Lucky Mallet"
+    type: inventory
+    item_id: 0x43
+
+  - id: 0x44
+    name: "Border Key"
+    type: inventory
+    item_id: 0x44
+
+  - id: 0x45
+    name: "Dragon Orb"
+    type: inventory
+    item_id: 0x45
+
+  - id: 0x46
+    name: "Fox Rods"
+    type: inventory
+    item_id: 0x46
+
+  - id: 0x47
+    name: "Thunder Brew"
+    type: inventory
+    item_id: 0x47
+
+  - id: 0x48
+    name: "Shell Amulet"
+    type: inventory
+    item_id: 0x48
+
+  - id: 0x49
+    name: "Mask"
+    type: inventory
+    item_id: 0x49
+
+  - id: 0x4A
+    name: "Ogre Liver"
+    type: inventory
+    item_id: 0x4A
+
+  - id: 0x4B
+    name: "Lips of Ice"
+    type: inventory
+    item_id: 0x4B
+
+  - id: 0x4C
+    name: "Eyeball of Fire"
+    type: inventory
+    item_id: 0x4C
+
+  - id: 0x4D
+    name: "Black Demon Horn"
+    type: inventory
+    item_id: 0x4D
+
+  - id: 0x5F
+    name: "Golden Mushroom"
+    type: inventory
+    item_id: 0x5F
+
+  - id: 0x60
+    name: "Gimmick Gear"
+    type: inventory
+    item_id: 0x60
+
+  - id: 0x62
+    name: "8 Purification Sake"
+    type: inventory
+    item_id: 0x62
+
+  - id: 0x63
+    name: "Sewaprolo"
+    type: inventory
+    item_id: 0x63
+
+  - id: 0x71
+    name: "Charcoal"
+    type: inventory
+    item_id: 0x71
+
+  - id: 0x72
+    name: "Blinding Snow"
+    type: inventory
+    item_id: 0x72
+
+  - id: 0x73
+    name: "Treasure Box"
+    type: inventory
+    item_id: 0x73
+
+  - id: 0x75
+    name: "Herbal Medicine"
+    type: inventory
+    item_id: 0x75
+
+  - id: 0x76
+    name: "Pinwheel"
+    type: inventory
+    item_id: 0x76
+
+  - id: 0x77
+    name: "Marlin Rod"
+    type: inventory
+    item_id: 0x77
+
+  # Bitable Items (need flag handling)
+  # TODO: These need to set respawn flags instead of giving directly
+  - id: 0x5C
+    name: "Vista of the Gods"
+    type: inventory
+    item_id: 0x5C
+
+  - id: 0x40
+    name: "Tsuta Ruins Key"
+    type: inventory
+    item_id: 0x40
+
+  # Useful Items
+  - id: 0x05
+    name: "Sun Fragment"
+    type: inventory
+    item_id: 0x05
+
+  - id: 0x06
+    name: "Astral Pouch"
+    type: inventory
+    item_id: 0x06
+
+  - id: 0xCC
+    name: "Stray Bead"
+    type: inventory
+    item_id: 0xCC
+
+  - id: 0x1F
+    name: "Demon Fang"
+    type: inventory
+    item_id: 0x1F
+
+  - id: 0x0E
+    name: "Mermaid Coin"
+    type: inventory
+    item_id: 0x0E
+
+  - id: 0x0F
+    name: "Golden Peach"
+    type: inventory
+    item_id: 0x0F
+
+  - id: 0x9E
+    name: "Gold Dust"
+    type: inventory
+    item_id: 0x9E
+
+  # Filler Items
+  - id: 0x04
+    name: "Holy Bone L"
+    type: inventory
+    item_id: 0x04
+
+  - id: 0x08
+    name: "Exorcism Slip L"
+    type: inventory
+    item_id: 0x08
+
+  - id: 0x09
+    name: "Exorcism Slip M"
+    type: inventory
+    item_id: 0x09
+
+  - id: 0x0A
+    name: "Exorcism Slip S"
+    type: inventory
+    item_id: 0x0A
+
+  - id: 0x0C
+    name: "Vengeance Slip"
+    type: inventory
+    item_id: 0x0C
+
+  - id: 0x0D
+    name: "Inkfinity Stone"
+    type: inventory
+    item_id: 0x0D
+
+  - id: 0x70
+    name: "Traveler's Charm"
+    type: inventory
+    item_id: 0x70
+
+  - id: 0x8E
+    name: "Holy Bone M"
+    type: inventory
+    item_id: 0x8E
+
+  - id: 0x8F
+    name: "Holy Bone S"
+    type: inventory
+    item_id: 0x8F
+
+  - id: 0x90
+    name: "Feedbag (Meat)"
+    type: inventory
+    item_id: 0x90
+
+  - id: 0x91
+    name: "Feedbag (Herbs)"
+    type: inventory
+    item_id: 0x91
+
+  - id: 0x92
+    name: "Feedbag (Seeds)"
+    type: inventory
+    item_id: 0x92
+
+  - id: 0x93
+    name: "Feedbag (Fish)"
+    type: inventory
+    item_id: 0x93
+
+  - id: 0x99
+    name: "Steel Fist Sake"
+    type: inventory
+    item_id: 0x99
+
+  - id: 0x9A
+    name: "Steel Soul Sake"
+    type: inventory
+    item_id: 0x9A
+
+  - id: 0x9B
+    name: "Godly Charm"
+    type: inventory
+    item_id: 0x9B
+
+  - id: 0xA0
+    name: "White porcelain pot"
+    type: inventory
+    item_id: 0xA0
+
+  - id: 0xA1
+    name: "Kutani Pottery"
+    type: inventory
+    item_id: 0xA1
+
+  - id: 0xA3
+    name: "Incense Burner"
+    type: inventory
+    item_id: 0xA3
+
+  - id: 0xA4
+    name: "Vase"
+    type: inventory
+    item_id: 0xA4
+
+  - id: 0xA5
+    name: "Silver Pocket Watch"
+    type: inventory
+    item_id: 0xA5
+
+  - id: 0xA6
+    name: "Rat Statue"
+    type: inventory
+    item_id: 0xA6
+
+  - id: 0xA7
+    name: "Bull Horn"
+    type: inventory
+    item_id: 0xA7
+
+  - id: 0xA9
+    name: "Etched Glass"
+    type: inventory
+    item_id: 0xA9
+
+  - id: 0xAA
+    name: "Lacquerware Set"
+    type: inventory
+    item_id: 0xAA
+
+  - id: 0xAB
+    name: "Wooden Bear"
+    type: inventory
+    item_id: 0xAB
+
+  - id: 0xAD
+    name: "Glass Beads"
+    type: inventory
+    item_id: 0xAD
+
+  - id: 0xAE
+    name: "Dragonfly Bead"
+    type: inventory
+    item_id: 0xAE
+
+  - id: 0xB0
+    name: "Coral Fragment"
+    type: inventory
+    item_id: 0xB0
+
+  - id: 0xB1
+    name: "Crystal"
+    type: inventory
+    item_id: 0xB1
+
+  - id: 0xB2
+    name: "Pearl"
+    type: inventory
+    item_id: 0xB2
+
+  - id: 0xB3
+    name: "Ruby Tassels"
+    type: inventory
+    item_id: 0xB3
+
+  - id: 0xB4
+    name: "Bull Statue"
+    type: inventory
+    item_id: 0xB4
+
+  - id: 0xB5
+    name: "Tiger Statue"
+    type: inventory
+    item_id: 0xB5
+
+  - id: 0xB6
+    name: "Rabbit Statue"
+    type: inventory
+    item_id: 0xB6
+
+  - id: 0xB7
+    name: "Dragon Statue"
+    type: inventory
+    item_id: 0xB7
+
+  - id: 0xB8
+    name: "Snake Statue"
+    type: inventory
+    item_id: 0xB8
+
+  - id: 0xB9
+    name: "Horse Statue"
+    type: inventory
+    item_id: 0xB9
+
+  - id: 0xBA
+    name: "Sheep Statue"
+    type: inventory
+    item_id: 0xBA
+
+  - id: 0xBB
+    name: "Monkey Statue"
+    type: inventory
+    item_id: 0xBB
+
+  - id: 0xBC
+    name: "Rooster Statue"
+    type: inventory
+    item_id: 0xBC
+
+  - id: 0xBD
+    name: "Dog Statue"
+    type: inventory
+    item_id: 0xBD
+
+  - id: 0xBE
+    name: "Boar Statue"
+    type: inventory
+    item_id: 0xBE
+
+  - id: 0xBF
+    name: "Cat Statue"
+    type: inventory
+    item_id: 0xBF
+
+  - id: 0xC0
+    name: "Sapphire Tassels"
+    type: inventory
+    item_id: 0xC0
+
+  - id: 0xC1
+    name: "Emerald Tassels"
+    type: inventory
+    item_id: 0xC1
+
+  - id: 0xC2
+    name: "Turquoise Tassels"
+    type: inventory
+    item_id: 0xC2
+
+  - id: 0xC3
+    name: "Agate Tassels"
+    type: inventory
+    item_id: 0xC3
+
+  - id: 0xC4
+    name: "Amber Tassels"
+    type: inventory
+    item_id: 0xC4
+
+  - id: 0xC5
+    name: "Cat's Eye Tassels"
+    type: inventory
+    item_id: 0xC5
+
+  - id: 0xC6
+    name: "Amethyst Tassels"
+    type: inventory
+    item_id: 0xC6
+
+  - id: 0xC7
+    name: "Jade Tassels"
+    type: inventory
+    item_id: 0xC7
+
+  # Event Items (TODO: Need to define flags for each)
+  - id: 0x303
+    name: "Save Rei"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags for saving Rei
+      - accessor: keyItemsAcquired
+        bit: 0
+
+  - id: 0x304
+    name: "Save Shin"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags
+      - accessor: keyItemsAcquired
+        bit: 1
+
+  - id: 0x305
+    name: "Save Chi"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags
+      - accessor: keyItemsAcquired
+        bit: 2
+
+  - id: 0x306
+    name: "Save Ko"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags
+      - accessor: keyItemsAcquired
+        bit: 3
+
+  - id: 0x307
+    name: "Save Tei"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags
+      - accessor: keyItemsAcquired
+        bit: 4
+
+  - id: 0x4E
+    name: "Loyalty Orb"
+    type: inventory
+    item_id: 0x4E
+
+  - id: 0x4F
+    name: "Justice Orb"
+    type: inventory
+    item_id: 0x4F
+
+  - id: 0x50
+    name: "Duty Orb"
+    type: inventory
+    item_id: 0x50
+
+  - id: 0x308
+    name: "Serpent Crystal"
+    type: event_flags
+    flags:
+      # TODO: Determine correct flags
+      - accessor: keyItemsAcquired
+        bit: 5
+
+  # Weapons (non-progressive, for reference)
+  - id: 0x10
+    name: "Divine Retribution"
+    type: inventory
+    item_id: 0x10
+
+  - id: 0x11
+    name: "Snarling Beast"
+    type: inventory
+    item_id: 0x11
+
+  - id: 0x12
+    name: "Infinity Judge"
+    type: inventory
+    item_id: 0x12
+
+  - id: 0x13
+    name: "Trinity Mirror"
+    type: inventory
+    item_id: 0x13
+
+  - id: 0x14
+    name: "Solar Flare"
+    type: inventory
+    item_id: 0x14
+
+  - id: 0x15
+    name: "Devout Beads"
+    type: inventory
+    item_id: 0x15
+
+  - id: 0x16
+    name: "Life Beads"
+    type: inventory
+    item_id: 0x16
+
+  - id: 0x17
+    name: "Exorcism Beads"
+    type: inventory
+    item_id: 0x17
+
+  - id: 0x18
+    name: "Resurrection Beads"
+    type: inventory
+    item_id: 0x18
+
+  - id: 0x19
+    name: "Tundra Beads"
+    type: inventory
+    item_id: 0x19
+
+  - id: 0x1A
+    name: "Tsumugari"
+    type: inventory
+    item_id: 0x1A
+
+  - id: 0x1B
+    name: "Seven Strike"
+    type: inventory
+    item_id: 0x1B
+
+  - id: 0x1C
+    name: "Blade of Kusanagi"
+    type: inventory
+    item_id: 0x1C
+
+  - id: 0x1D
+    name: "Eight Wonder"
+    type: inventory
+    item_id: 0x1D
+
+  - id: 0x1E
+    name: "Thunder Edge"
+    type: inventory
+    item_id: 0x1E
+
+  # Progressive Weapons
+  - id: 0x300
+    name: "Progressive Mirror"
+    type: progressive
+    stages: [0x13, 0x14] # Trinity Mirror -> Solar Flare
+
+  - id: 0x301
+    name: "Progressive Rosary"
+    type: progressive
+    stages: [0x15, 0x16, 0x17, 0x18, 0x19] # Devout -> Life -> Exorcism -> Resurrection -> Tundra
+
+  - id: 0x302
+    name: "Progressive Sword"
+    type: progressive
+    stages: [0x1A, 0x1B, 0x1C, 0x1D, 0x1E] # Tsumugari -> Seven Strike -> Kusanagi -> Eight Wonder -> Thunder Edge
+
+  # Karmic Transformers (filler items)
+  - id: 0xC8
+    name: "Karmic Returner"
+    type: inventory
+    item_id: 0xC8
+
+  - id: 0x5B
+    name: "Karmic Transformer 1"
+    type: inventory
+    item_id: 0x5B
+
+  - id: 0xC9
+    name: "Karmic Transformer 2"
+    type: inventory
+    item_id: 0xC9
+
+  - id: 0x79
+    name: "Karmic Transformer 3"
+    type: inventory
+    item_id: 0x79
+
+  - id: 0xCF
+    name: "Karmic Transformer 4"
+    type: inventory
+    item_id: 0xCF
+
+  - id: 0xCB
+    name: "Karmic Transformer 5"
+    type: inventory
+    item_id: 0xCB
+
+  - id: 0xCA
+    name: "Karmic Transformer 6"
+    type: inventory
+    item_id: 0xCA
+
+  - id: 0x7B
+    name: "Karmic Transformer 7"
+    type: inventory
+    item_id: 0x7B
+
+  - id: 0x7A
+    name: "Karmic Transformer 8"
+    type: inventory
+    item_id: 0x7A
+
+  - id: 0x7C
+    name: "Karmic Transformer 9"
+    type: inventory
+    item_id: 0x7C

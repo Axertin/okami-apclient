@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 
-#include "okami/data/itemtype.hpp"
+#include "okami/itemtype.hpp"
 
 namespace okami
 {
