@@ -6,14 +6,24 @@
 #include <string>
 #include <unordered_map>
 
-#include "memoryaccessor.hpp"
-
 namespace okami
 {
-inline MemoryAccessor<uint16_t> ExteriorMapID; // Loading zone sequence 3
-inline MemoryAccessor<uint16_t> CurrentMapID;  // Loading zone sequence 1
-inline MemoryAccessor<uint16_t> VestigialMapID1;
-inline MemoryAccessor<uint16_t> VestigialMapID2; // Loading zone sequence 2
+namespace main
+{
+/// Current exterior map ID (Loading zone sequence 3)
+constexpr uintptr_t exteriorMapID = 0xB6B240; // uint16_t
+
+/// Current active map ID (Loading zone sequence 1)
+constexpr uintptr_t currentMapID = 0xB65E74; // uint16_t
+
+/// Legacy map ID references
+constexpr uintptr_t vestigialMapID1 = 0xB4F0B4; // uint16_t
+constexpr uintptr_t vestigialMapID2 = 0xB6B246; // uint16_t (Loading zone sequence 2)
+
+/// Map ID references (additional)
+constexpr uintptr_t exteriorMapIDCopy = 0xB6B248; // uint16_t (lastMapId reference)
+} // namespace main
+} // namespace okami
 
 namespace MapID
 {
@@ -128,8 +138,10 @@ enum Enum
     ShinshuFieldPast = 0xF20,
     MoonCaveEntrancePast = 0xF21,
 };
-}
+} // namespace MapID
 
+namespace okami
+{
 inline static const std::unordered_map<uint16_t, std::string> MapNames = {
     {MapID::EndlessLoadingScreen, "Endless loading screen"},
     {MapID::PrototypeIntroCutscene2005, "2005 Prototype Intro Cutscene"},

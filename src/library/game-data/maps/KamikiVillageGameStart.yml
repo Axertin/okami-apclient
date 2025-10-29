@@ -1,8 +1,0 @@
-# Map: KamikiVillageGameStart
-
-worldStateBits:
-  13: "Cut Down the Peach quest started"
-  16: "Ran into the forcefield towards Kamiki (instant)"
-  18: "Identified invisible forcefield towards Kamiki"
-  43: "Cut Down the Peach quest ended"
-  44: "Peach is cut"

@@ -1,5 +1,0 @@
-# Map: NewGameIntroCutsceneMap
-
-worldStateBits:
-  2: "Transitioned from backstory dialogue to level"
-  3: "Orochi finished speaking to Susano"

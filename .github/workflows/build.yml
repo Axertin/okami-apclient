@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - master
-  workflow_call:  # Allow this workflow to be called by other workflows
+  workflow_call: # Allow this workflow to be called by other workflows
   workflow_dispatch: # Allow manual triggering of this workflow
 
 jobs:
@@ -28,38 +28,20 @@ jobs:
             # Both debug and release for master pushes and tags
             echo "matrix={\"include\":[{\"config\":\"debug\",\"preset\":\"x64-clang-debug\",\"run_tests\":true},{\"config\":\"release\",\"preset\":\"x64-clang-release\",\"run_tests\":false}]}" >> $GITHUB_OUTPUT
           fi
-  
+
   format-check:
     name: Format Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Check formatting
         uses: jidicula/clang-format-action@v4.15.0
         with:
-          clang-format-version: '20'
-          check-path: 'src'
+          clang-format-version: "20"
+          check-path: "src"
           include-regex: '^.*\.(cpp|hpp|c|h)$'
-
-  validate-yaml:
-    name: Validate Game Data YAML
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      
-      - name: Install dependencies
-        run: pip install pyyaml jsonschema
-      
-      - name: Validate game data
-        run: python scripts/validate_game_data.py src/library/game-data/
 
   build:
     name: Build ${{ matrix.config }}
@@ -106,7 +88,7 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/vcpkg-binary-cache
-            out/build/${{ matrix.preset }}/vcpkg_installed
+            build/${{ matrix.preset }}/vcpkg_installed
           key: ${{ runner.os }}-vcpkg-v2-${{ matrix.config }}-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-v2-${{ matrix.config }}-
@@ -121,9 +103,9 @@ jobs:
       - name: Run Unit Tests
         if: matrix.run_tests
         run: |
-          $testExe = "out/build/${{ matrix.preset }}/okami-tests.exe"
+          $testExe = "build/${{ matrix.preset }}/tests/apclient-tests.exe"
           if (Test-Path $testExe) {
-            & $testExe --reporter JUnit --out out/build/${{ matrix.preset }}/Test.xml
+            & $testExe --reporter JUnit --out build/${{ matrix.preset }}/Test.xml
             if ($LASTEXITCODE -ne 0) {
               Write-Host "Tests failed with exit code $LASTEXITCODE"
               exit 1  # Fail the step if tests fail
@@ -139,7 +121,7 @@ jobs:
         uses: dorny/test-reporter@v1
         with:
           name: Unit Tests
-          path: 'out/build/${{ matrix.preset }}/Test.xml'
+          path: "build/${{ matrix.preset }}/Test.xml"
           reporter: java-junit
 
       # Always upload test results as artifacts
@@ -148,24 +130,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: junit-test-results-${{ matrix.config }}-${{ github.run_number }}
-          path: 'out/build/${{ matrix.preset }}/Test.xml'
+          path: "build/${{ matrix.preset }}/Test.xml"
 
       - name: Read Version
         id: get_version
         run: |
-          $version = Get-Content out/build/${{ matrix.preset }}/version.txt
+          $version = Get-Content build/${{ matrix.preset }}/version.txt
           echo "version=$version" >> $env:GITHUB_OUTPUT
-      
+
       - name: Stage Artifacts
         run: |
-          $buildDir = "out/build/${{ matrix.preset }}"
+          $buildDir = "build/${{ matrix.preset }}"
           $stageDir = "${{ matrix.config }}"
-          
-          New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
-          Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/okami-loader.exe" "$stageDir/"
-          Copy-Item -Recurse "src/library/game-data" "$stageDir/mods/apclient/"
+
+          New-Item -ItemType Directory -Force -Path "$stageDir/apclient"
+          Copy-Item "$buildDir/src/okami-apclient/okami-apclient.dll" "$stageDir/apclient/"
+          Copy-Item "$buildDir/cacert.pem" "$stageDir/apclient/"
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
