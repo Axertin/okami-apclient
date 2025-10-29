@@ -144,7 +144,7 @@ jobs:
           $stageDir = "${{ matrix.config }}"
 
           New-Item -ItemType Directory -Force -Path "$stageDir/apclient"
-          Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/apclient/"
+          Copy-Item "$buildDir/src/okami-apclient/okami-apclient.dll" "$stageDir/apclient/"
           Copy-Item "$buildDir/cacert.pem" "$stageDir/apclient/"
 
       - name: Upload Build Artifacts
