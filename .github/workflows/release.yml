@@ -25,10 +25,18 @@ jobs:
       - name: Install Ninja
         uses: seanmiddleditch/gha-setup-ninja@v3
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Python dependencies
+        run: pip install pyyaml
+
       - name: Cache vcpkg
         uses: actions/cache@v4
         with:
-          path: out/build/x64-clang-release/vcpkg_installed
+          path: build/x64-clang-release/vcpkg_installed
           key: ${{ runner.os }}-vcpkg-release-${{ hashFiles('**/vcpkg.json', '**/vcpkg-configuration.json') }}
           restore-keys: |
             ${{ runner.os }}-vcpkg-release-
@@ -50,14 +58,12 @@ jobs:
 
       - name: Stage Release Files
         run: |
-          $buildDir = "out/build/x64-clang-release"
+          $buildDir = "build/x64-clang-release"
           $stageDir = "release"
-          
-          New-Item -ItemType Directory -Force -Path "$stageDir/mods/apclient"
-          Copy-Item "$buildDir/okami-apclient.dll" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/cacert.pem" "$stageDir/mods/apclient/"
-          Copy-Item "$buildDir/okami-loader.exe" "$stageDir/"
-          Copy-Item -Recurse "src/library/game-data" "$stageDir/mods/apclient/"
+
+          New-Item -ItemType Directory -Force -Path "$stageDir/apclient"
+          Copy-Item "$buildDir/src/okami-apclient/okami-apclient.dll" "$stageDir/apclient/"
+          Copy-Item "$buildDir/cacert.pem" "$stageDir/apclient/"
 
       - name: Create Release Archive
         run: |
