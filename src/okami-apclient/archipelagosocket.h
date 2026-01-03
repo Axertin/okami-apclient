@@ -1,10 +1,12 @@
 #pragma once
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <vector>
 
 #include <apclient.hpp>
 
@@ -32,6 +34,9 @@ class ArchipelagoSocket : public ISocket
     std::string getStatus() const override;
 
     bool scoutLocations(const std::list<int64_t> &locations, int createAsHint) override;
+    std::vector<ScoutedItem> scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint = 0,
+                                                std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
+    int getPlayerSlot() const override;
 
   private:
     ArchipelagoSocket() : lastProcessedItemIndex_(-1)
@@ -58,6 +63,12 @@ class ArchipelagoSocket : public ISocket
 
     // Item tracking
     int lastProcessedItemIndex_;
+
+    // Scout synchronization
+    mutable std::mutex scoutMutex_;
+    std::condition_variable scoutCondition_;
+    std::vector<ScoutedItem> scoutedItems_;
+    bool scoutPending_{false};
 
     // Helpers
     void queueMainThreadTask(std::function<void()> task);

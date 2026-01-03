@@ -159,6 +159,27 @@ inline bool onItemPickupBlocking(std::function<bool(int, int)> callback)
     return true;
 }
 
+// Mock hook function - always succeeds in tests
+template <typename T, typename U>
+inline bool hookFunction(const char *module, uintptr_t offset, T hookFn, U *originalFn)
+{
+    // No-op in tests - just pretend we hooked successfully
+    (void)module;
+    (void)offset;
+    (void)hookFn;
+    (void)originalFn;
+    return true;
+}
+
+// Mock module base - return a fake base address
+inline void *getModuleBase(const char *module)
+{
+    (void)module;
+    // Return a fake non-null base address
+    // In tests, we don't actually access this memory
+    return reinterpret_cast<void *>(0x10000000);
+}
+
 // Mock bitfield monitor types (unused in tests)
 using BitfieldMonitorHandle = void *;
 

@@ -13,6 +13,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <thread>
 
 // File-local constants
 static const std::string CERT_STORE = "mods/apclient/cacert.pem";
@@ -334,8 +335,24 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             }
         });
 
-    client_->set_location_info_handler([](const std::list<APClient::NetworkItem> &items)
-                                       { wolf::logDebug("[Socket] Received location info for %zu items", items.size()); });
+    client_->set_location_info_handler(
+        [this](const std::list<APClient::NetworkItem> &items)
+        {
+            wolf::logDebug("[Socket] Received location info for %zu items", items.size());
+
+            // Store scouted items and signal waiting threads
+            {
+                std::lock_guard<std::mutex> lock(scoutMutex_);
+                scoutedItems_.clear();
+                scoutedItems_.reserve(items.size());
+                for (const auto &item : items)
+                {
+                    scoutedItems_.push_back(ScoutedItem{.item = item.item, .location = item.location, .player = item.player, .flags = item.flags});
+                }
+                scoutPending_ = false;
+            }
+            scoutCondition_.notify_all();
+        });
 }
 
 void ArchipelagoSocket::disconnect()
@@ -497,5 +514,80 @@ bool ArchipelagoSocket::scoutLocations(const std::list<int64_t> &locations, int 
     {
         wolf::logError("[Socket] Failed to scout locations: %s", e.what());
         return false;
+    }
+}
+
+std::vector<ScoutedItem> ArchipelagoSocket::scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint, std::chrono::milliseconds timeout)
+{
+    if (locations.empty())
+    {
+        return {};
+    }
+
+    if (!isConnected())
+    {
+        wolf::logWarning("[Socket] Cannot scout: not connected");
+        return {};
+    }
+
+    wolf::logDebug("[Socket] Scouting %zu locations synchronously", locations.size());
+
+    // Set up pending state
+    {
+        std::lock_guard<std::mutex> lock(scoutMutex_);
+        scoutedItems_.clear();
+        scoutPending_ = true;
+    }
+
+    // Send the scout request
+    if (!scoutLocations(locations, createAsHint))
+    {
+        std::lock_guard<std::mutex> lock(scoutMutex_);
+        scoutPending_ = false;
+        return {};
+    }
+
+    // Wait for response with timeout
+    // Note: We need to keep polling while waiting
+    auto deadline = std::chrono::steady_clock::now() + timeout;
+
+    while (true)
+    {
+        // Check if we got a response
+        {
+            std::unique_lock<std::mutex> lock(scoutMutex_);
+            if (!scoutPending_)
+            {
+                wolf::logDebug("[Socket] Scout completed, received %zu items", scoutedItems_.size());
+                return std::move(scoutedItems_);
+            }
+        }
+
+        // Check timeout
+        if (std::chrono::steady_clock::now() >= deadline)
+        {
+            wolf::logWarning("[Socket] Scout timed out after %lldms", timeout.count());
+            std::lock_guard<std::mutex> lock(scoutMutex_);
+            scoutPending_ = false;
+            return {};
+        }
+
+        // Poll the client to process incoming messages
+        poll();
+
+        // Brief sleep to avoid busy-waiting
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+}
+
+int ArchipelagoSocket::getPlayerSlot() const
+{
+    try
+    {
+        return withClient([](APClient &client) { return client.get_player_number(); });
+    }
+    catch (const std::exception &)
+    {
+        return -1;
     }
 }

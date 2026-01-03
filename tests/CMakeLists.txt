@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 
 # Find Catch2 from vcpkg
 find_package(Catch2 CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 
 # Get generated AP items sources from main build
 set(APITEMS_GENERATED_CPP "${CMAKE_SOURCE_DIR}/src/okami-apclient/apitems_generated.cpp")
@@ -17,9 +18,12 @@ add_library(apclient-testable STATIC
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/item_handlers.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/aplocationmonitor.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/apitem.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/containermanager.cpp
 
     # Mock implementations
     mocks/wolf_framework.cpp
+    mocks/mock_archipelagosocket.cpp
 )
 
 target_include_directories(apclient-testable PUBLIC
@@ -31,11 +35,16 @@ target_include_directories(apclient-testable PUBLIC
 
 target_compile_features(apclient-testable PRIVATE cxx_std_23)
 
+target_link_libraries(apclient-testable PUBLIC nlohmann_json::nlohmann_json)
+
 # Test executable
 add_executable(apclient-tests
     test_apitems.cpp
     test_item_handlers.cpp
     test_aplocationmonitor.cpp
+    test_apitem.cpp
+    test_containermanager.cpp
+    test_mock_archipelagosocket.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE

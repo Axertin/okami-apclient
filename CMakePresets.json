@@ -99,6 +99,31 @@
             }
         },
         {
+            "name": "native-tests-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CXX_STD": "23",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "VCPKG_TARGET_TRIPLET": "x64-linux",
+                "BUILD_TESTS_ONLY": "ON"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "native-tests-debug",
+            "displayName": "Native Tests Debug (Linux)",
+            "inherits": "native-tests-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
             "name": "linux-native-base",
             "hidden": true,
             "generator": "Ninja",
@@ -123,7 +148,7 @@
         },
         {
             "name": "linux-tests-debug",
-            "displayName": "Linux Tests Debug",
+            "displayName": "Linux Tests Debug (Cross-compiled)",
             "inherits": "linux-native-base",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
@@ -227,8 +252,13 @@
         },
         {
             "name": "linux-tests",
-            "description": "Run tests on Linux",
+            "description": "Run tests on Linux (cross-compiled)",
             "configurePreset": "linux-tests-debug"
+        },
+        {
+            "name": "native-tests",
+            "description": "Run tests natively on Linux",
+            "configurePreset": "native-tests-debug"
         }
     ]
 }

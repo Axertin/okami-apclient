@@ -6,6 +6,7 @@
 
 #include "aplocationmonitor.h"
 #include "archipelagosocket.h"
+#include "containermanager.h"
 #include "gamestate_accessors.hpp"
 #include "item_handlers.hpp"
 #include "loginwindow.h"
@@ -28,6 +29,13 @@ class APClientMod
 
         APLocationMonitor::instance().initialize();
         APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
+        container_manager::setSocket(&ArchipelagoSocket::instance());
+
+        // Initialize container-based item randomization
+        if (!container_manager::initialize())
+        {
+            wolf::logWarning("[APClient] Container manager failed to initialize, container randomization disabled");
+        }
 
         wolf::onGameTick(
             []()
@@ -40,6 +48,7 @@ class APClientMod
 
     static void shutdown()
     {
+        container_manager::shutdown();
         loginwindow::shutdown();
     }
 

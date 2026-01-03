@@ -1,6 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include "aplocationmonitor.h"
-#include "mocks/mock_isocket.h"
+#include "mocks/mock_archipelagosocket.h"
 
 /**
  * Test suite for APLocationMonitor
@@ -89,9 +89,10 @@ TEST_CASE("APLocationMonitor location ID calculations", "[aplocationmonitor]")
 TEST_CASE("APLocationMonitor duplicate tracking", "[aplocationmonitor]")
 {
     auto& monitor = APLocationMonitor::instance();
-    mock::MockISocket mockSocket;
+    mock::MockArchipelagoSocket mockSocket;
 
     // Set up monitor with mock socket and enable sending
+    mockSocket.setConnected(true);
     monitor.setSocket(&mockSocket);
     monitor.enableSending(true);
 
@@ -169,8 +170,9 @@ TEST_CASE("APLocationMonitor duplicate tracking", "[aplocationmonitor]")
 TEST_CASE("APLocationMonitor state management", "[aplocationmonitor]")
 {
     auto& monitor = APLocationMonitor::instance();
-    mock::MockISocket mockSocket;
+    mock::MockArchipelagoSocket mockSocket;
 
+    mockSocket.setConnected(true);
     monitor.setSocket(&mockSocket);
 
     SECTION("Sending can be enabled and disabled")

@@ -31,25 +31,30 @@ endif()
 set(CXX_STD "23" CACHE STRING "Requested C++ standard")
 set(STD_FEATURE "cxx_std_${CXX_STD}")
 
-add_library(imgui STATIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx11.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32.cpp
-)
-
-target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
-target_compile_features(imgui PRIVATE ${STD_FEATURE})
+# Option to build only tests (for native Linux builds)
+option(BUILD_TESTS_ONLY "Build only tests, skip mod build" OFF)
 
 # Find Python for code generation
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
 
-add_subdirectory(src/okami-apclient) # apclient.dll
+if(NOT BUILD_TESTS_ONLY)
+  add_library(imgui STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_draw.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_widgets.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/imgui_tables.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_dx11.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends/imgui_impl_win32.cpp
+  )
 
-install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION apclient/)
+  target_include_directories(imgui PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui ${CMAKE_CURRENT_SOURCE_DIR}/external/imgui/backends)
+  target_compile_features(imgui PRIVATE ${STD_FEATURE})
 
-# Always configure tests for CTest, but don't build by default
+  add_subdirectory(src/okami-apclient) # apclient.dll
+
+  install(FILES ${CMAKE_BINARY_DIR}/cacert.pem DESTINATION apclient/)
+endif()
+
+# Always configure tests for CTest
 enable_testing()
 add_subdirectory(tests)
