@@ -10,6 +10,7 @@ std::vector<GiveItemCall> giveItemCalls;
 std::vector<std::string> logMessages;
 std::vector<std::function<void()>> playStartCallbacks;
 std::vector<std::function<void()>> returnToMenuCallbacks;
+std::unordered_map<uintptr_t, void *> registeredHooks;
 
 void reset()
 {
@@ -18,6 +19,7 @@ void reset()
     logMessages.clear();
     playStartCallbacks.clear();
     returnToMenuCallbacks.clear();
+    registeredHooks.clear();
 }
 
 void triggerPlayStart()

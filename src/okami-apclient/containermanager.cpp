@@ -198,6 +198,36 @@ void shutdown()
     g_initialized = false;
 }
 
+bool installHooks()
+{
+    if (g_initialized)
+    {
+        wolf::logWarning("[ContainerManager] Already initialized");
+        return true;
+    }
+
+    wolf::logDebug("[ContainerManager] Installing hooks only (test mode)");
+
+    // Install SpawnTablePopulator hook
+    if (!wolf::hookFunction("main.dll", SPAWN_TABLE_POPULATOR_OFFSET, &hkSpawnTablePopulator, &g_originalSpawnTablePopulator))
+    {
+        wolf::logError("[ContainerManager] Failed to install SpawnTablePopulator hook");
+        return false;
+    }
+
+    // Install container interaction hook (only if offset is known)
+    if constexpr (CONTAINER_INTERACTION_OFFSET != 0)
+    {
+        if (!wolf::hookFunction("main.dll", CONTAINER_INTERACTION_OFFSET, &hkContainerInteraction, &g_originalContainerInteraction))
+        {
+            wolf::logWarning("[ContainerManager] Failed to install ContainerInteraction hook");
+        }
+    }
+
+    g_initialized = true;
+    return true;
+}
+
 std::optional<ContainerDef> findContainer(int16_t level_id, int16_t x, int16_t y, int16_t z)
 {
     auto it = g_containersByLevel.find(level_id);

@@ -39,12 +39,16 @@ target_link_libraries(apclient-testable PUBLIC nlohmann_json::nlohmann_json)
 
 # Test executable
 add_executable(apclient-tests
+    # Unit tests for actual code
     test_apitems.cpp
     test_item_handlers.cpp
     test_aplocationmonitor.cpp
     test_apitem.cpp
     test_containermanager.cpp
-    test_mock_archipelagosocket.cpp
+    test_containermanager_hooks.cpp
+
+    # Harness/mock tests (tests for the test infrastructure itself)
+    harness/test_mock_archipelagosocket.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE

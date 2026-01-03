@@ -5,6 +5,8 @@
 #include <cstring>
 #include <functional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 // Mock implementation of wolf_framework.hpp for testing
@@ -35,8 +37,23 @@ extern std::vector<std::string> logMessages;
 extern std::vector<std::function<void()>> playStartCallbacks;
 extern std::vector<std::function<void()>> returnToMenuCallbacks;
 
+// Storage for registered hooks by offset (type-erased as void*)
+extern std::unordered_map<uintptr_t, void *> registeredHooks;
+
 // Reset all mock state
 void reset();
+
+// Typed trigger - caller specifies function signature
+template <typename FnType, typename... Args>
+void triggerHook(uintptr_t offset, Args &&...args)
+{
+    auto it = registeredHooks.find(offset);
+    if (it != registeredHooks.end())
+    {
+        auto fn = reinterpret_cast<FnType>(it->second);
+        fn(std::forward<Args>(args)...);
+    }
+}
 
 // Trigger callbacks for testing
 void triggerPlayStart();
@@ -159,25 +176,23 @@ inline bool onItemPickupBlocking(std::function<bool(int, int)> callback)
     return true;
 }
 
-// Mock hook function - always succeeds in tests
+// Mock hook function - stores callback for later triggering
 template <typename T, typename U>
 inline bool hookFunction(const char *module, uintptr_t offset, T hookFn, U *originalFn)
 {
-    // No-op in tests - just pretend we hooked successfully
     (void)module;
-    (void)offset;
-    (void)hookFn;
-    (void)originalFn;
+    mock::registeredHooks[offset] = reinterpret_cast<void *>(hookFn);
+    *originalFn = nullptr; // No original to call in tests
     return true;
 }
 
-// Mock module base - return a fake base address
+// Mock module base - return pointer to mockMemory so offset reads work
 inline void *getModuleBase(const char *module)
 {
     (void)module;
-    // Return a fake non-null base address
-    // In tests, we don't actually access this memory
-    return reinterpret_cast<void *>(0x10000000);
+    // Return pointer to start of mockMemory so module + offset reads work
+    // Ensure mockMemory has enough space for typical offset ranges
+    return mock::mockMemory.data();
 }
 
 // Mock bitfield monitor types (unused in tests)

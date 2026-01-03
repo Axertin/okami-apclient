@@ -118,6 +118,16 @@ bool loadContainersFromPath(const std::filesystem::path &path);
 void clearContainers();
 
 /**
+ * @brief Install hooks without loading JSON (for testing)
+ *
+ * This is useful when you want to load containers from a test fixture
+ * but still need the hooks installed for hook-level testing.
+ *
+ * @return true if hook installation succeeded
+ */
+bool installHooks();
+
+/**
  * @brief Set the socket for AP communication
  *
  * Must be called before container randomization will work.
