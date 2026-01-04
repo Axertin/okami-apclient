@@ -1,6 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "containermanager.h"
+#include "mocks/mock_archipelagosocket.h"
 
 // Pure function tests for the new index-based location ID system
 
@@ -37,12 +38,26 @@ TEST_CASE("container_manager::getContainerLocationId", "[containermanager]")
 
 TEST_CASE("container_manager::isContainerInRando", "[containermanager]")
 {
-    SECTION("Stub always returns true")
+    mock::MockArchipelagoSocket mockSocket;
+    container_manager::setSocket(&mockSocket);
+
+    SECTION("Returns true when connected")
     {
-        // The stub should return true for any location ID
-        // This will be replaced with server protocol later
+        mockSocket.setConnected(true);
+
         CHECK(container_manager::isContainerInRando(900000) == true);
         CHECK(container_manager::isContainerInRando(901536) == true);
         CHECK(container_manager::isContainerInRando(999999) == true);
     }
+
+    SECTION("Returns false when disconnected")
+    {
+        mockSocket.setConnected(false);
+
+        CHECK(container_manager::isContainerInRando(900000) == false);
+        CHECK(container_manager::isContainerInRando(901536) == false);
+        CHECK(container_manager::isContainerInRando(999999) == false);
+    }
+
+    container_manager::setSocket(nullptr);
 }

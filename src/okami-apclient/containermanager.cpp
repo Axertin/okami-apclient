@@ -116,6 +116,9 @@ bool isContainerInRando(int64_t locationId)
     // TODO: Query AP server for slot data to determine which containers
     // are in the randomization pool vs vanilla
     (void)locationId; // Suppress unused warning
+    if (g_socket != nullptr)
+        return false;
+
     return g_socket->isConnected();
 }
 

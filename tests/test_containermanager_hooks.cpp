@@ -126,11 +126,11 @@ TEST_CASE("SpawnTablePopulator hook handles no socket gracefully", "[containerma
     builder.addContainer(0, 0x8F);
     auto &table = builder.build();
 
-    // Should not crash - items should still be replaced
-    // (socket is only needed for sending locations on pickup)
+    // Should not crash - but items should NOT be replaced since isContainerInRando
+    // returns false when not connected (no socket)
     wolf::mock::triggerHook<SpawnTablePopulatorFn>(container_manager::SPAWN_TABLE_POPULATOR_OFFSET, &table);
 
-    CHECK(table.entries[0].spawn_data->item_id == container_manager::DUMMY_ITEM_ID);
+    CHECK(table.entries[0].spawn_data->item_id == 0x8F);
 }
 
 TEST_CASE("SpawnTablePopulator hook skips disabled entries", "[containermanager][hooks]")
