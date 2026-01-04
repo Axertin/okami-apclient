@@ -17,7 +17,7 @@ fi
 echo "Formatting C++ files..."
 
 # Find and format all C++ files
-find src include test -name "*.cpp" -o -name "*.hpp" -o -name "*.c" -o -name "*.h" 2>/dev/null | while read -r file; do
+find src include tests -name "*.cpp" -o -name "*.hpp" -o -name "*.c" -o -name "*.h" 2>/dev/null | while read -r file; do
     echo "Formatting $file"
     clang-format -i "$file"
 done
