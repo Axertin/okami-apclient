@@ -1,5 +1,4 @@
 #include <catch2/catch_test_macros.hpp>
-
 #include <okami/bitfield.hpp>
 #include <okami/structs.hpp>
 #include <wolf_framework.hpp>
@@ -139,8 +138,7 @@ TEST_CASE_METHOD(ApItemTestFixture, "ap::grantReward with ProgressiveBrushReward
 
     SECTION("First grant gives base brush")
     {
-        ap::Reward reward{.ap_item_id = 0x102,
-                          .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
+        ap::Reward reward{.ap_item_id = 0x102, .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
 
         auto result = ap::grantReward(reward);
 
@@ -155,8 +153,7 @@ TEST_CASE_METHOD(ApItemTestFixture, "ap::grantReward with ProgressiveBrushReward
         apgame::usableBrushTechniques->Set(2);
         apgame::obtainedBrushTechniques->Set(2);
 
-        ap::Reward reward{.ap_item_id = 0x102,
-                          .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
+        ap::Reward reward{.ap_item_id = 0x102, .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
 
         auto result = ap::grantReward(reward);
 
@@ -172,8 +169,7 @@ TEST_CASE_METHOD(ApItemTestFixture, "ap::grantReward with ProgressiveBrushReward
         apgame::obtainedBrushTechniques->Set(2);
         apgame::brushUpgrades->Set(0);
 
-        ap::Reward reward{.ap_item_id = 0x102,
-                          .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
+        ap::Reward reward{.ap_item_id = 0x102, .data = ap::ProgressiveBrushReward{.brush_index = 2, .upgrades = std::span<const uint32_t>(upgrades)}};
 
         auto result = ap::grantReward(reward);
 

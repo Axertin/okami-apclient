@@ -43,7 +43,7 @@ void MockArchipelagoSocket::gameFinished()
     if (state_ == ConnectionState::Connected)
     {
         gameFinishedCalled_ = true;
-        statusUpdates_.push_back(30);  // GOAL status
+        statusUpdates_.push_back(30); // GOAL status
     }
 }
 
@@ -145,11 +145,9 @@ bool MockArchipelagoSocket::scoutLocations(const std::list<int64_t> &locations, 
     return true;
 }
 
-std::vector<ScoutedItem> MockArchipelagoSocket::scoutLocationsSync(const std::list<int64_t> &locations,
-                                                                    int createAsHint,
-                                                                    std::chrono::milliseconds timeout)
+std::vector<ScoutedItem> MockArchipelagoSocket::scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint, std::chrono::milliseconds timeout)
 {
-    (void)timeout;  // Mock doesn't need real timeout
+    (void)timeout; // Mock doesn't need real timeout
 
     if (state_ != ConnectionState::Connected)
     {
@@ -298,8 +296,7 @@ void MockArchipelagoSocket::setItemReceivedCallback(ItemReceivedCallback callbac
 
 // === Scout Response Simulation ===
 
-void MockArchipelagoSocket::setScoutResponse(const std::list<int64_t> &forLocations,
-                                              const std::vector<ScoutedItem> &response)
+void MockArchipelagoSocket::setScoutResponse(const std::list<int64_t> &forLocations, const std::vector<ScoutedItem> &response)
 {
     scoutResponses_[forLocations] = response;
 }
@@ -350,7 +347,7 @@ void MockArchipelagoSocket::setConnected(bool connected)
     state_ = connected ? ConnectionState::Connected : ConnectionState::Disconnected;
     if (connected && !hasStatusUpdate(10))
     {
-        statusUpdates_.push_back(10);  // PLAYING
+        statusUpdates_.push_back(10); // PLAYING
     }
 }
 
@@ -453,7 +450,7 @@ void MockArchipelagoSocket::advanceHandshake()
                 state_ = ConnectionState::Connected;
                 currentStatus_ = "Connected to " + server_;
                 // Simulate StatusUpdate(PLAYING) being sent automatically
-                statusUpdates_.push_back(10);  // PLAYING
+                statusUpdates_.push_back(10); // PLAYING
             }
         }
     }
@@ -474,4 +471,4 @@ void MockArchipelagoSocket::deliverPendingItems()
     }
 }
 
-}  // namespace mock
+} // namespace mock

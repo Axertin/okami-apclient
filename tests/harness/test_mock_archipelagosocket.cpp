@@ -46,8 +46,8 @@ TEST_CASE("MockArchipelagoSocket connection refused", "[mock_socket]")
     socket.setRefuseConnection(true, {"InvalidPassword"});
 
     socket.connect("localhost:38281", "TestPlayer", "wrong_password");
-    socket.poll();  // RoomInfo
-    socket.poll();  // Refused
+    socket.poll(); // RoomInfo
+    socket.poll(); // Refused
 
     CHECK(socket.getConnectionState() == ConnectionState::Refused);
     CHECK_FALSE(socket.isConnected());
@@ -91,7 +91,7 @@ TEST_CASE("MockArchipelagoSocket instant connection", "[mock_socket]")
     socket.setHandshakeConfig(config);
 
     socket.connect("test", "slot", "");
-    socket.poll();  // Should be connected immediately
+    socket.poll(); // Should be connected immediately
 
     CHECK(socket.isConnected());
 }
@@ -108,7 +108,7 @@ TEST_CASE("MockArchipelagoSocket tracks sent locations", "[mock_socket]")
 
     socket.sendLocation(100001);
     socket.sendLocation(100002);
-    socket.sendLocation(100001);  // Duplicate (still tracked)
+    socket.sendLocation(100001); // Duplicate (still tracked)
 
     CHECK(socket.getSentLocationCount() == 3);
     CHECK(socket.wasLocationSent(100001));
@@ -144,7 +144,7 @@ TEST_CASE("MockArchipelagoSocket gameFinished", "[mock_socket]")
     socket.gameFinished();
 
     CHECK(socket.wasGameFinishedCalled());
-    CHECK(socket.hasStatusUpdate(30));  // GOAL status
+    CHECK(socket.hasStatusUpdate(30)); // GOAL status
 }
 
 TEST_CASE("MockArchipelagoSocket item delivery via task queue", "[mock_socket]")
@@ -166,7 +166,7 @@ TEST_CASE("MockArchipelagoSocket item delivery via task queue", "[mock_socket]")
 
     // poll() moves items to main thread queue
     socket.poll();
-    CHECK(receivedItems.empty());  // Still not processed
+    CHECK(receivedItems.empty()); // Still not processed
 
     // processMainThreadTasks() delivers items
     socket.processMainThreadTasks();
@@ -212,7 +212,7 @@ TEST_CASE("MockArchipelagoSocket scout responses", "[mock_socket]")
 
     std::list<int64_t> locations = {300000, 300001};
     std::vector<ScoutedItem> response = {{.item = 0x100, .location = 300000, .player = 1, .flags = 0},
-                                          {.item = 0x42, .location = 300001, .player = 2, .flags = 1}};
+                                         {.item = 0x42, .location = 300001, .player = 2, .flags = 1}};
     socket.setScoutResponse(locations, response);
 
     auto result = socket.scoutLocationsSync(locations);
@@ -288,7 +288,7 @@ TEST_CASE("MockArchipelagoSocket scheduled disconnect", "[mock_socket]")
 
     CHECK(socket.isConnected());
 
-    socket.scheduleDisconnect(2);  // Disconnect after 2 more polls
+    socket.scheduleDisconnect(2); // Disconnect after 2 more polls
 
     socket.poll();
     CHECK(socket.isConnected());
@@ -320,12 +320,12 @@ TEST_CASE("MockArchipelagoSocket item name configuration", "[mock_socket]")
 
     socket.setItemName(0x100, 1, "Sunrise");
     socket.setItemName(0x100, 2, "Sunrise (Player 2)");
-    socket.setItemName(0x101, 0, "Generic Brush");  // Player 0 = generic
+    socket.setItemName(0x101, 0, "Generic Brush"); // Player 0 = generic
 
     CHECK(socket.getItemName(0x100, 1) == "Sunrise");
     CHECK(socket.getItemName(0x100, 2) == "Sunrise (Player 2)");
-    CHECK(socket.getItemName(0x101, 1) == "Generic Brush");  // Falls back to player 0
-    CHECK(socket.getItemName(0x999, 1) == "Unknown Item");   // Not configured
+    CHECK(socket.getItemName(0x101, 1) == "Generic Brush"); // Falls back to player 0
+    CHECK(socket.getItemName(0x999, 1) == "Unknown Item");  // Not configured
 }
 
 TEST_CASE("MockArchipelagoSocket UUID and connection info", "[mock_socket]")

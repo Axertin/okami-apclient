@@ -17,17 +17,17 @@ namespace mock
 
 enum class ConnectionState
 {
-    Disconnected,    // Initial state, no connection attempted
-    Connecting,      // Socket opened, waiting for RoomInfo
-    WaitingForSlot,  // RoomInfo received, waiting for slot response
-    Connected,       // Fully connected
-    Refused          // Connection refused by server
+    Disconnected,   // Initial state, no connection attempted
+    Connecting,     // Socket opened, waiting for RoomInfo
+    WaitingForSlot, // RoomInfo received, waiting for slot response
+    Connected,      // Fully connected
+    Refused         // Connection refused by server
 };
 
 struct HandshakeConfig
 {
-    int pollsUntilRoomInfo = 1;       // Polls before RoomInfo arrives
-    int pollsUntilSlotResponse = 1;   // Polls after RoomInfo before Connected/Refused
+    int pollsUntilRoomInfo = 1;     // Polls before RoomInfo arrives
+    int pollsUntilSlotResponse = 1; // Polls after RoomInfo before Connected/Refused
     bool shouldRefuseConnection = false;
     std::vector<std::string> refusalReasons;
 };
@@ -78,7 +78,7 @@ class MockArchipelagoSocket : public ISocket
 
     bool scoutLocations(const std::list<int64_t> &locations, int createAsHint) override;
     std::vector<ScoutedItem> scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint = 0,
-                                                 std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
+                                                std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
     int getPlayerSlot() const override;
 
     // === Connection Configuration ===
@@ -188,4 +188,4 @@ class MockArchipelagoSocket : public ISocket
     int disconnectAfterPolls_ = -1;
 };
 
-}  // namespace mock
+} // namespace mock

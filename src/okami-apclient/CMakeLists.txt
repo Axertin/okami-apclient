@@ -84,9 +84,15 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
         -static
         LINKER:--allow-multiple-definition
         LINKER:--enable-stdcall-fixup)
+    # Remove lib prefix and skip import library generation
+    set_target_properties(okami-apclient PROPERTIES
+        PREFIX ""
+        IMPORT_SUFFIX ""
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/implib")
 endif()
 
 # Add git version info and Windows resources
 add_git_version_info(okami-apclient)
 
-install(TARGETS okami-apclient DESTINATION apclient/)
+# Only install the DLL, not the import library
+install(TARGETS okami-apclient RUNTIME DESTINATION apclient/)

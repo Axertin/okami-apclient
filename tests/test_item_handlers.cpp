@@ -2,12 +2,15 @@
 #include <okami/bitfield.hpp>
 #include <okami/structs.hpp>
 #include <wolf_framework.hpp>
+
 #include "gamestate_accessors.hpp"
 #include "item_handlers.hpp"
 
-class ItemHandlerTestFixture {
-public:
-    ItemHandlerTestFixture() {
+class ItemHandlerTestFixture
+{
+  public:
+    ItemHandlerTestFixture()
+    {
         // Reset mock state before each test
         wolf::mock::reset();
         item_handlers::reset();
@@ -21,42 +24,49 @@ public:
         apgame::initialize();
     }
 
-    ~ItemHandlerTestFixture() {
+    ~ItemHandlerTestFixture()
+    {
         wolf::mock::reset();
         item_handlers::reset();
     }
 
     // Helper to check if a brush is unlocked
-    bool isBrushUnlocked(int index) {
-        return apgame::usableBrushTechniques->IsSet(index) &&
-               apgame::obtainedBrushTechniques->IsSet(index);
+    bool isBrushUnlocked(int index)
+    {
+        return apgame::usableBrushTechniques->IsSet(index) && apgame::obtainedBrushTechniques->IsSet(index);
     }
 
     // Helper to check if a brush upgrade is unlocked
-    bool isBrushUpgradeUnlocked(int bit) {
+    bool isBrushUpgradeUnlocked(int bit)
+    {
         return apgame::brushUpgrades->IsSet(bit);
     }
 
     // Helper to get inventory count for an item
-    uint16_t getInventoryCount(int itemId) {
+    uint16_t getInventoryCount(int itemId)
+    {
         return apgame::collectionData->inventory[itemId];
     }
 
     // Helper to set inventory count
-    void setInventoryCount(int itemId, uint16_t count) {
+    void setInventoryCount(int itemId, uint16_t count)
+    {
         apgame::collectionData->inventory[itemId] = count;
     }
 };
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle regular brush item", "[item_handlers]") {
-    SECTION("Granting Sunrise brush") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle regular brush item", "[item_handlers]")
+{
+    SECTION("Granting Sunrise brush")
+    {
         bool result = item_handlers::handleItem(0x100); // Sunrise
 
         CHECK(result == true);
         CHECK(isBrushUnlocked(0));
     }
 
-    SECTION("Granting Rejuvenation brush") {
+    SECTION("Granting Rejuvenation brush")
+    {
         bool result = item_handlers::handleItem(0x101); // Rejuvenation
 
         CHECK(result == true);
@@ -64,17 +74,20 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle regular brush item", "[item_han
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive brush - Power Slash", "[item_handlers]") {
-    SECTION("First Power Slash grants base brush") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive brush - Power Slash", "[item_handlers]")
+{
+    SECTION("First Power Slash grants base brush")
+    {
         bool result = item_handlers::handleItem(0x102);
 
         CHECK(result == true);
         CHECK(isBrushUnlocked(2));
-        CHECK_FALSE(isBrushUpgradeUnlocked(0)); // Power Slash 2 not yet
+        CHECK_FALSE(isBrushUpgradeUnlocked(0));  // Power Slash 2 not yet
         CHECK_FALSE(isBrushUpgradeUnlocked(10)); // Power Slash 3 not yet
     }
 
-    SECTION("Second Power Slash grants first upgrade") {
+    SECTION("Second Power Slash grants first upgrade")
+    {
         // Grant base brush first
         item_handlers::handleItem(0x102);
 
@@ -82,11 +95,12 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive brush - Power Slash
         bool result = item_handlers::handleItem(0x102);
 
         CHECK(result == true);
-        CHECK(isBrushUpgradeUnlocked(0)); // Power Slash 2
+        CHECK(isBrushUpgradeUnlocked(0));        // Power Slash 2
         CHECK_FALSE(isBrushUpgradeUnlocked(10)); // Power Slash 3 not yet
     }
 
-    SECTION("Third Power Slash grants second upgrade") {
+    SECTION("Third Power Slash grants second upgrade")
+    {
         // Grant base brush
         item_handlers::handleItem(0x102);
         // Grant first upgrade
@@ -96,11 +110,12 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive brush - Power Slash
         bool result = item_handlers::handleItem(0x102);
 
         CHECK(result == true);
-        CHECK(isBrushUpgradeUnlocked(0)); // Power Slash 2
+        CHECK(isBrushUpgradeUnlocked(0));  // Power Slash 2
         CHECK(isBrushUpgradeUnlocked(10)); // Power Slash 3
     }
 
-    SECTION("Fourth Power Slash is redundant but doesn't fail") {
+    SECTION("Fourth Power Slash is redundant but doesn't fail")
+    {
         // Max out Power Slash
         item_handlers::handleItem(0x102);
         item_handlers::handleItem(0x102);
@@ -113,8 +128,10 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive brush - Power Slash
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle inventory item", "[item_handlers]") {
-    SECTION("Granting Canine Tracker calls wolf::giveItem") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle inventory item", "[item_handlers]")
+{
+    SECTION("Granting Canine Tracker calls wolf::giveItem")
+    {
         bool result = item_handlers::handleItem(0x42);
 
         CHECK(result == true);
@@ -123,7 +140,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle inventory item", "[item_handler
         CHECK(wolf::mock::giveItemCalls[0].count == 1);
     }
 
-    SECTION("Granting multiple items") {
+    SECTION("Granting multiple items")
+    {
         item_handlers::handleItem(0x42); // Canine Tracker
         item_handlers::handleItem(0x43); // Lucky Mallet
 
@@ -133,8 +151,10 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle inventory item", "[item_handler
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive weapon", "[item_handlers]") {
-    SECTION("Progressive Mirror - first grants Trinity Mirror") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive weapon", "[item_handlers]")
+{
+    SECTION("Progressive Mirror - first grants Trinity Mirror")
+    {
         bool result = item_handlers::handleItem(0x300);
 
         CHECK(result == true);
@@ -142,7 +162,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive weapon", "[item_han
         CHECK(wolf::mock::giveItemCalls[0].itemId == 0x13); // Trinity Mirror
     }
 
-    SECTION("Progressive Mirror - second grants Solar Flare") {
+    SECTION("Progressive Mirror - second grants Solar Flare")
+    {
         // Simulate having Trinity Mirror
         setInventoryCount(0x13, 1);
 
@@ -153,7 +174,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive weapon", "[item_han
         CHECK(wolf::mock::giveItemCalls[0].itemId == 0x14); // Solar Flare
     }
 
-    SECTION("Progressive Mirror - third is max level") {
+    SECTION("Progressive Mirror - third is max level")
+    {
         // Simulate having both Trinity Mirror and Solar Flare
         setInventoryCount(0x13, 1);
         setInventoryCount(0x14, 1);
@@ -166,42 +188,49 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle progressive weapon", "[item_han
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle unknown item", "[item_handlers]") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Handle unknown item", "[item_handlers]")
+{
     bool result = item_handlers::handleItem(0xFFFF);
 
     CHECK(result == false);
     CHECK(wolf::mock::giveItemCalls.empty());
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Location monitor is disabled during item handling", "[item_handlers]") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Location monitor is disabled during item handling", "[item_handlers]")
+{
     // This test verifies the pattern but can't test the actual behavior
     // without the real APLocationMonitor
 
-    SECTION("Item handling completes successfully") {
+    SECTION("Item handling completes successfully")
+    {
         bool result = item_handlers::handleItem(0x100);
         CHECK(result == true);
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]")
+{
     // Initialize item handlers to set up callbacks
     item_handlers::initialize();
 
-    SECTION("receiveAPItem queues items") {
+    SECTION("receiveAPItem queues items")
+    {
         bool result = item_handlers::receiveAPItem(0x100);
         CHECK(result == true);
     }
 
-    SECTION("handleAPItems returns false when queue is empty") {
-        wolf::mock::triggerPlayStart();  // Enable safeToReceive
+    SECTION("handleAPItems returns false when queue is empty")
+    {
+        wolf::mock::triggerPlayStart(); // Enable safeToReceive
         bool result = item_handlers::handleAPItems();
         CHECK(result == false);
     }
 
-    SECTION("handleAPItems processes queued items when safe") {
+    SECTION("handleAPItems processes queued items when safe")
+    {
         // Queue some items
-        item_handlers::receiveAPItem(0x100);  // Sunrise brush
-        item_handlers::receiveAPItem(0x101);  // Rejuvenation brush
+        item_handlers::receiveAPItem(0x100); // Sunrise brush
+        item_handlers::receiveAPItem(0x101); // Rejuvenation brush
 
         // Trigger game start to enable safeToReceive
         wolf::mock::triggerPlayStart();
@@ -209,21 +238,23 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]") 
         // Process queue
         bool result = item_handlers::handleAPItems();
         CHECK(result == true);
-        CHECK(isBrushUnlocked(0));  // Sunrise
-        CHECK(isBrushUnlocked(1));  // Rejuvenation
+        CHECK(isBrushUnlocked(0)); // Sunrise
+        CHECK(isBrushUnlocked(1)); // Rejuvenation
     }
 
-    SECTION("handleAPItems does not process when safeToReceive is false") {
+    SECTION("handleAPItems does not process when safeToReceive is false")
+    {
         // Queue items
         item_handlers::receiveAPItem(0x100);
 
         // Don't trigger game start, so safeToReceive stays false
         bool result = item_handlers::handleAPItems();
         CHECK(result == false);
-        CHECK_FALSE(isBrushUnlocked(0));  // Should not be unlocked
+        CHECK_FALSE(isBrushUnlocked(0)); // Should not be unlocked
     }
 
-    SECTION("handleAPItems clears queue after processing") {
+    SECTION("handleAPItems clears queue after processing")
+    {
         // Queue items
         item_handlers::receiveAPItem(0x100);
 
@@ -236,11 +267,12 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]") 
         CHECK(result == false);
     }
 
-    SECTION("Multiple items are all processed") {
+    SECTION("Multiple items are all processed")
+    {
         // Queue multiple different items
-        item_handlers::receiveAPItem(0x100);  // Sunrise
-        item_handlers::receiveAPItem(0x101);  // Rejuvenation
-        item_handlers::receiveAPItem(0x42);   // Canine Tracker
+        item_handlers::receiveAPItem(0x100); // Sunrise
+        item_handlers::receiveAPItem(0x101); // Rejuvenation
+        item_handlers::receiveAPItem(0x42);  // Canine Tracker
 
         wolf::mock::triggerPlayStart();
         bool result = item_handlers::handleAPItems();
@@ -252,10 +284,11 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]") 
         CHECK(wolf::mock::giveItemCalls[0].itemId == 0x42);
     }
 
-    SECTION("handleAPItems returns false if any item fails") {
+    SECTION("handleAPItems returns false if any item fails")
+    {
         // Queue a valid item and an invalid item
-        item_handlers::receiveAPItem(0x100);    // Valid
-        item_handlers::receiveAPItem(0xFFFF);   // Invalid
+        item_handlers::receiveAPItem(0x100);  // Valid
+        item_handlers::receiveAPItem(0xFFFF); // Invalid
 
         wolf::mock::triggerPlayStart();
         bool result = item_handlers::handleAPItems();
@@ -267,16 +300,19 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Queue management", "[item_handlers]") 
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "safeToReceive flag behavior", "[item_handlers]") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "safeToReceive flag behavior", "[item_handlers]")
+{
     item_handlers::initialize();
 
-    SECTION("safeToReceive starts as false") {
+    SECTION("safeToReceive starts as false")
+    {
         item_handlers::receiveAPItem(0x100);
         bool result = item_handlers::handleAPItems();
         CHECK(result == false);
     }
 
-    SECTION("safeToReceive is enabled on play start") {
+    SECTION("safeToReceive is enabled on play start")
+    {
         item_handlers::receiveAPItem(0x100);
 
         wolf::mock::triggerPlayStart();
@@ -284,7 +320,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "safeToReceive flag behavior", "[item_h
         CHECK(result == true);
     }
 
-    SECTION("safeToReceive is disabled on return to menu") {
+    SECTION("safeToReceive is disabled on return to menu")
+    {
         // Enable first
         wolf::mock::triggerPlayStart();
 
@@ -298,7 +335,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "safeToReceive flag behavior", "[item_h
         CHECK(result == false);
     }
 
-    SECTION("safeToReceive can be toggled multiple times") {
+    SECTION("safeToReceive can be toggled multiple times")
+    {
         item_handlers::receiveAPItem(0x100);
 
         // Enable
@@ -316,8 +354,10 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "safeToReceive flag behavior", "[item_h
     }
 }
 
-TEST_CASE_METHOD(ItemHandlerTestFixture, "Event flag handling", "[item_handlers]") {
-    SECTION("Setting keyItemsAcquired flag") {
+TEST_CASE_METHOD(ItemHandlerTestFixture, "Event flag handling", "[item_handlers]")
+{
+    SECTION("Setting keyItemsAcquired flag")
+    {
         // Save Rei (0x303) sets keyItemsAcquired bit 0
         bool result = item_handlers::handleItem(0x303);
 
@@ -325,7 +365,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Event flag handling", "[item_handlers]
         CHECK(apgame::keyItemsAcquired->IsSet(0));
     }
 
-    SECTION("Setting multiple different event flags") {
+    SECTION("Setting multiple different event flags")
+    {
         // Save Rei - bit 0
         item_handlers::handleItem(0x303);
         // Save Shin - bit 1
@@ -339,7 +380,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Event flag handling", "[item_handlers]
         CHECK_FALSE(apgame::keyItemsAcquired->IsSet(3));
     }
 
-    SECTION("Event flags don't interfere with each other") {
+    SECTION("Event flags don't interfere with each other")
+    {
         // Set bit 0
         item_handlers::handleItem(0x303);
         CHECK(apgame::keyItemsAcquired->IsSet(0));
@@ -353,7 +395,8 @@ TEST_CASE_METHOD(ItemHandlerTestFixture, "Event flag handling", "[item_handlers]
         CHECK(apgame::keyItemsAcquired->IsSet(5));
     }
 
-    SECTION("Redundant event flag setting succeeds") {
+    SECTION("Redundant event flag setting succeeds")
+    {
         // Set the flag
         item_handlers::handleItem(0x303);
         CHECK(apgame::keyItemsAcquired->IsSet(0));

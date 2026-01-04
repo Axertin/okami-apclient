@@ -18,10 +18,6 @@ void initialize()
 {
     wolf::onPlayStart([]() { safeToReceive = true; });
     wolf::onReturnToMenu([]() { safeToReceive = false; });
-
-    // block item pickups that are in AP
-    // TODO: lookup settings from server to see what items are actually in rando and which are vanilla
-    wolf::onItemPickupBlocking([](int itemID, int) -> bool { return apitems::findItem(itemID) != nullptr; });
 }
 
 void reset()

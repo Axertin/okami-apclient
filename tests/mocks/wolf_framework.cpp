@@ -1,6 +1,7 @@
+#include "wolf_framework.hpp"
+
 #include <okami/bitfield.hpp>
 #include <okami/structs.hpp>
-#include "wolf_framework.hpp"
 
 namespace wolf::mock
 {
@@ -24,7 +25,7 @@ void reset()
 
 void triggerPlayStart()
 {
-    for (auto& callback : playStartCallbacks)
+    for (auto &callback : playStartCallbacks)
     {
         callback();
     }
@@ -32,7 +33,7 @@ void triggerPlayStart()
 
 void triggerReturnToMenu()
 {
-    for (auto& callback : returnToMenuCallbacks)
+    for (auto &callback : returnToMenuCallbacks)
     {
         callback();
     }

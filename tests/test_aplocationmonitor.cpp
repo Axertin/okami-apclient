@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+
 #include "aplocationmonitor.h"
 #include "mocks/mock_archipelagosocket.h"
 
@@ -88,7 +89,7 @@ TEST_CASE("APLocationMonitor location ID calculations", "[aplocationmonitor]")
 // Stateful operations - Duplicate tracking
 TEST_CASE("APLocationMonitor duplicate tracking", "[aplocationmonitor]")
 {
-    auto& monitor = APLocationMonitor::instance();
+    auto &monitor = APLocationMonitor::instance();
     mock::MockArchipelagoSocket mockSocket;
 
     // Set up monitor with mock socket and enable sending
@@ -128,7 +129,7 @@ TEST_CASE("APLocationMonitor duplicate tracking", "[aplocationmonitor]")
         REQUIRE(mockSocket.wasLocationSent(305003));
 
         // Second identical shop purchase should not send
-        monitor.onShopPurchase(5, 3, 100);  // Different itemId, same shop+slot
+        monitor.onShopPurchase(5, 3, 100); // Different itemId, same shop+slot
         REQUIRE(mockSocket.getSentLocationCount() == 1);
     }
 
@@ -162,14 +163,14 @@ TEST_CASE("APLocationMonitor duplicate tracking", "[aplocationmonitor]")
         monitor.reset();
         mockSocket.clearSentLocations();
         monitor.onBrushAcquired(5);
-        REQUIRE(mockSocket.getSentLocationCount() == 1);  // Should send again after reset
+        REQUIRE(mockSocket.getSentLocationCount() == 1); // Should send again after reset
     }
 }
 
 // State management
 TEST_CASE("APLocationMonitor state management", "[aplocationmonitor]")
 {
-    auto& monitor = APLocationMonitor::instance();
+    auto &monitor = APLocationMonitor::instance();
     mock::MockArchipelagoSocket mockSocket;
 
     mockSocket.setConnected(true);

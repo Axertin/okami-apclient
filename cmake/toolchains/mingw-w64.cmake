@@ -26,8 +26,8 @@ set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE BOTH)
 
 # Enable static linking by default for cross-compilation
-# set(CMAKE_EXE_LINKER_FLAGS_INIT "-static-libgcc -static-libstdc++")
-# set(CMAKE_SHARED_LINKER_FLAGS_INIT "-static-libgcc -static-libstdc++")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-static")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "-static")
 
 # Set minimum Windows version
 add_definitions(-D_WIN32_WINNT=0x0601)

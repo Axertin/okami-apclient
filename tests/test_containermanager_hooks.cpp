@@ -1,6 +1,6 @@
-#include <catch2/catch_test_macros.hpp>
-
 #include <cstring>
+
+#include <catch2/catch_test_macros.hpp>
 
 #include "containermanager.h"
 #include "isocket.h"

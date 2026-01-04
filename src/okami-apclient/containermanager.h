@@ -35,7 +35,8 @@ inline constexpr uintptr_t CURRENT_MAP_ID_OFFSET = 0xB6B240;
 inline constexpr int64_t CONTAINER_LOCATION_BASE = 900000;
 
 // Dummy item used for randomized containers
-inline constexpr uint8_t DUMMY_ITEM_ID = 0x90; // 0x83; // Chestnut
+// TODO: Use different dummies to represent standard, progression, chaff, and troll items
+inline constexpr uint8_t DUMMY_ITEM_ID = 0x83; // Chestnut
 
 /**
  * @brief Initialize the container manager
@@ -72,8 +73,8 @@ void shutdown();
 /**
  * @brief Check if a container location is part of randomization
  *
- * Stub implementation - always returns true.
- * Will be replaced with server protocol check when available.
+ * Stub implementation - always returns true if connected.
+ * TODO: Will be replaced with server protocol check when available.
  *
  * @param locationId The AP location ID for this container
  * @return true if container is randomized, false for vanilla behavior
@@ -101,8 +102,7 @@ void setSocket(ISocket *socket);
  * @brief Poll for container openings
  *
  * Should be called every game tick. Checks if any tracked containers
- * have been opened (spawned_entity becomes null) and sends the
- * corresponding location to the AP server.
+ * have been opened and sends the corresponding location to the AP server.
  */
 void pollForPickups();
 

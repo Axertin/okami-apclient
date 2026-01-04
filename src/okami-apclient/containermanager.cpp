@@ -112,11 +112,11 @@ void setSocket(ISocket *socket)
 
 bool isContainerInRando(int64_t locationId)
 {
-    // Stub implementation - always returns true
+    // Stub implementation - always returns true if connected to AP
     // TODO: Query AP server for slot data to determine which containers
     // are in the randomization pool vs vanilla
     (void)locationId; // Suppress unused warning
-    return true;
+    return g_socket->isConnected();
 }
 
 void pollForPickups()

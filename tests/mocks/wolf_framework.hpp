@@ -44,8 +44,7 @@ extern std::unordered_map<uintptr_t, void *> registeredHooks;
 void reset();
 
 // Typed trigger - caller specifies function signature
-template <typename FnType, typename... Args>
-void triggerHook(uintptr_t offset, Args &&...args)
+template <typename FnType, typename... Args> void triggerHook(uintptr_t offset, Args &&...args)
 {
     auto it = registeredHooks.find(offset);
     if (it != registeredHooks.end())
@@ -177,8 +176,7 @@ inline bool onItemPickupBlocking(std::function<bool(int, int)> callback)
 }
 
 // Mock hook function - stores callback for later triggering
-template <typename T, typename U>
-inline bool hookFunction(const char *module, uintptr_t offset, T hookFn, U *originalFn)
+template <typename T, typename U> inline bool hookFunction(const char *module, uintptr_t offset, T hookFn, U *originalFn)
 {
     (void)module;
     mock::registeredHooks[offset] = reinterpret_cast<void *>(hookFn);

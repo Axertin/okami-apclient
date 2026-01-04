@@ -18,7 +18,7 @@
  * - Event flags (unlocks, state changes)
  * - Filler (message only, no game effect)
  *
- * Design separates AP items from game items - an AP item might grant
+ * Separates AP items from game items - an AP item might grant
  * a game item, or it might grant something else entirely.
  */
 namespace ap
