@@ -66,6 +66,7 @@ class MockArchipelagoSocket : public ISocket
     bool isConnected() const override;
 
     void sendLocation(int64_t locationID) override;
+    void sendLocations(const std::vector<int64_t> &locationIDs) override;
     void gameFinished() override;
     void poll() override;
     void processMainThreadTasks() override;
