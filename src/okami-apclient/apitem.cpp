@@ -2,8 +2,8 @@
 
 #include <wolf_framework.hpp>
 
-#include "aplocationmonitor.h"
 #include "apitems_generated.hpp"
+#include "aplocationmonitor.h"
 #include "gamestate_accessors.hpp"
 
 namespace ap
@@ -154,15 +154,17 @@ std::optional<Reward> convertFromLegacy(const apitems::APItemDef *item)
         break;
 
     case apitems::ItemHandlerType::ProgressiveBrush:
-        reward.data = ProgressiveBrushReward{.brush_index = item->progressive_brush.brush_index,
-                                             .upgrades = std::span<const uint32_t>(item->progressive_brush.upgrade_bits, item->progressive_brush.upgrade_count)};
+        reward.data =
+            ProgressiveBrushReward{.brush_index = item->progressive_brush.brush_index,
+                                   .upgrades = std::span<const uint32_t>(item->progressive_brush.upgrade_bits, item->progressive_brush.upgrade_count)};
         break;
 
     case apitems::ItemHandlerType::Inventory:
         reward.data = GameItemReward{.item_id = static_cast<uint8_t>(item->inventory.item_id)};
         break;
 
-    case apitems::ItemHandlerType::EventFlags: {
+    case apitems::ItemHandlerType::EventFlags:
+    {
         // Convert FlagInfo array to MultiFlagReward
         // Note: This is a bit awkward because the old format uses C arrays
         // For now, we'll just handle single flags - multi-flag items need a static array
@@ -207,7 +209,8 @@ std::expected<void, RewardError> grantReward(const Reward &reward)
     APLocationMonitor::instance().enableSending(false);
 
     auto result = std::visit(
-        [](auto &&data) -> std::expected<void, RewardError> {
+        [](auto &&data) -> std::expected<void, RewardError>
+        {
             using T = std::decay_t<decltype(data)>;
 
             if constexpr (std::is_same_v<T, GameItemReward>)
