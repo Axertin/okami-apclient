@@ -26,39 +26,34 @@ class SpawnTableBuilder
     }
 
     /**
-     * @brief Add a spawn table entry with container data
+     * @brief Add a container entry with item stored directly in spawn_data
      *
-     * @param index Entry index (0-127)
-     * @param x Container X position
-     * @param y Container Y position
-     * @param z Container Z position
-     * @param item_id Initial item ID in container
+     * Creates a single container entry at the specified index.
+     * The item_id is stored directly in spawn_data->item_id (matching actual game behavior).
+     *
+     * @param containerIdx Index for the container entry (0-127)
+     * @param item_id Item ID stored in the container's spawn_data
      * @param flags Entry flags (bit 0 = enabled)
      * @return Reference to builder for chaining
      */
-    SpawnTableBuilder &addEntry(int index, int16_t x, int16_t y, int16_t z, uint8_t item_id = 0, uint16_t flags = 1)
+    SpawnTableBuilder &addContainer(int containerIdx, uint8_t item_id, uint16_t flags = 1)
     {
-        if (index < 0 || index >= 128)
+        if (containerIdx < 0 || containerIdx >= 128)
         {
             return *this;
         }
 
-        // Create container data
+        // Create container data with item_id directly
         okami::ContainerData data{};
-        data.position_x = x;
-        data.position_y = y;
-        data.position_z = z;
         data.item_id = item_id;
-        data.item_type = 0x0A; // Standard item directory
+        data.item_type = 0x0A;
         containerData_.push_back(data);
+        entryToDataIndex_[containerIdx] = containerData_.size() - 1;
 
-        // Track which entry uses which data (don't store pointer yet - vector may grow)
-        entryToDataIndex_[index] = containerData_.size() - 1;
-
-        // Set up entry (pointer will be fixed in build())
-        auto &entry = table_.entries[index];
+        // Set up container entry
+        auto &entry = table_.entries[containerIdx];
         entry.flags = flags;
-        entry.spawn_type_1 = 1; // Chest path
+        entry.spawn_type_1 = 1; // Container/chest type
 
         table_.header.count++;
 

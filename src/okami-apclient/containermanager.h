@@ -1,9 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <filesystem>
-#include <optional>
-#include <vector>
 
 #include <okami/spawntable.h>
 
@@ -14,19 +11,21 @@ class ISocket;
  * @brief Manages container-based item randomization
  *
  * The ContainerManager is responsible for:
- * - Loading container definitions from JSON
- * - Hooking SpawnTablePopulator to modify container contents at spawn time
- * - Tracking container positions to AP location ID mappings
- * - Handling container interaction events (when hook offset is found)
+ * - Hooking SpawnTablePopulator to replace container items with dummies at spawn time
+ * - Tracking randomized container indices per level
+ * - Detecting when containers are opened and sending locations to AP server
  *
- * Container locations use the ID range starting at CONTAINER_LOCATION_BASE (900000).
+ * Container entries (spawn_type_1 == 1) store their item_id directly in spawn_data->item_id.
+ * We replace this with DUMMY_ITEM_ID and track the container index for pickup detection.
+ *
+ * Location IDs use the formula: CONTAINER_LOCATION_BASE + (levelId << 8) + spawnTableIdx
+ * This produces unique IDs across all levels without collision.
  */
 namespace container_manager
 {
 
 // Hook offsets
 inline constexpr uintptr_t SPAWN_TABLE_POPULATOR_OFFSET = 0x49e570;
-inline constexpr uintptr_t CONTAINER_INTERACTION_OFFSET = 0x000000; // TBD
 
 // Memory offsets
 inline constexpr uintptr_t SPAWN_TABLE_OFFSET = 0xB66800;
@@ -35,25 +34,13 @@ inline constexpr uintptr_t CURRENT_MAP_ID_OFFSET = 0xB6B240;
 // AP location ID constants
 inline constexpr int64_t CONTAINER_LOCATION_BASE = 900000;
 
-// Dummy item used for external/non-GameItem rewards
-inline constexpr uint8_t DUMMY_ITEM_ID = 0x83; // Chestnut
-
-/**
- * @brief Container definition loaded from containers.json
- */
-struct ContainerDef
-{
-    int32_t id;       // Unique container ID (becomes AP location offset)
-    int16_t level_id; // Level where container exists
-    int16_t x, y, z;  // Position coordinates
-    uint8_t container_type;
-    uint8_t original_contents_id; // Original item ID (for reference)
-};
+// Dummy item used for randomized containers
+inline constexpr uint8_t DUMMY_ITEM_ID = 0x90; // 0x83; // Chestnut
 
 /**
  * @brief Initialize the container manager
  *
- * Loads containers.json and installs the SpawnTablePopulator hook.
+ * Installs the SpawnTablePopulator hook.
  * Should be called during mod initialization after WOLF is ready.
  *
  * @return true if initialization succeeded
@@ -63,65 +50,38 @@ bool initialize();
 /**
  * @brief Shutdown and cleanup
  *
- * Removes hooks and clears loaded data.
+ * Removes hooks and clears tracking data.
  */
 void shutdown();
 
 /**
- * @brief Find a container by position
+ * @brief Calculate AP location ID from level and spawn table index
  *
- * @param level_id The level ID to search in
- * @param x X coordinate
- * @param y Y coordinate
- * @param z Z coordinate
- * @return The container definition if found
- */
-[[nodiscard]] std::optional<ContainerDef> findContainer(int16_t level_id, int16_t x, int16_t y, int16_t z);
-
-/**
- * @brief Get all containers for a specific level
+ * Formula: CONTAINER_LOCATION_BASE + (levelId << 8) + spawnIdx
+ * This produces unique IDs across all levels without collision.
  *
- * @param level_id The level to get containers for
- * @return Vector of container definitions for that level
+ * @param levelId Current level ID (0-65535)
+ * @param spawnIdx Spawn table index (0-127)
+ * @return The full AP location ID
  */
-[[nodiscard]] std::vector<ContainerDef> getContainersForLevel(int16_t level_id);
-
-/**
- * @brief Calculate AP location ID for a container
- *
- * @param container_id The container's unique ID
- * @return The full AP location ID (CONTAINER_LOCATION_BASE + container_id)
- */
-[[nodiscard]] constexpr int64_t getLocationId(int32_t container_id)
+[[nodiscard]] constexpr int64_t getContainerLocationId(uint16_t levelId, int spawnIdx)
 {
-    return CONTAINER_LOCATION_BASE + container_id;
+    return CONTAINER_LOCATION_BASE + (static_cast<int64_t>(levelId) << 8) + spawnIdx;
 }
 
 /**
- * @brief Get the total number of loaded containers
+ * @brief Check if a container location is part of randomization
  *
- * @return Number of containers loaded from JSON
+ * Stub implementation - always returns true.
+ * Will be replaced with server protocol check when available.
+ *
+ * @param locationId The AP location ID for this container
+ * @return true if container is randomized, false for vanilla behavior
  */
-[[nodiscard]] std::size_t getContainerCount();
+[[nodiscard]] bool isContainerInRando(int64_t locationId);
 
 /**
- * @brief Load containers from a JSON file (for testing)
- *
- * @param path Path to the containers.json file
- * @return true if loading succeeded
- */
-bool loadContainersFromPath(const std::filesystem::path &path);
-
-/**
- * @brief Clear all loaded container data (for testing)
- */
-void clearContainers();
-
-/**
- * @brief Install hooks without loading JSON (for testing)
- *
- * This is useful when you want to load containers from a test fixture
- * but still need the hooks installed for hook-level testing.
+ * @brief Install hooks without full initialization (for testing)
  *
  * @return true if hook installation succeeded
  */
@@ -137,11 +97,19 @@ bool installHooks();
  */
 void setSocket(ISocket *socket);
 
+/**
+ * @brief Poll for container openings
+ *
+ * Should be called every game tick. Checks if any tracked containers
+ * have been opened (spawned_entity becomes null) and sends the
+ * corresponding location to the AP server.
+ */
+void pollForPickups();
+
 // Internal - called by hooks
 namespace detail
 {
 void onSpawnTablePopulate(okami::SpawnTable *table);
-void onContainerInteraction(void *container_data);
 } // namespace detail
 
 } // namespace container_manager

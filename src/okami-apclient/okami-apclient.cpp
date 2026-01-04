@@ -43,6 +43,7 @@ class APClientMod
                 ArchipelagoSocket::instance().processMainThreadTasks();
                 ArchipelagoSocket::instance().poll();
                 item_handlers::handleAPItems();
+                container_manager::pollForPickups();
             });
     }
 
