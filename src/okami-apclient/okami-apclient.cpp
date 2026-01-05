@@ -4,13 +4,16 @@
 
 #include <wolf_framework.hpp>
 
-#include "aplocationmonitor.h"
 #include "archipelagosocket.h"
-#include "containermanager.h"
+#include "checkman.h"
 #include "gamestate_accessors.hpp"
-#include "item_handlers.hpp"
 #include "loginwindow.h"
+#include "rewardman.h"
 #include "version.h"
+
+// Global manager instances (explicit construction, not singletons)
+static std::unique_ptr<RewardMan> g_rewardMan;
+static std::unique_ptr<CheckMan> g_checkMan;
 
 class APClientMod
 {
@@ -24,32 +27,48 @@ class APClientMod
         // Initialize game state accessors first
         apgame::initialize();
 
-        item_handlers::initialize();
+        // Create managers with explicit dependencies
+        g_checkMan = std::make_unique<CheckMan>(ArchipelagoSocket::instance());
+
+        // RewardMan callback to disable check sending during granting
+        g_rewardMan = std::make_unique<RewardMan>(
+            [](bool enabled)
+            {
+                if (g_checkMan)
+                {
+                    g_checkMan->enableSending(enabled);
+                }
+            });
+
+        // Inject managers into socket
+        ArchipelagoSocket::instance().setRewardMan(g_rewardMan.get());
+        ArchipelagoSocket::instance().setCheckMan(g_checkMan.get());
+
+        // Initialize UI
         loginwindow::initialize(ArchipelagoSocket::instance());
 
-        APLocationMonitor::instance().initialize();
-        APLocationMonitor::instance().setSocket(&ArchipelagoSocket::instance());
-        container_manager::setSocket(&ArchipelagoSocket::instance());
+        // Initialize check manager (sets up monitors and container hooks)
+        g_checkMan->initialize();
 
-        // Initialize container-based item randomization
-        if (!container_manager::initialize())
-        {
-            wolf::logWarning("[APClient] Container manager failed to initialize, container randomization disabled");
-        }
-
+        // Game tick handler
         wolf::onGameTick(
             []()
             {
                 ArchipelagoSocket::instance().processMainThreadTasks();
                 ArchipelagoSocket::instance().poll();
-                item_handlers::handleAPItems();
-                container_manager::pollForPickups();
+                g_rewardMan->processQueuedRewards();
+                g_checkMan->poll();
             });
     }
 
     static void shutdown()
     {
-        container_manager::shutdown();
+        if (g_checkMan)
+        {
+            g_checkMan->shutdown();
+        }
+        g_checkMan.reset();
+        g_rewardMan.reset();
         loginwindow::shutdown();
     }
 

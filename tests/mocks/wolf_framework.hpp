@@ -1,9 +1,11 @@
 #pragma once
 
+#include <algorithm>
 #include <cstdarg>
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -193,17 +195,63 @@ inline void *getModuleBase(const char *module)
     return mock::mockMemory.data();
 }
 
-// Mock bitfield monitor types (unused in tests)
-using BitfieldMonitorHandle = void *;
-
-inline BitfieldMonitorHandle createBitfieldMonitor(const char *, uintptr_t, size_t, std::function<void(unsigned int, bool, bool)>, const char *)
+// Mock bitfield monitor implementation
+struct MockBitfieldMonitor
 {
-    return nullptr;
+    uintptr_t offset;
+    size_t byteCount;
+    std::function<void(unsigned int, bool, bool)> callback;
+    std::string name;
+};
+
+using BitfieldMonitorHandle = MockBitfieldMonitor *;
+
+namespace mock
+{
+// Track all created monitors
+extern std::vector<std::unique_ptr<MockBitfieldMonitor>> bitfieldMonitors;
+
+// Helper to trigger a specific monitor's callback
+inline void triggerBitfieldChange(BitfieldMonitorHandle handle, unsigned int bitIndex, bool oldValue, bool newValue)
+{
+    if (handle && handle->callback)
+    {
+        handle->callback(bitIndex, oldValue, newValue);
+    }
 }
 
-inline void destroyBitfieldMonitor(BitfieldMonitorHandle)
+// Helper to find monitor by offset (for testing)
+inline BitfieldMonitorHandle findMonitorByOffset(uintptr_t offset)
 {
-    // No-op
+    for (auto &m : bitfieldMonitors)
+    {
+        if (m->offset == offset)
+        {
+            return m.get();
+        }
+    }
+    return nullptr;
+}
+} // namespace mock
+
+inline BitfieldMonitorHandle createBitfieldMonitor(const char *module, uintptr_t offset, size_t byteCount,
+                                                   std::function<void(unsigned int, bool, bool)> callback, const char *name)
+{
+    (void)module;
+    auto monitor = std::make_unique<MockBitfieldMonitor>();
+    monitor->offset = offset;
+    monitor->byteCount = byteCount;
+    monitor->callback = std::move(callback);
+    monitor->name = name ? name : "";
+    auto *ptr = monitor.get();
+    mock::bitfieldMonitors.push_back(std::move(monitor));
+    return ptr;
+}
+
+inline void destroyBitfieldMonitor(BitfieldMonitorHandle handle)
+{
+    auto &monitors = mock::bitfieldMonitors;
+    monitors.erase(std::remove_if(monitors.begin(), monitors.end(), [handle](const auto &m) { return m.get() == handle; }), monitors.end());
 }
 
 } // namespace wolf

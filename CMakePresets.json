@@ -135,7 +135,8 @@
                 "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
                 "VCPKG_HOST_TRIPLET": "x64-linux",
                 "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/mingw-w64.cmake",
-                "VCPKG_INSTALLED_DIR": "${sourceDir}/build/${presetName}/vcpkg_installed"
+                "VCPKG_INSTALLED_DIR": "${sourceDir}/build/${presetName}/vcpkg_installed",
+                "VCPKG_APPLOCAL_DEPS": "OFF"
             },
             "condition": {
                 "type": "equals",

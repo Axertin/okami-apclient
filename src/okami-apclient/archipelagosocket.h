@@ -39,6 +39,18 @@ class ArchipelagoSocket : public ISocket
                                                 std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
     int getPlayerSlot() const override;
 
+    /**
+     * @brief Set the RewardMan for queueing received items
+     * @param rewardMan Pointer to the RewardMan instance
+     */
+    void setRewardMan(class RewardMan *rewardMan);
+
+    /**
+     * @brief Set the CheckMan for location synchronization
+     * @param checkMan Pointer to the CheckMan instance
+     */
+    void setCheckMan(class CheckMan *checkMan);
+
   private:
     ArchipelagoSocket() : lastProcessedItemIndex_(-1)
     {
@@ -70,6 +82,10 @@ class ArchipelagoSocket : public ISocket
     std::condition_variable scoutCondition_;
     std::vector<ScoutedItem> scoutedItems_;
     bool scoutPending_{false};
+
+    // Manager references (injected)
+    class RewardMan *rewardMan_{nullptr};
+    class CheckMan *checkMan_{nullptr};
 
     // Helpers
     void queueMainThreadTask(std::function<void()> task);

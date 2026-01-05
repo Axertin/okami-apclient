@@ -5,21 +5,21 @@ cmake_minimum_required(VERSION 3.21)
 find_package(Catch2 CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
-# Get generated AP items sources from main build
-set(APITEMS_GENERATED_CPP "${CMAKE_SOURCE_DIR}/src/okami-apclient/apitems_generated.cpp")
-set(APITEMS_GENERATED_HEADER "${CMAKE_SOURCE_DIR}/src/okami-apclient/apitems_generated.hpp")
-
 # Create testable core library with selective mod sources
 add_library(apclient-testable STATIC
-    # Generated item definitions
-    ${APITEMS_GENERATED_CPP}
+    # Reward system
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewardman.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/brushes.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/event_flags.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/game_items.cpp
 
-    # Testable mod sources (no imgui/minhook/direct game dependencies)
+    # Check system
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/checkman.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/containers.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/gamestate_monitors.cpp
+
+    # Other testable sources
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
-    ${CMAKE_SOURCE_DIR}/src/okami-apclient/item_handlers.cpp
-    ${CMAKE_SOURCE_DIR}/src/okami-apclient/aplocationmonitor.cpp
-    ${CMAKE_SOURCE_DIR}/src/okami-apclient/apitem.cpp
-    ${CMAKE_SOURCE_DIR}/src/okami-apclient/containermanager.cpp
 
     # Mock implementations
     mocks/wolf_framework.cpp
@@ -39,13 +39,12 @@ target_link_libraries(apclient-testable PUBLIC nlohmann_json::nlohmann_json)
 
 # Test executable
 add_executable(apclient-tests
-    # Unit tests for actual code
-    test_apitems.cpp
-    test_item_handlers.cpp
-    test_aplocationmonitor.cpp
-    test_apitem.cpp
-    test_containermanager.cpp
-    test_containermanager_hooks.cpp
+    # Unit tests for new architecture
+    test_reward_handlers.cpp
+    test_rewardman.cpp
+    test_checkman.cpp
+    test_containers.cpp
+    test_gamestate_monitors.cpp
 
     # Harness/mock tests (tests for the test infrastructure itself)
     harness/test_mock_archipelagosocket.cpp
