@@ -15,27 +15,24 @@ namespace
 
 // Progressive weapon stage definitions
 // Each array lists the game item IDs in progression order
-constexpr std::array<uint8_t, 2> kMirrorStages = {0x13, 0x14};              // Trinity Mirror -> Solar Flare
+constexpr std::array<uint8_t, 2> kMirrorStages = {0x13, 0x14};                   // Trinity Mirror -> Solar Flare
 constexpr std::array<uint8_t, 5> kRosaryStages = {0x15, 0x16, 0x17, 0x18, 0x19}; // Devout -> Tundra Beads
 constexpr std::array<uint8_t, 5> kSwordStages = {0x1A, 0x1B, 0x1C, 0x1D, 0x1E};  // Tsumugari -> Thunder Edge
 
 /**
  * @brief Get the stages array for a progressive weapon AP ID
  */
-template <size_t N>
-constexpr const std::array<uint8_t, N>* getProgressiveStages(int64_t apItemId);
+template <size_t N> constexpr const std::array<uint8_t, N> *getProgressiveStages(int64_t apItemId);
 
 // Specializations
-template <>
-constexpr const std::array<uint8_t, 2>* getProgressiveStages<2>(int64_t apItemId)
+template <> constexpr const std::array<uint8_t, 2> *getProgressiveStages<2>(int64_t apItemId)
 {
     if (apItemId == 0x300)
         return &kMirrorStages;
     return nullptr;
 }
 
-template <>
-constexpr const std::array<uint8_t, 5>* getProgressiveStages<5>(int64_t apItemId)
+template <> constexpr const std::array<uint8_t, 5> *getProgressiveStages<5>(int64_t apItemId)
 {
     if (apItemId == 0x301)
         return &kRosaryStages;
@@ -51,9 +48,9 @@ constexpr const std::array<uint8_t, 5>* getProgressiveStages<5>(int64_t apItemId
  * @param apItemId The progressive weapon AP ID
  * @return The next item to grant, or nullopt if at max stage
  */
-std::optional<uint8_t> findNextProgressiveStage(const uint16_t* inventory, int64_t apItemId)
+std::optional<uint8_t> findNextProgressiveStage(const uint16_t *inventory, int64_t apItemId)
 {
-    auto tryStages = [&]<size_t N>(const std::array<uint8_t, N>& stages) -> std::optional<uint8_t>
+    auto tryStages = [&]<size_t N>(const std::array<uint8_t, N> &stages) -> std::optional<uint8_t>
     {
         // Find current stage (highest owned item in the progression)
         int currentStage = -1;

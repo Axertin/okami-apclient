@@ -357,13 +357,14 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
 
                 if (item.index >= 0)
                 {
-                    queueMainThreadTask([this, itemId = item.item]()
-                                        {
-                                            if (rewardMan_)
-                                            {
-                                                rewardMan_->queueReward(itemId);
-                                            }
-                                        });
+                    queueMainThreadTask(
+                        [this, itemId = item.item]()
+                        {
+                            if (rewardMan_)
+                            {
+                                rewardMan_->queueReward(itemId);
+                            }
+                        });
                     newItemCount++;
                     highestIndex = std::max(highestIndex, item.index);
                     expectedIndex = item.index + 1;

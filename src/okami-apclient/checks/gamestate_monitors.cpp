@@ -16,7 +16,8 @@ wolf::BitfieldMonitorHandle createGameProgressMonitor(CheckCallback cb)
 
     return wolf::createBitfieldMonitor(
         "main.dll", addr, byteCount,
-        [cb](unsigned int bitIndex, bool oldValue, bool newValue) {
+        [cb](unsigned int bitIndex, bool oldValue, bool newValue)
+        {
             if (!oldValue && newValue)
             {
                 cb(getGameProgressCheckId(static_cast<int>(bitIndex)));
@@ -32,7 +33,8 @@ wolf::BitfieldMonitorHandle createGlobalFlagsMonitor(CheckCallback cb)
 
     return wolf::createBitfieldMonitor(
         "main.dll", addr, byteCount,
-        [cb](unsigned int bitIndex, bool oldValue, bool newValue) {
+        [cb](unsigned int bitIndex, bool oldValue, bool newValue)
+        {
             if (!oldValue && newValue)
             {
                 cb(getGlobalFlagCheckId(static_cast<int>(bitIndex)));
@@ -51,12 +53,13 @@ std::vector<wolf::BitfieldMonitorHandle> createWorldStateMonitors(CheckCallback 
 
     for (size_t mapId = 0; mapId < numMapTypes; mapId++)
     {
-        uintptr_t addr = okami::main::collectionData + offsetof(okami::CollectionData, world) +
-                         offsetof(okami::WorldStateData, mapStateBits) + (mapId * sizeof(okami::BitField<256>));
+        uintptr_t addr = okami::main::collectionData + offsetof(okami::CollectionData, world) + offsetof(okami::WorldStateData, mapStateBits) +
+                         (mapId * sizeof(okami::BitField<256>));
 
         handles.push_back(wolf::createBitfieldMonitor(
             "main.dll", addr, byteCount,
-            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue) {
+            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue)
+            {
                 if (!oldValue && newValue)
                 {
                     cb(getWorldStateCheckId(static_cast<int>(mapId), static_cast<int>(bitIndex)));
@@ -78,12 +81,12 @@ std::vector<wolf::BitfieldMonitorHandle> createCollectedObjectMonitors(CheckCall
 
     for (size_t mapId = 0; mapId < numMapTypes; mapId++)
     {
-        uintptr_t addr =
-            okami::main::mapData + (mapId * sizeof(okami::MapState)) + offsetof(okami::MapState, collectedObjects);
+        uintptr_t addr = okami::main::mapData + (mapId * sizeof(okami::MapState)) + offsetof(okami::MapState, collectedObjects);
 
         handles.push_back(wolf::createBitfieldMonitor(
             "main.dll", addr, byteCount,
-            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue) {
+            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue)
+            {
                 if (!oldValue && newValue)
                 {
                     cb(getCollectedObjectCheckId(static_cast<int>(mapId), static_cast<int>(bitIndex)));
@@ -105,12 +108,12 @@ std::vector<wolf::BitfieldMonitorHandle> createAreaRestoredMonitors(CheckCallbac
 
     for (size_t mapId = 0; mapId < numMapTypes; mapId++)
     {
-        uintptr_t addr =
-            okami::main::mapData + (mapId * sizeof(okami::MapState)) + offsetof(okami::MapState, areasRestored);
+        uintptr_t addr = okami::main::mapData + (mapId * sizeof(okami::MapState)) + offsetof(okami::MapState, areasRestored);
 
         handles.push_back(wolf::createBitfieldMonitor(
             "main.dll", addr, byteCount,
-            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue) {
+            [cb, mapId](unsigned int bitIndex, bool oldValue, bool newValue)
+            {
                 if (!oldValue && newValue)
                 {
                     cb(getAreaRestoredCheckId(static_cast<int>(mapId), static_cast<int>(bitIndex)));

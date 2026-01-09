@@ -6,8 +6,7 @@
 #include "checks/gamestate_monitors.hpp"
 #include "isocket.h"
 
-CheckMan::CheckMan(ISocket &socket)
-    : socket_(socket)
+CheckMan::CheckMan(ISocket &socket) : socket_(socket)
 {
 }
 

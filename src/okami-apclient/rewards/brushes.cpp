@@ -40,8 +40,7 @@ void grantSimpleBrush(int brushIndex)
  * @param upgrades Array of upgrade bit indices
  * @return Success (always - no error cases)
  */
-template <size_t N>
-std::expected<void, RewardError> grantProgressiveBrush(int brushIndex, const std::array<uint32_t, N>& upgrades)
+template <size_t N> std::expected<void, RewardError> grantProgressiveBrush(int brushIndex, const std::array<uint32_t, N> &upgrades)
 {
     // Check if base brush is already obtained
     bool hasBase = apgame::obtainedBrushTechniques->IsSet(brushIndex);
