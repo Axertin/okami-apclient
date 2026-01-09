@@ -2,9 +2,9 @@
 
 #include <wolf_framework.hpp>
 
-#include "aplocationmonitor.h"
-#include "item_handlers.hpp"
+#include "checkman.h"
 #include "loginwindow.h"
+#include "rewardman.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -267,7 +267,10 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             wolf::logInfo("[Socket] Connected successfully!");
             connected_.store(true);
 
-            APLocationMonitor::instance().enableSending(true);
+            if (checkMan_)
+            {
+                checkMan_->enableSending(true);
+            }
 
             queueMainThreadTask([this]() { setStatus("Connected successfully!"); });
 
@@ -280,11 +283,11 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             client_->StatusUpdate(APClient::ClientStatus::PLAYING);
 
             // Process checked_locations from Connected packet and sync with server
-            if (data.contains("checked_locations"))
+            if (data.contains("checked_locations") && checkMan_)
             {
                 auto checkedLocs = data["checked_locations"].get<std::list<int64_t>>();
                 wolf::logInfo("[Socket] Server reports %zu checked locations", checkedLocs.size());
-                APLocationMonitor::instance().syncWithServer(checkedLocs);
+                checkMan_->syncWithServer(checkedLocs);
             }
 
             // TODO: Parse slot_data fields when apworld structure is defined
@@ -345,13 +348,22 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                 {
                     wolf::logWarning("[Socket] Desync detected: expected index %d, got %d. Requesting resync.", expectedIndex, item.index);
                     client_->Sync();
-                    APLocationMonitor::instance().resendAllLocations();
+                    if (checkMan_)
+                    {
+                        checkMan_->resendAllChecks();
+                    }
                     // Continue processing to avoid blocking gameplay during resync
                 }
 
                 if (item.index >= 0)
                 {
-                    queueMainThreadTask([itemId = item.item]() { item_handlers::receiveAPItem(itemId); });
+                    queueMainThreadTask([this, itemId = item.item]()
+                                        {
+                                            if (rewardMan_)
+                                            {
+                                                rewardMan_->queueReward(itemId);
+                                            }
+                                        });
                     newItemCount++;
                     highestIndex = std::max(highestIndex, item.index);
                     expectedIndex = item.index + 1;
@@ -646,4 +658,14 @@ int ArchipelagoSocket::getPlayerSlot() const
     {
         return -1;
     }
+}
+
+void ArchipelagoSocket::setRewardMan(RewardMan *rewardMan)
+{
+    rewardMan_ = rewardMan;
+}
+
+void ArchipelagoSocket::setCheckMan(CheckMan *checkMan)
+{
+    checkMan_ = checkMan;
 }

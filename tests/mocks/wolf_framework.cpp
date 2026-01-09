@@ -12,6 +12,7 @@ std::vector<std::string> logMessages;
 std::vector<std::function<void()>> playStartCallbacks;
 std::vector<std::function<void()>> returnToMenuCallbacks;
 std::unordered_map<uintptr_t, void *> registeredHooks;
+std::vector<std::unique_ptr<MockBitfieldMonitor>> bitfieldMonitors;
 
 void reset()
 {
@@ -21,6 +22,7 @@ void reset()
     playStartCallbacks.clear();
     returnToMenuCallbacks.clear();
     registeredHooks.clear();
+    bitfieldMonitors.clear();
 }
 
 void triggerPlayStart()
@@ -41,9 +43,9 @@ void triggerReturnToMenu()
 
 void reserveMemory(size_t size)
 {
-    if (mockMemory.capacity() < size)
+    if (mockMemory.size() < size)
     {
-        mockMemory.reserve(size);
+        mockMemory.resize(size);
     }
 }
 

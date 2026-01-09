@@ -7,44 +7,13 @@ execute_process(
 )
 include(${CMAKE_CURRENT_SOURCE_DIR}/sources.cmake)
 
-# Generate AP item definitions from YAML at configure time
-set(APITEMS_YAML "${CMAKE_CURRENT_SOURCE_DIR}/apitems.yml")
-set(APITEMS_GENERATED_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/apitems_generated.hpp")
-set(APITEMS_GENERATED_CPP "${CMAKE_CURRENT_SOURCE_DIR}/apitems_generated.cpp")
-
-execute_process(
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/generate_apitems.py
-    ${APITEMS_YAML}
-    ${APITEMS_GENERATED_HEADER}
-    ${APITEMS_GENERATED_CPP}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE GENERATE_RESULT
-)
-
-if(NOT GENERATE_RESULT EQUAL 0)
-    message(FATAL_ERROR "Failed to generate AP item definitions from apitems.yml")
-endif()
-
-# Also set up dependency tracking for rebuilds when YAML changes
-add_custom_command(
-    OUTPUT ${APITEMS_GENERATED_HEADER} ${APITEMS_GENERATED_CPP}
-    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/generate_apitems.py
-    ${APITEMS_YAML}
-    ${APITEMS_GENERATED_HEADER}
-    ${APITEMS_GENERATED_CPP}
-    DEPENDS ${APITEMS_YAML} ${CMAKE_SOURCE_DIR}/scripts/generate_apitems.py
-    COMMENT "Regenerating AP item definitions (YAML changed)"
-    VERBATIM
-)
-
 find_package(minhook CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(asio CONFIG REQUIRED)
 find_package(OpenSSL REQUIRED)
 find_package(ZLIB REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
 
-add_library(okami-apclient SHARED ${okami-apclient_SOURCES} ${APITEMS_GENERATED_CPP})
+add_library(okami-apclient SHARED ${okami-apclient_SOURCES})
 target_compile_definitions(okami-apclient PRIVATE
     ASIO_STANDALONE
     AP_NO_SCHEMA
@@ -57,7 +26,7 @@ target_include_directories(okami-apclient PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}/generated
 )
-target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui ws2_32 yaml-cpp::yaml-cpp)
+target_link_libraries(okami-apclient PRIVATE minhook::minhook nlohmann_json::nlohmann_json asio::asio OpenSSL::SSL OpenSSL::Crypto ZLIB::ZLIB imgui ws2_32)
 target_include_directories(okami-apclient SYSTEM PRIVATE
     ${CMAKE_SOURCE_DIR}/external/apclientpp
     ${CMAKE_SOURCE_DIR}/external/wswrap/include
