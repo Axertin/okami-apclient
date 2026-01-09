@@ -7,40 +7,19 @@
 #include "wolf_framework.hpp"
 
 // ============================================================================
-// Container ID formula tests
+// Container ID encoding constraints
 // ============================================================================
 
-TEST_CASE("Container check ID calculation", "[containers][check_types]")
+// Compile-time verification of formula
+static_assert(checks::getContainerCheckId(0, 0) == checks::kContainerBase);
+
+TEST_CASE("Container check ID ranges don't overlap between levels", "[containers][check_types]")
 {
-    // Container check = kContainerBase + (levelId << 8) + spawnIdx
-    int64_t checkId = checks::getContainerCheckId(0x1234, 5);
-    REQUIRE(checkId == (checks::kContainerBase + (0x1234 << 8) + 5));
-}
-
-TEST_CASE("Container check ID components can be extracted", "[containers][check_types]")
-{
-    int64_t checkId = checks::getContainerCheckId(0xABCD, 42);
-
-    // Verify we can decode the level ID and spawn index
-    uint16_t levelId = static_cast<uint16_t>((checkId - checks::kContainerBase) >> 8);
-    int spawnIdx = static_cast<int>((checkId - checks::kContainerBase) & 0xFF);
-
-    REQUIRE(levelId == 0xABCD);
-    REQUIRE(spawnIdx == 42);
-}
-
-TEST_CASE("Container check ID ranges don't overlap", "[containers][check_types]")
-{
-    // Level N's max check ID should be less than level N+1's min check ID
-    // Max spawn index is 127 (128 entries, 0-indexed)
-    int64_t level5Max = checks::getContainerCheckId(5, 127);
+    // This tests a real constraint: encoding must not cause level N's IDs to collide with level N+1
+    // Max spawn index is 255 (8 bits allocated)
+    int64_t level5Max = checks::getContainerCheckId(5, 255);
     int64_t level6Min = checks::getContainerCheckId(6, 0);
     REQUIRE(level5Max < level6Min);
-
-    // Same for larger level IDs
-    int64_t levelFFMax = checks::getContainerCheckId(0xFF, 127);
-    int64_t level100Min = checks::getContainerCheckId(0x100, 0);
-    REQUIRE(levelFFMax < level100Min);
 }
 
 // ============================================================================

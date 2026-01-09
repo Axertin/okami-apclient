@@ -39,24 +39,24 @@ target_include_directories(apclient-testable PUBLIC
 
 target_compile_features(apclient-testable PRIVATE cxx_std_23)
 
+# Define __fastcall as empty on non-Windows platforms (it's a Windows calling convention)
+if(NOT WIN32)
+    target_compile_definitions(apclient-testable PRIVATE __fastcall=)
+endif()
+
 target_link_libraries(apclient-testable PUBLIC nlohmann_json::nlohmann_json)
 
-# Test executable
+# Main test executable - tests production code
 add_executable(apclient-tests
-    # Unit tests for new architecture
     test_reward_handlers.cpp
     test_rewardman.cpp
     test_checkman.cpp
     test_containers.cpp
     test_gamestate_monitors.cpp
     test_shops.cpp
-
-    # Harness/mock tests (tests for the test infrastructure itself)
-    harness/test_mock_archipelagosocket.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE
-    # Mocks MUST come first to override real headers
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks
     ${CMAKE_SOURCE_DIR}/src/okami-apclient
     ${CMAKE_SOURCE_DIR}/include
@@ -69,9 +69,37 @@ target_link_libraries(apclient-tests PRIVATE
 
 target_compile_features(apclient-tests PRIVATE cxx_std_23)
 
+if(NOT WIN32)
+    target_compile_definitions(apclient-tests PRIVATE __fastcall=)
+endif()
+
+# Separate target for mock/harness tests - tests the test infrastructure itself
+# Run less frequently since these don't test production code
+add_executable(apclient-harness-tests
+    harness/test_mock_archipelagosocket.cpp
+)
+
+target_include_directories(apclient-harness-tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+target_link_libraries(apclient-harness-tests PRIVATE
+    apclient-testable
+    Catch2::Catch2WithMain
+)
+
+target_compile_features(apclient-harness-tests PRIVATE cxx_std_23)
+
+if(NOT WIN32)
+    target_compile_definitions(apclient-harness-tests PRIVATE __fastcall=)
+endif()
+
 # Enable testing
 include(CTest)
 
 # Include Catch2's test discovery
 include(Catch)
 catch_discover_tests(apclient-tests)
+catch_discover_tests(apclient-harness-tests)

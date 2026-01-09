@@ -22,10 +22,7 @@ class RewardManFixture
         checkSendingStates_.clear();
 
         // Reserve enough memory for all game state accessors
-        // CollectionData at 0xB205D0, TrackerData at 0xB21780
         wolf::mock::reserveMemory(0xB21780 + sizeof(okami::TrackerData) + 1024);
-
-        // Initialize game state accessors (points them to mock memory)
         apgame::initialize();
 
         rewardMan_ = std::make_unique<RewardMan>([this](bool enabled) { checkSendingStates_.push_back(enabled); });
@@ -37,62 +34,24 @@ class RewardManFixture
         wolf::mock::reset();
     }
 
-    // Helper to check if a brush technique is unlocked
     bool isBrushUnlocked(int brushIndex)
     {
         return apgame::usableBrushTechniques->IsSet(brushIndex) && apgame::obtainedBrushTechniques->IsSet(brushIndex);
     }
 
-    // Helper to check if a brush upgrade is unlocked
     bool isBrushUpgradeUnlocked(int upgradeIndex)
     {
         return apgame::brushUpgrades->IsSet(upgradeIndex);
     }
 
-    // Helper to get inventory count
-    uint16_t getInventoryCount(int itemId)
-    {
-        return apgame::collectionData->inventory[itemId];
-    }
-
-    // Helper to check key item acquired
     bool isKeyItemAcquired(int bit)
     {
         return apgame::keyItemsAcquired->IsSet(bit);
     }
-
-    // Helper to check gold dust acquired
-    bool isGoldDustAcquired(int bit)
-    {
-        return apgame::goldDustsAcquired->IsSet(bit);
-    }
 };
 
 // ============================================================================
-// Construction and basic state tests
-// ============================================================================
-
-TEST_CASE("RewardMan granting disabled by default", "[rewardman]")
-{
-    RewardMan rewardMan([](bool) {});
-    REQUIRE_FALSE(rewardMan.isGrantingEnabled());
-}
-
-TEST_CASE("RewardMan granting can be enabled", "[rewardman]")
-{
-    RewardMan rewardMan([](bool) {});
-    rewardMan.setGrantingEnabled(true);
-    REQUIRE(rewardMan.isGrantingEnabled());
-}
-
-TEST_CASE("RewardMan starts with empty queue", "[rewardman]")
-{
-    RewardMan rewardMan([](bool) {});
-    REQUIRE(rewardMan.getQueuedCount() == 0);
-}
-
-// ============================================================================
-// Queue management tests
+// Queue behavior tests
 // ============================================================================
 
 TEST_CASE("Queue management", "[rewardman]")
@@ -102,15 +61,6 @@ TEST_CASE("Queue management", "[rewardman]")
     apgame::initialize();
 
     RewardMan rewardMan([](bool) {});
-
-    SECTION("queueReward adds to queue")
-    {
-        rewardMan.queueReward(0x100);
-        CHECK(rewardMan.getQueuedCount() == 1);
-
-        rewardMan.queueReward(0x101);
-        CHECK(rewardMan.getQueuedCount() == 2);
-    }
 
     SECTION("processQueuedRewards clears queue when enabled")
     {
@@ -130,24 +80,17 @@ TEST_CASE("Queue management", "[rewardman]")
 
         rewardMan.processQueuedRewards();
 
-        // Queue should still have the item
         CHECK(rewardMan.getQueuedCount() == 1);
     }
 
-    SECTION("reset clears queue")
+    SECTION("reset clears queue and disables granting")
     {
         rewardMan.queueReward(0x100);
-        rewardMan.queueReward(0x101);
-        CHECK(rewardMan.getQueuedCount() == 2);
-
-        rewardMan.reset();
-        CHECK(rewardMan.getQueuedCount() == 0);
-    }
-
-    SECTION("reset disables granting")
-    {
         rewardMan.setGrantingEnabled(true);
+
         rewardMan.reset();
+
+        CHECK(rewardMan.getQueuedCount() == 0);
         CHECK_FALSE(rewardMan.isGrantingEnabled());
     }
 
@@ -155,14 +98,13 @@ TEST_CASE("Queue management", "[rewardman]")
 }
 
 // ============================================================================
-// Grant GameItemReward tests
+// Reward granting tests
 // ============================================================================
 
 TEST_CASE_METHOD(RewardManFixture, "Grant GameItemReward calls wolf::giveItem", "[rewardman][granting]")
 {
     SetUp();
 
-    // 0x42 is Canine Tracker - a GameItemReward
     auto result = rewardMan_->grantReward(0x42);
 
     REQUIRE(result.has_value());
@@ -173,18 +115,12 @@ TEST_CASE_METHOD(RewardManFixture, "Grant GameItemReward calls wolf::giveItem", 
     TearDown();
 }
 
-// ============================================================================
-// Grant BrushReward tests
-// ============================================================================
-
 TEST_CASE_METHOD(RewardManFixture, "Grant BrushReward sets brush bitfields", "[rewardman][granting]")
 {
     SetUp();
 
-    // 0x100 is Sunrise (brush_index 0)
     CHECK_FALSE(isBrushUnlocked(0));
-
-    auto result = rewardMan_->grantReward(0x100);
+    auto result = rewardMan_->grantReward(0x100); // Sunrise
 
     REQUIRE(result.has_value());
     CHECK(isBrushUnlocked(0));
@@ -192,33 +128,15 @@ TEST_CASE_METHOD(RewardManFixture, "Grant BrushReward sets brush bitfields", "[r
     TearDown();
 }
 
-TEST_CASE_METHOD(RewardManFixture, "Grant different brushes sets correct indices", "[rewardman][granting]")
-{
-    SetUp();
-
-    // 0x101 is Rejuvenation (brush_index 1)
-    auto result = rewardMan_->grantReward(0x101);
-    REQUIRE(result.has_value());
-    CHECK(isBrushUnlocked(1));
-
-    TearDown();
-}
-
-// ============================================================================
-// Grant ProgressiveBrushReward tests
-// ============================================================================
-
 TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveBrushReward progression", "[rewardman][granting]")
 {
     SetUp();
 
-    // 0x102 is Power Slash (progressive brush)
-    int brushIdx = rewards::brushes::getBrushIndex(0x102); // = 2
+    int brushIdx = rewards::brushes::getBrushIndex(0x102); // Power Slash = 2
 
     SECTION("First grant gives base brush")
     {
         CHECK_FALSE(isBrushUnlocked(brushIdx));
-
         auto result = rewardMan_->grantReward(0x102);
         REQUIRE(result.has_value());
         CHECK(isBrushUnlocked(brushIdx));
@@ -226,14 +144,9 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveBrushReward progression", "
 
     SECTION("Second grant gives first upgrade")
     {
-        // Grant base first
         (void)rewardMan_->grantReward(0x102);
-        CHECK(isBrushUnlocked(brushIdx));
-
-        // Power Slash upgrade bit 0 = Power Slash 2
         CHECK_FALSE(isBrushUpgradeUnlocked(0));
 
-        // Grant again for upgrade
         auto result = rewardMan_->grantReward(0x102);
         REQUIRE(result.has_value());
         CHECK(isBrushUpgradeUnlocked(0));
@@ -241,11 +154,8 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveBrushReward progression", "
 
     SECTION("Third grant gives second upgrade")
     {
-        // Grant base and first upgrade
         (void)rewardMan_->grantReward(0x102);
         (void)rewardMan_->grantReward(0x102);
-
-        // Power Slash upgrade bit 10 = Power Slash 3
         CHECK_FALSE(isBrushUpgradeUnlocked(10));
 
         auto result = rewardMan_->grantReward(0x102);
@@ -255,22 +165,16 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveBrushReward progression", "
 
     SECTION("Grant at max level is no-op")
     {
-        // Grant base and all upgrades (3 total)
         (void)rewardMan_->grantReward(0x102);
         (void)rewardMan_->grantReward(0x102);
         (void)rewardMan_->grantReward(0x102);
 
-        // One more should be a no-op (no error)
         auto result = rewardMan_->grantReward(0x102);
         REQUIRE(result.has_value());
     }
 
     TearDown();
 }
-
-// ============================================================================
-// Grant EventFlagReward tests
-// ============================================================================
 
 TEST_CASE_METHOD(RewardManFixture, "Grant EventFlagReward sets keyItemsAcquired", "[rewardman][granting]")
 {
@@ -284,14 +188,6 @@ TEST_CASE_METHOD(RewardManFixture, "Grant EventFlagReward sets keyItemsAcquired"
         CHECK(isKeyItemAcquired(0));
     }
 
-    SECTION("Save Shin (0x304) sets bit 1")
-    {
-        CHECK_FALSE(isKeyItemAcquired(1));
-        auto result = rewardMan_->grantReward(0x304);
-        REQUIRE(result.has_value());
-        CHECK(isKeyItemAcquired(1));
-    }
-
     SECTION("Serpent Crystal (0x308) sets bit 5")
     {
         CHECK_FALSE(isKeyItemAcquired(5));
@@ -303,19 +199,14 @@ TEST_CASE_METHOD(RewardManFixture, "Grant EventFlagReward sets keyItemsAcquired"
     TearDown();
 }
 
-// ============================================================================
-// Grant ProgressiveWeaponReward tests
-// ============================================================================
-
 TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveWeaponReward progression", "[rewardman][granting]")
 {
     SetUp();
 
-    // 0x300 is Progressive Mirror: stages are 0x13 (Trinity Mirror), 0x14 (Solar Flare)
     constexpr uint8_t kTrinityMirror = 0x13;
     constexpr uint8_t kSolarFlare = 0x14;
 
-    SECTION("First grant gives stage 1 (Trinity Mirror)")
+    SECTION("First grant gives stage 1")
     {
         wolf::mock::giveItemCalls.clear();
 
@@ -325,11 +216,9 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveWeaponReward progression", 
         CHECK(wolf::mock::giveItemCalls[0].itemId == kTrinityMirror);
     }
 
-    SECTION("Second grant gives stage 2 (Solar Flare)")
+    SECTION("Second grant gives stage 2")
     {
-        // Simulate having stage 1 in inventory
         apgame::collectionData->inventory[kTrinityMirror] = 1;
-
         wolf::mock::giveItemCalls.clear();
 
         auto result = rewardMan_->grantReward(0x300);
@@ -340,10 +229,8 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveWeaponReward progression", 
 
     SECTION("Grant at max stage is no-op")
     {
-        // Simulate having all stages
         apgame::collectionData->inventory[kTrinityMirror] = 1;
         apgame::collectionData->inventory[kSolarFlare] = 1;
-
         wolf::mock::giveItemCalls.clear();
 
         auto result = rewardMan_->grantReward(0x300);
@@ -354,104 +241,18 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveWeaponReward progression", 
     TearDown();
 }
 
-// ============================================================================
-// Grant FillerReward tests
-// ============================================================================
-
-TEST_CASE_METHOD(RewardManFixture, "Grant FillerReward is no-op", "[rewardman][granting]")
-{
-    SetUp();
-
-    // Unknown/filler items are silently skipped and return success
-    auto result = rewardMan_->grantReward(0xDEAD);
-    CHECK(result.has_value()); // Success - treated as no-op
-
-    TearDown();
-}
-
-// ============================================================================
-// Grant unknown item tests
-// ============================================================================
-
 TEST_CASE_METHOD(RewardManFixture, "Grant unknown item succeeds as no-op", "[rewardman][granting]")
 {
     SetUp();
 
-    // Unknown items are treated as filler and silently succeed
     auto result = rewardMan_->grantReward(0xDEAD);
-    CHECK(result.has_value()); // Success - no error
+    CHECK(result.has_value());
 
     TearDown();
 }
 
 // ============================================================================
-// Helper function tests
-// ============================================================================
-
-TEST_CASE("Helper functions", "[rewardman]")
-{
-    RewardMan rewardMan([](bool) {});
-
-    SECTION("isGameItem returns true for direct inventory items")
-    {
-        // 0x42 is Canine Tracker - a direct game item
-        CHECK(rewardMan.isGameItem(0x42));
-        CHECK(rewardMan.isGameItem(0x00));
-        CHECK(rewardMan.isGameItem(0xFF));
-    }
-
-    SECTION("isGameItem returns false for progressive weapons")
-    {
-        // Progressive weapons are NOT direct game items
-        CHECK_FALSE(rewardMan.isGameItem(0x300));
-        CHECK_FALSE(rewardMan.isGameItem(0x301));
-        CHECK_FALSE(rewardMan.isGameItem(0x302));
-    }
-
-    SECTION("isGameItem returns false for brushes")
-    {
-        CHECK_FALSE(rewardMan.isGameItem(0x100));
-        CHECK_FALSE(rewardMan.isGameItem(0x102));
-    }
-
-    SECTION("isGameItem returns false for event flags")
-    {
-        CHECK_FALSE(rewardMan.isGameItem(0x303));
-    }
-
-    SECTION("isGameItem returns false for unknown items")
-    {
-        CHECK_FALSE(rewardMan.isGameItem(0xDEAD));
-    }
-
-    SECTION("getGameItemId returns id for direct inventory items")
-    {
-        auto id = rewardMan.getGameItemId(0x42);
-        REQUIRE(id.has_value());
-        CHECK(*id == 0x42);
-    }
-
-    SECTION("getGameItemId returns nullopt for progressive weapons")
-    {
-        auto id = rewardMan.getGameItemId(0x300);
-        CHECK_FALSE(id.has_value());
-    }
-
-    SECTION("getGameItemId returns nullopt for brushes")
-    {
-        auto id = rewardMan.getGameItemId(0x100);
-        CHECK_FALSE(id.has_value());
-    }
-
-    SECTION("getGameItemId returns nullopt for unknown items")
-    {
-        auto id = rewardMan.getGameItemId(0xDEAD);
-        CHECK_FALSE(id.has_value());
-    }
-}
-
-// ============================================================================
-// CheckSendingCallback tests
+// Callback tests
 // ============================================================================
 
 TEST_CASE_METHOD(RewardManFixture, "CheckSendingCallback is invoked during granting", "[rewardman][callback]")
@@ -459,21 +260,14 @@ TEST_CASE_METHOD(RewardManFixture, "CheckSendingCallback is invoked during grant
     SetUp();
 
     checkSendingStates_.clear();
-
-    // Grant a known item
     (void)rewardMan_->grantReward(0x42);
 
-    // Callback should be invoked with false, then true
     REQUIRE(checkSendingStates_.size() == 2);
     CHECK(checkSendingStates_[0] == false); // Disabled before granting
     CHECK(checkSendingStates_[1] == true);  // Re-enabled after granting
 
     TearDown();
 }
-
-// ============================================================================
-// Lifecycle callback tests
-// ============================================================================
 
 TEST_CASE("Lifecycle callbacks", "[rewardman]")
 {

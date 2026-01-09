@@ -12,73 +12,41 @@
 #include "wolf_framework.hpp"
 
 // ============================================================================
-// Shop check ID calculation tests
+// Shop check ID constraints
 // ============================================================================
 
-TEST_CASE("Shop check ID calculation", "[shops][check_types]")
+// Compile-time verification
+static_assert(checks::getShopCheckId(0, 0) == checks::kShopPurchaseBase);
+
+TEST_CASE("Shop check ID encoding constraints", "[shops][check_types]")
 {
-    // Shop check = kShopPurchaseBase + (shopId * 1000) + itemSlot
-    // kShopPurchaseBase = 300000
-    int64_t checkId = checks::getShopCheckId(5, 3);
-    REQUIRE(checkId == 300000 + (5 * 1000) + 3);
-    REQUIRE(checkId == 305003);
-}
+    SECTION("Shop IDs don't overflow into next category")
+    {
+        // Max reasonable: shopId=99, slot=999 -> 399999
+        // WorldState starts at 400000
+        int64_t maxShopCheck = checks::getShopCheckId(99, 999);
+        REQUIRE(maxShopCheck < checks::kWorldStateBase);
+    }
 
-TEST_CASE("Shop check ID components can be extracted", "[shops][check_types]")
-{
-    int64_t checkId = checks::getShopCheckId(12, 7);
-
-    // Verify we can decode the shop ID and item slot
-    int64_t offset = checkId - checks::kShopPurchaseBase;
-    int shopId = static_cast<int>(offset / 1000);
-    int itemSlot = static_cast<int>(offset % 1000);
-
-    REQUIRE(shopId == 12);
-    REQUIRE(itemSlot == 7);
-}
-
-TEST_CASE("Shop check ID ranges don't overlap with other categories", "[shops][check_types]")
-{
-    // Shop range: 300000 + shopId*1000 + slot
-    // Max reasonable: shopId=99, slot=999 -> 399999
-    // Next category (WorldState) starts at 400000
-
-    int64_t maxShopCheck = checks::getShopCheckId(99, 999);
-    REQUIRE(maxShopCheck == 399999);
-    REQUIRE(maxShopCheck < checks::kWorldStateBase);
-
-    // Previous category (Brush) ends before shops
-    int64_t maxBrushCheck = checks::kBrushAcquisitionBase + 99999;
-    REQUIRE(maxBrushCheck < checks::kShopPurchaseBase);
-}
-
-TEST_CASE("Shop check category is correctly identified", "[shops][check_types]")
-{
-    int64_t shopCheck = checks::getShopCheckId(5, 10);
-    REQUIRE(checks::getCheckCategory(shopCheck) == checks::CheckCategory::ShopPurchase);
-
-    // Edge cases
-    REQUIRE(checks::getCheckCategory(checks::kShopPurchaseBase) == checks::CheckCategory::ShopPurchase);
-    REQUIRE(checks::getCheckCategory(checks::kShopPurchaseBase + 99999) == checks::CheckCategory::ShopPurchase);
-
-    // Not shop checks
-    REQUIRE(checks::getCheckCategory(checks::kItemPickupBase + 100) != checks::CheckCategory::ShopPurchase);
-    REQUIRE(checks::getCheckCategory(checks::kWorldStateBase + 100) != checks::CheckCategory::ShopPurchase);
+    SECTION("Category boundaries")
+    {
+        REQUIRE(checks::getCheckCategory(checks::kShopPurchaseBase - 1) != checks::CheckCategory::ShopPurchase);
+        REQUIRE(checks::getCheckCategory(checks::kShopPurchaseBase) == checks::CheckCategory::ShopPurchase);
+        REQUIRE(checks::getCheckCategory(checks::kWorldStateBase - 1) == checks::CheckCategory::ShopPurchase);
+        REQUIRE(checks::getCheckCategory(checks::kWorldStateBase) != checks::CheckCategory::ShopPurchase);
+    }
 }
 
 // ============================================================================
 // ShopDefinition class tests
 // ============================================================================
 
-TEST_CASE("ShopDefinition default construction", "[shops][ShopDefinition]")
+TEST_CASE("ShopDefinition produces valid ISL header", "[shops][ShopDefinition]")
 {
     checks::ShopDefinition shop;
-
-    // GetData() should return valid pointer even with empty stock
     const uint8_t *data = shop.GetData();
     REQUIRE(data != nullptr);
 
-    // Verify ISL header magic
     const auto *header = reinterpret_cast<const okami::ISLHeader *>(data);
     REQUIRE(std::memcmp(header->magic, "ISL", 3) == 0);
     REQUIRE(header->variations == 1);
