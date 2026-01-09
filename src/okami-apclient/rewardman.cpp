@@ -1,5 +1,7 @@
 #include "rewardman.h"
 
+#include <cinttypes>
+
 #include <wolf_framework.hpp>
 
 #include "rewards/brushes.hpp"
@@ -92,7 +94,8 @@ std::expected<void, rewards::RewardError> RewardMan::grantReward(int64_t apItemI
         result = rewards::event_flags::grant(apItemId);
         break;
     case rewards::RewardCategory::Unknown:
-        result = std::unexpected(rewards::RewardError{.message = "Unknown AP item ID"});
+        wolf::logDebug("[RewardMan] Skipping unrecognized AP item 0x%" PRIX64, apItemId);
+        result = {}; // Success - treat as no-op
         break;
     }
 

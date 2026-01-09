@@ -362,11 +362,9 @@ TEST_CASE_METHOD(RewardManFixture, "Grant FillerReward is no-op", "[rewardman][g
 {
     SetUp();
 
-    // Find a filler reward in definitions (if one exists)
-    // For now, test that unknown items return error
+    // Unknown/filler items are silently skipped and return success
     auto result = rewardMan_->grantReward(0xDEAD);
-    REQUIRE_FALSE(result.has_value());
-    CHECK(result.error().message == "Unknown AP item ID");
+    CHECK(result.has_value()); // Success - treated as no-op
 
     TearDown();
 }
@@ -375,13 +373,13 @@ TEST_CASE_METHOD(RewardManFixture, "Grant FillerReward is no-op", "[rewardman][g
 // Grant unknown item tests
 // ============================================================================
 
-TEST_CASE_METHOD(RewardManFixture, "Grant unknown item returns error", "[rewardman][granting]")
+TEST_CASE_METHOD(RewardManFixture, "Grant unknown item succeeds as no-op", "[rewardman][granting]")
 {
     SetUp();
 
+    // Unknown items are treated as filler and silently succeed
     auto result = rewardMan_->grantReward(0xDEAD);
-    REQUIRE_FALSE(result.has_value());
-    CHECK(result.error().message == "Unknown AP item ID");
+    CHECK(result.has_value()); // Success - no error
 
     TearDown();
 }
