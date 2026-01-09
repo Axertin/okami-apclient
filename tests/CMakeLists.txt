@@ -17,6 +17,10 @@ add_library(apclient-testable STATIC
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checkman.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/containers.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/gamestate_monitors.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/shops.cpp
+
+    # Shop data
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/shopdata.cpp
 
     # Other testable sources
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
@@ -45,6 +49,7 @@ add_executable(apclient-tests
     test_checkman.cpp
     test_containers.cpp
     test_gamestate_monitors.cpp
+    test_shops.cpp
 
     # Harness/mock tests (tests for the test infrastructure itself)
     harness/test_mock_archipelagosocket.cpp

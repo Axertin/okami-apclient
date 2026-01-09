@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <unordered_map>
 
 namespace okami
@@ -286,4 +287,93 @@ inline unsigned FromMapId(unsigned id)
     return None;
 }
 } // namespace MapTypes
+
+// MapID namespace with hex values - used by shop system for direct switch statements
+namespace MapID
+{
+enum Enum : uint16_t
+{
+    KamikiVillageCursed = 0x100,
+    CaveofNagi = 0x101,
+    KamikiVillage = 0x102,
+    HanaValley = 0x103,
+    TsutaRuins = 0x104,
+    CityCheckpoint = 0x105,
+    TsutaRuinsSpiderQueenArena = 0x106,
+    GaleShrine = 0x107,
+    KusaVillage = 0x108,
+    SasaSanctuary = 0x109,
+    AgataForestMadameFawnsHouse = 0x10A,
+    DiggingMinigame = 0x10B,
+    OnigiriDojoLessonRoom = 0x10C,
+    GaleShrineCrimsonHelmArena = 0x10D,
+    CalcifiedCavern = 0x10E,
+    MoonCaveInterior = 0x110,
+    MoonCaveStaircaseAndOrochiArena = 0x111,
+    KamikiVillagePostTei = 0x112,
+    RyoshimaCoastBanditSpiderArena = 0x113,
+    TakaPassStrayBead26Cave = 0x114,
+    KamuiCherryBomb3Cave = 0x115,
+    NorthRyoshimaCoastPowerSlash2Cave = 0x116,
+    NorthRyoshimaCoastCherryBomb2Cave = 0x117,
+    KamuiPowerSlash3Cave = 0x118,
+    KamuiBlockheadGrandeCave = 0x119,
+    NorthRyoshimaCoastBanditSpiderArena = 0x11A,
+    KamuiBanditSpiderArena = 0x11B,
+    DragonPalaceStrayBeadCave = 0x11C,
+    NorthRyoshimaCoastStrayBeadCave = 0x11D,
+    NewGameIntroCutscene = 0x120,
+    RiveroftheHeavens = 0x122,
+    SeianCityAristocraticQuarter = 0x200,
+    SeianCityCommonersQuarter = 0x201,
+    SeianCityAristocraticQuarterHimikosPalace = 0x202,
+    DragonPalace = 0x203,
+    InsidetheDragon = 0x204,
+    SunkenShip = 0x205,
+    ImperialPalaceAmmySize = 0x206,
+    ImperialPalaceIssunSize = 0x207,
+    OniIslandLowerInterior = 0x208,
+    OniIslandNinetailsArena = 0x209,
+    CatcallTower = 0x20A,
+    ImperialPalaceBlightArena = 0x20B,
+    SeianCityCommonersQuarterKimonoShop = 0x20C,
+    OniIslandExterior = 0x20D,
+    OniIslandUpperInterior = 0x20E,
+    OniIslandSidescroller = 0x20F,
+    Wepkeer = 0x301,
+    KamikiVillagePast = 0x302,
+    WawkuShrine = 0x303,
+    WawkuShrineNechkuArena = 0x304,
+    Ponctan = 0x305,
+    MoonCavePast = 0x306,
+    ArkofYamato = 0x307,
+    ArkofYamatoSpiderQueenArena = 0x308,
+    ArkofYamatoOrochiArena = 0x309,
+    ArkofYamatoBlightArena = 0x30A,
+    ArkofYamatoNinetailsArena = 0x30B,
+    ArkofYamatoCrimsonHelmArena = 0x30C,
+    PonctanMrsSealsHouse = 0x30D,
+    Yoshpet = 0x310,
+    InnerYoshpet = 0x311,
+    ArkofYamatoYamiArena = 0x312,
+    WepkeerSquare = 0x313,
+    WawkuShrineLechkuAndNechkuArena = 0x314,
+    ShinshuFieldCursed = 0xF01,
+    ShinshuFieldHealed = 0xF02,
+    AgataForestCursed = 0xF03,
+    AgataForestHealed = 0xF04,
+    MoonCaveEntrance = 0xF06,
+    TakaPassCursed = 0xF07,
+    TakaPassHealed = 0xF08,
+    RyoshimaCoastCursed = 0xF09,
+    RyoshimaCoastHealed = 0xF0A,
+    NRyoshimaCoast = 0xF0C,
+    KamuiCursed = 0xF11,
+    KamuiHealed = 0xF12,
+    KamuiEzofuji = 0xF13,
+    ShinshuFieldPast = 0xF20,
+    MoonCaveEntrancePast = 0xF21,
+};
+} // namespace MapID
+
 } // namespace okami

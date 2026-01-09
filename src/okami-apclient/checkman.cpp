@@ -4,6 +4,7 @@
 
 #include "checks/containers.hpp"
 #include "checks/gamestate_monitors.hpp"
+#include "checks/shops.hpp"
 #include "isocket.h"
 
 CheckMan::CheckMan(ISocket &socket) : socket_(socket)
@@ -43,6 +44,10 @@ void CheckMan::initialize()
     containerHandler_ = std::make_unique<checks::ContainerMan>(socket_, callback);
     containerHandler_->initialize();
 
+    // Set up shop handler
+    shopHandler_ = std::make_unique<checks::ShopMan>(socket_, callback);
+    shopHandler_->initialize();
+
     initialized_ = true;
     wolf::logInfo("[CheckMan] Check manager initialized");
 }
@@ -54,6 +59,10 @@ void CheckMan::reset()
     if (containerHandler_)
     {
         containerHandler_->reset();
+    }
+    if (shopHandler_)
+    {
+        shopHandler_->reset();
     }
 
     wolf::logInfo("[CheckMan] Check manager reset - will reinitialize monitors on next call to initialize()");
@@ -68,6 +77,7 @@ void CheckMan::shutdown()
 
     destroyMonitors();
     containerHandler_.reset();
+    shopHandler_.reset();
     initialized_ = false;
 }
 

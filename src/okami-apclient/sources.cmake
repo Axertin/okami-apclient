@@ -4,6 +4,7 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/checkman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/containers.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/gamestate_monitors.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/checks/shops.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/gamestate_accessors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/loginwindow.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/okami-apclient.cpp
@@ -11,4 +12,5 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/brushes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/event_flags.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/game_items.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/shopdata.cpp
 )

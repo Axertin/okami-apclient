@@ -16,7 +16,8 @@ class ISocket;
 namespace checks
 {
 class ContainerMan;
-}
+class ShopMan;
+} // namespace checks
 
 /**
  * @brief Centralized manager for AP check (location) handling
@@ -175,6 +176,9 @@ class CheckMan
 
     // Container handler (owns hook and tracking)
     std::unique_ptr<checks::ContainerMan> containerHandler_;
+
+    // Shop handler (owns hooks and shop definitions)
+    std::unique_ptr<checks::ShopMan> shopHandler_;
 
     // Initialization state
     bool initialized_ = false;
