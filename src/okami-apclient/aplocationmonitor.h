@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <list>
 #include <memory>
 #include <unordered_set>
 #include <vector>
@@ -219,6 +220,24 @@ class APLocationMonitor
     {
         return sentLocations_.size();
     }
+
+    /**
+     * @brief Synchronize local location cache with server's checked_locations
+     * @param serverCheckedLocations List of location IDs the server has recorded
+     *
+     * This method is called on reconnect to sync local state with the server.
+     * It adds server-confirmed locations to local cache and resends any local
+     * locations that the server doesn't have.
+     */
+    void syncWithServer(const std::list<int64_t> &serverCheckedLocations);
+
+    /**
+     * @brief Resend all tracked locations to the server
+     *
+     * Used during resync (e.g., after item desync) to ensure the server
+     * has all locations the client has checked.
+     */
+    void resendAllLocations();
 
   private:
     APLocationMonitor() = default;

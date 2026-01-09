@@ -278,6 +278,20 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             std::list<std::string> tags;
             client_->ConnectUpdate(false, ITEM_HANDLING, true, tags);
             client_->StatusUpdate(APClient::ClientStatus::PLAYING);
+
+            // Process checked_locations from Connected packet and sync with server
+            if (data.contains("checked_locations"))
+            {
+                auto checkedLocs = data["checked_locations"].get<std::list<int64_t>>();
+                wolf::logInfo("[Socket] Server reports %zu checked locations", checkedLocs.size());
+                APLocationMonitor::instance().syncWithServer(checkedLocs);
+            }
+
+            // TODO: Parse slot_data fields when apworld structure is defined
+            if (data.contains("slot_data"))
+            {
+                wolf::logDebug("[Socket] Received slot_data: %s", data["slot_data"].dump().c_str());
+            }
         });
 
     client_->set_slot_disconnected_handler(
@@ -306,7 +320,16 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
         {
             wolf::logInfo("[Socket] Received %zu items", items.size());
 
+            // Check for full inventory reset (index 0 means accept as complete inventory)
+            if (!items.empty() && items.front().index == 0)
+            {
+                wolf::logInfo("[Socket] Full inventory reset received (index 0)");
+                // TODO: Clear player's current AP inventory before processing
+                lastProcessedItemIndex_ = -1;
+            }
+
             int highestIndex = lastProcessedItemIndex_;
+            int expectedIndex = lastProcessedItemIndex_ + 1;
             int newItemCount = 0;
 
             for (const auto &item : items)
@@ -317,11 +340,21 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                     continue;
                 }
 
+                // Detect desync: gap in indices means we missed items
+                if (item.index > expectedIndex && expectedIndex > 0)
+                {
+                    wolf::logWarning("[Socket] Desync detected: expected index %d, got %d. Requesting resync.", expectedIndex, item.index);
+                    client_->Sync();
+                    APLocationMonitor::instance().resendAllLocations();
+                    // Continue processing to avoid blocking gameplay during resync
+                }
+
                 if (item.index >= 0)
                 {
                     queueMainThreadTask([itemId = item.item]() { item_handlers::receiveAPItem(itemId); });
                     newItemCount++;
                     highestIndex = std::max(highestIndex, item.index);
+                    expectedIndex = item.index + 1;
                 }
             }
 
@@ -445,6 +478,29 @@ void ArchipelagoSocket::sendLocation(int64_t locationID)
     catch (const std::exception &e)
     {
         wolf::logWarning("[Socket] Failed to send location: %s", e.what());
+    }
+}
+
+void ArchipelagoSocket::sendLocations(const std::vector<int64_t> &locationIDs)
+{
+    if (locationIDs.empty())
+    {
+        return;
+    }
+
+    try
+    {
+        withClient(
+            [&locationIDs](APClient &client)
+            {
+                wolf::logInfo("[Socket] Sending %zu locations", locationIDs.size());
+                std::list<int64_t> locList(locationIDs.begin(), locationIDs.end());
+                client.LocationChecks(locList);
+            });
+    }
+    catch (const std::exception &e)
+    {
+        wolf::logWarning("[Socket] Failed to send locations: %s", e.what());
     }
 }
 

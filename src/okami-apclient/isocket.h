@@ -31,6 +31,7 @@ class ISocket
 
     // Game integration
     virtual void sendLocation(int64_t locationID) = 0;
+    virtual void sendLocations(const std::vector<int64_t> &locationIDs) = 0;
     virtual void gameFinished() = 0;
     virtual void poll() = 0;
     virtual void processMainThreadTasks() = 0;

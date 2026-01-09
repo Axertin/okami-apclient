@@ -38,6 +38,17 @@ void MockArchipelagoSocket::sendLocation(int64_t locationID)
     }
 }
 
+void MockArchipelagoSocket::sendLocations(const std::vector<int64_t> &locationIDs)
+{
+    if (state_ == ConnectionState::Connected)
+    {
+        for (int64_t loc : locationIDs)
+        {
+            sentLocations_.push_back(loc);
+        }
+    }
+}
+
 void MockArchipelagoSocket::gameFinished()
 {
     if (state_ == ConnectionState::Connected)

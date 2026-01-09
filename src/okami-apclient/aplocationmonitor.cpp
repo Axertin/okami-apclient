@@ -271,3 +271,58 @@ void APLocationMonitor::reset()
 
     wolf::logInfo("[aplocation] Location monitor reset using wolf framework - will reinitialize on next call to initialize()");
 }
+
+void APLocationMonitor::syncWithServer(const std::list<int64_t> &serverCheckedLocations)
+{
+    // Add server-confirmed locations to local cache
+    for (int64_t loc : serverCheckedLocations)
+    {
+        sentLocations_.insert(loc);
+    }
+
+    // Find locations we have locally but server doesn't know about
+    std::vector<int64_t> toResend;
+    for (int64_t loc : sentLocations_)
+    {
+        bool foundOnServer = false;
+        for (int64_t serverLoc : serverCheckedLocations)
+        {
+            if (serverLoc == loc)
+            {
+                foundOnServer = true;
+                break;
+            }
+        }
+        if (!foundOnServer)
+        {
+            toResend.push_back(loc);
+        }
+    }
+
+    // Resend missing locations
+    if (!toResend.empty() && socket_ && socket_->isConnected())
+    {
+        wolf::logInfo("[aplocation] Resending %zu locations not confirmed by server", toResend.size());
+        socket_->sendLocations(toResend);
+    }
+
+    wolf::logInfo("[aplocation] Synced with server: %zu total locations tracked", sentLocations_.size());
+}
+
+void APLocationMonitor::resendAllLocations()
+{
+    if (sentLocations_.empty())
+    {
+        return;
+    }
+
+    if (!socket_ || !socket_->isConnected())
+    {
+        wolf::logWarning("[aplocation] Cannot resend locations: socket not connected");
+        return;
+    }
+
+    std::vector<int64_t> allLocs(sentLocations_.begin(), sentLocations_.end());
+    wolf::logInfo("[aplocation] Resending all %zu tracked locations", allLocs.size());
+    socket_->sendLocations(allLocs);
+}
