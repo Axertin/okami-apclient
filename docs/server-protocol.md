@@ -272,25 +272,28 @@ These items upgrade through multiple tiers when received multiple times:
 
 ## slot_data Format
 
-**Current status**: The client logs `slot_data` but doesn't parse it yet. This section describes the planned format.
-
-The APWorld should provide game configuration in `slot_data`:
+The client parses these Okami-specific fields from `slot_data`:
 
 ```json
 {
   "slot_data": {
-    // Which item pools are randomized
+    "SeedNumber": "64715609337703266491",
+    "SeedName": "43126361899033089832",
+    "TotalLocations": 190,
+
+    "supported_client_version": "0.0.0",
+
     "randomize_containers": true,
     "randomize_shops": true,
     "randomize_brushes": true,
 
-    // Gameplay options
-    "skip_cutscenes": true,
+    ...
+    (etc)
   }
 }
 ```
 
-**Note**: This format is not finalized. More configurations will be added as deemed necessary.
+**Note**: This format is not finalized. Missing fields use safe defaults.
 
 ---
 

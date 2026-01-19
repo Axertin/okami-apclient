@@ -14,7 +14,7 @@
 namespace checks
 {
 
-constexpr int AP_SHOP_SLOTS = 6;
+constexpr int MAX_SHOP_SLOTS = 50;
 
 // Memory offsets
 constexpr uintptr_t SHOP_VARIATION_OFFSET = 0x4420C0;
@@ -149,21 +149,6 @@ static ShopDefinition WawkuShrineShop;
 static std::vector<okami::ItemShopStock> AgataFangShop;
 static std::vector<okami::ItemShopStock> ArkOfYamatoFangShop;
 static std::vector<okami::ItemShopStock> ImperialPalaceFangShop;
-
-void InitializeShopData()
-{
-    // TODO: Populate shops with AP information here
-    // For now, add test items to Kamiki shop for testing
-    for (uint32_t i = 0; i < 25; i++)
-    {
-        KamikiShop.AddItem(okami::ItemTypes::ArchipelagoTestItem1, 10);
-        TakaPassShop.AddItem(okami::ItemTypes::HolyBoneL, 10);
-    }
-
-    // Special sell prices for some fish
-    TakaPassShop.SetSellValues(okami::DefaultTakaPassItemSellPrices);
-    SeianFishShop.SetSellValues(okami::DefaultSeianFishShopItemSellPrices);
-}
 
 const void *GetCurrentItemShopData(uint16_t mapId, uint32_t shopNum)
 {
@@ -429,9 +414,6 @@ void ShopMan::initialize()
         return;
     }
 
-    // Initialize shop data
-    InitializeShopData();
-
     initialized_ = true;
     wolf::logInfo("[ShopMan] Shop hooks installed successfully");
 }
@@ -480,8 +462,7 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
             continue;
         }
 
-        // int slotCount = GetShopSlotCount(*shopId);
-        int slotCount = AP_SHOP_SLOTS;
+        int slotCount = socket_.getSlotConfig().shopSlots;
         for (int slot = 0; slot < slotCount; ++slot)
         {
             locationsToScout.push_back(checks::getShopCheckId(*shopId, slot));
@@ -533,8 +514,7 @@ void ShopMan::populateShopFromScoutedData(int shopId)
 
     shop->ClearStock();
 
-    // int slotCount = GetShopSlotCount(shopId);
-    int slotCount = AP_SHOP_SLOTS;
+    int slotCount = socket_.getSlotConfig().shopSlots;
     for (int slot = 0; slot < slotCount; ++slot)
     {
         int64_t locationId = checks::getShopCheckId(shopId, slot);

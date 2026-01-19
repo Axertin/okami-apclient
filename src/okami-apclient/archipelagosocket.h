@@ -11,6 +11,7 @@
 #include <apclient.hpp>
 
 #include "isocket.h"
+#include "slotconfig.h"
 
 class ArchipelagoSocket : public ISocket
 {
@@ -38,6 +39,8 @@ class ArchipelagoSocket : public ISocket
     std::vector<ScoutedItem> scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint = 0,
                                                 std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
     int getPlayerSlot() const override;
+    const SlotConfig &getSlotConfig() const override;
+    bool isSlotConfigReady() const override;
 
     /**
      * @brief Set the RewardMan for queueing received items
@@ -86,6 +89,10 @@ class ArchipelagoSocket : public ISocket
     // Manager references (injected)
     class RewardMan *rewardMan_{nullptr};
     class CheckMan *checkMan_{nullptr};
+
+    // Slot configuration (parsed from slot_data)
+    SlotConfig slotConfig_;
+    std::atomic<bool> slotConfigReady_{false};
 
     // Helpers
     void queueMainThreadTask(std::function<void()> task);

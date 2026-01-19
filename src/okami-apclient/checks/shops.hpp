@@ -52,7 +52,6 @@ class ShopDefinition
 };
 
 // Shop data lookup functions
-void InitializeShopData();
 const void *GetCurrentItemShopData(uint16_t mapId, uint32_t shopNum);
 okami::ItemShopStock *GetCurrentDemonFangShopData(uint16_t mapId, uint32_t *pNumItems);
 

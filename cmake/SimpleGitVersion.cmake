@@ -100,9 +100,12 @@ function(add_git_version_info target)
     "#pragma once
 
 namespace version {
-    const char* string() { return \"${VERSION_STRING}\"; }
-    const char* hash() { return \"${VERSION_HASH}\"; }
-    const char* branch() { return \"${VERSION_BRANCH}\"; }
+    constexpr char* string() { return \"${VERSION_STRING}\"; }
+    constexpr int major() { return ${VERSION_MAJOR}; }
+    constexpr int minor() { return ${VERSION_MINOR}; }
+    constexpr int patch() { return ${VERSION_PATCH}; }
+    constexpr char* hash() { return \"${VERSION_HASH}\"; }
+    constexpr char* branch() { return \"${VERSION_BRANCH}\"; }
 }
 ")
 

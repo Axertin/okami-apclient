@@ -46,6 +46,17 @@ class ContainerManFixture
         containerMan_ = std::make_unique<checks::ContainerMan>(socket_, [this](int64_t checkId) { receivedCheckIds_.push_back(checkId); });
     }
 
+    void setConnectedWithContainerRando(bool connected)
+    {
+        socket_.setConnected(connected);
+        if (connected)
+        {
+            SlotConfig config{.randomizeContainers = true};
+            socket_.setSlotConfig(config);
+            socket_.setSlotConfigReady(true);
+        }
+    }
+
     void TearDown()
     {
         containerMan_.reset();
@@ -82,7 +93,7 @@ class ContainerManFixture
 TEST_CASE_METHOD(ContainerManFixture, "Hook replaces container items with dummy", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(0, 0x42); // Item at index 0
@@ -100,7 +111,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook replaces container items with dummy"
 TEST_CASE_METHOD(ContainerManFixture, "Hook only modifies containers (spawn_type_1 == 1)", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(0, 0x42); // Container at index 0
@@ -127,7 +138,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook only modifies containers (spawn_type
 TEST_CASE_METHOD(ContainerManFixture, "Hook processes multiple containers", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(0, 0x10).addContainer(5, 0x20).addContainer(12, 0x30);
@@ -165,7 +176,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook skips containers when socket disconn
 TEST_CASE_METHOD(ContainerManFixture, "Hook skips disabled entries (flags & 1 == 0)", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(0, 0x42, 0); // flags = 0 (disabled)
@@ -183,7 +194,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook skips disabled entries (flags & 1 ==
 TEST_CASE_METHOD(ContainerManFixture, "Hook skips entries with null spawn_data", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     okami::SpawnTable table{};
@@ -203,7 +214,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook skips entries with null spawn_data",
 TEST_CASE_METHOD(ContainerManFixture, "Hook clears tracking on level change", "[containers][hooks]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
 
     // First level
     setCurrentMapId(0x0006);
@@ -233,7 +244,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook clears tracking on level change", "[
 TEST_CASE_METHOD(ContainerManFixture, "poll sends check when item collected", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(5, 0x42);
@@ -260,7 +271,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll sends check when item collected", "[
 TEST_CASE_METHOD(ContainerManFixture, "poll ignores chest-opened state", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(5, 0x42);
@@ -285,7 +296,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll ignores chest-opened state", "[conta
 TEST_CASE_METHOD(ContainerManFixture, "poll does not send duplicate checks", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(5, 0x42);
@@ -312,7 +323,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll does not send duplicate checks", "[c
 TEST_CASE_METHOD(ContainerManFixture, "poll skips untracked containers", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     // Don't trigger the spawn hook - container won't be tracked
@@ -332,7 +343,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll skips untracked containers", "[conta
 TEST_CASE_METHOD(ContainerManFixture, "poll skips when socket disconnected", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(5, 0x42);
@@ -343,7 +354,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll skips when socket disconnected", "[c
     copyTableToMockMemory(table);
 
     // Disconnect after tracking
-    socket_.setConnected(false);
+    setConnectedWithContainerRando(false);
 
     okami::SpawnTable *mockTable = getTableInMockMemory();
     mockTable->entries[5].spawn_type_1 = 0;
@@ -359,7 +370,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll skips when socket disconnected", "[c
 TEST_CASE_METHOD(ContainerManFixture, "poll handles multiple container pickups", "[containers][hooks][pickup]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(0, 0x10).addContainer(5, 0x20).addContainer(12, 0x30);
@@ -399,7 +410,7 @@ TEST_CASE_METHOD(ContainerManFixture, "poll handles multiple container pickups",
 TEST_CASE_METHOD(ContainerManFixture, "reset clears tracked containers", "[containers]")
 {
     SetUp();
-    socket_.setConnected(true);
+    setConnectedWithContainerRando(true);
     setCurrentMapId(0x0006);
 
     tableBuilder_.addContainer(5, 0x42);

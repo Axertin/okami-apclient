@@ -8,6 +8,7 @@
 #include <wolf_framework.hpp>
 
 #include "isocket.h"
+#include "version.h"
 
 #ifdef _WIN32
 #include <d3d11.h>
@@ -17,7 +18,7 @@
 #endif
 
 // Static state
-static const std::string WindowName = "Archipelago Client";
+static std::string WindowName = "Archipelago Client " + std::string(version::string());
 static ISocket *g_socket = nullptr;
 
 // Connection form data (kept as char arrays for ImGui)
@@ -37,7 +38,6 @@ template <size_t N> static void copyToBuffer(char (&buffer)[N], const std::strin
 
 namespace loginwindow
 {
-
 // Forward declarations
 static void renderConnectionForm();
 static void renderConnectionStatus();
@@ -100,7 +100,6 @@ void toggle()
 void render(int outerWidth, int outerHeight, float uiScale)
 {
 #ifdef _WIN32
-
     WOLF_IMGUI_BEGIN(outerWidth, outerHeight, uiScale);
 
     ImGui::Begin(WindowName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);

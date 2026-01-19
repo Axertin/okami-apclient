@@ -8,6 +8,8 @@
 
 #include <stdint.h>
 
+#include "slotconfig.h"
+
 /**
  * @brief Scouted item information returned from AP server
  */
@@ -62,4 +64,16 @@ class ISocket
      * @return Player slot, or -1 if not connected
      */
     virtual int getPlayerSlot() const = 0;
+
+    /**
+     * @brief Get the parsed slot configuration
+     * @return SlotConfig with current settings (defaults if not yet received)
+     */
+    virtual const SlotConfig &getSlotConfig() const = 0;
+
+    /**
+     * @brief Check if slot configuration has been received from server
+     * @return true if slot_data has been parsed
+     */
+    virtual bool isSlotConfigReady() const = 0;
 };

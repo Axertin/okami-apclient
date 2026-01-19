@@ -173,10 +173,15 @@ void ContainerMan::poll()
 
 bool ContainerMan::isContainerInRando(int64_t locationId) const
 {
-    // Stub implementation - always returns true if connected
-    // TODO: Query AP server for slot data
-    (void)locationId;
-    return socket_.isConnected();
+    (void)locationId; // Individual container filtering not yet implemented
+
+    // Check if connected and config indicates containers are randomized
+    if (!socket_.isConnected() || !socket_.isSlotConfigReady())
+    {
+        return false;
+    }
+
+    return socket_.getSlotConfig().randomizeContainers;
 }
 
 } // namespace checks

@@ -15,6 +15,10 @@
 #include <string>
 #include <thread>
 
+#include <version.h>
+
+#include "version_utils.h"
+
 // File-local constants
 static const std::string CERT_STORE = "mods/apclient/cacert.pem";
 static const std::string GAME_NAME = "Okami HD";
@@ -28,6 +32,49 @@ static const auto CONNECTION_TIMEOUT = std::chrono::seconds(10);
 static const std::string UUID_FILE = std::string(std::getenv("APPDATA")) + "\\uuid";
 static const std::string SAVE_DIR = std::string(std::getenv("APPDATA")) + "\\okami-apsaves";
 #pragma warning(pop)
+
+namespace
+{
+
+// Check version compatibility and log appropriate warnings
+void checkVersionCompatibility(const std::string &supportedVersion)
+{
+    if (supportedVersion.empty())
+    {
+        wolf::logWarning("[Socket] No supported_client_version in slot_data, skipping version check");
+        return;
+    }
+
+    auto server = version_utils::parseVersion(supportedVersion);
+    if (!server)
+    {
+        wolf::logWarning("[Socket] Could not parse supported_client_version '%s'", supportedVersion.c_str());
+        return;
+    }
+
+    version_utils::Version client{version::major(), version::minor(), version::patch()};
+
+    auto compat = version_utils::checkCompatibility(client, *server);
+
+    switch (compat)
+    {
+    case version_utils::Compatibility::Compatible:
+        wolf::logInfo("[Socket] Client version %d.%d.%d is compatible with APWorld (%s)", client.major, client.minor, client.patch, supportedVersion.c_str());
+        break;
+    case version_utils::Compatibility::ClientTooOld:
+        wolf::logWarning("[Socket] Client version %d.%d.%d is missing features APWorld expects (%s). "
+                         "Consider updating the client.",
+                         client.major, client.minor, client.patch, supportedVersion.c_str());
+        break;
+    case version_utils::Compatibility::MajorMismatch:
+        wolf::logWarning("[Socket] Client version %d.%d.%d is incompatible with APWorld (%s). "
+                         "Major version mismatch.",
+                         client.major, client.minor, client.patch, supportedVersion.c_str());
+        break;
+    }
+}
+
+} // namespace
 
 ArchipelagoSocket &ArchipelagoSocket::instance()
 {
@@ -298,11 +345,30 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                 checkMan_->syncWithServer(checkedLocs);
             }
 
-            // TODO: Parse slot_data fields when apworld structure is defined
+            // Parse slot_data configuration
             if (data.contains("slot_data"))
             {
                 wolf::logDebug("[Socket] Received slot_data: %s", data["slot_data"].dump().c_str());
+                auto result = SlotConfig::parse(data["slot_data"]);
+                if (result.has_value())
+                {
+                    slotConfig_ = result.value();
+                }
+                else
+                {
+                    wolf::logError("[Socket] Failed to parse slot_data: %s", result.error().c_str());
+                    slotConfig_ = SlotConfig::defaults();
+                }
             }
+            else
+            {
+                wolf::logWarning("[Socket] No slot_data received, using defaults");
+                slotConfig_ = SlotConfig::defaults();
+            }
+            slotConfigReady_.store(true, std::memory_order_release);
+
+            // Check version compatibility
+            checkVersionCompatibility(slotConfig_.supportedClientVersion);
         });
 
     client_->set_slot_disconnected_handler(
@@ -412,6 +478,7 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
 void ArchipelagoSocket::disconnect()
 {
     connected_.store(false);
+    slotConfigReady_.store(false, std::memory_order_release);
     lastProcessedItemIndex_ = -1;
 
     std::lock_guard<std::mutex> lock(clientMutex_);
@@ -677,4 +744,14 @@ void ArchipelagoSocket::setRewardMan(RewardMan *rewardMan)
 void ArchipelagoSocket::setCheckMan(CheckMan *checkMan)
 {
     checkMan_ = checkMan;
+}
+
+const SlotConfig &ArchipelagoSocket::getSlotConfig() const
+{
+    return slotConfig_;
+}
+
+bool ArchipelagoSocket::isSlotConfigReady() const
+{
+    return slotConfigReady_.load(std::memory_order_acquire);
 }
