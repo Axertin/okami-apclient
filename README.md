@@ -4,6 +4,7 @@ A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipe
 This mod requires the [WOLF](https://github.com/Axertin/wolf) framework to function.
 
 This project follows [Semantic Versioning 2.0.0](https://semver.org/):
+
 - **v0.x.x** = Pre-release, expect breaking changes and missing core functionality
 - **v1.0.0+** = Stable, public-sync-ready releases
 
@@ -39,6 +40,7 @@ This project follows [Semantic Versioning 2.0.0](https://semver.org/):
 For development setup and detailed build instructions, see [docs/development.md](docs/development.md).
 
 ### Quick Start
+
 ```bash
 git clone --recursive https://github.com/Axertin/okami-apclient.git
 cd okami-apclient
@@ -47,6 +49,7 @@ cmake --build --preset x64-clang-debug
 ```
 
 ### Prerequisites
+
 - **Visual Studio 2019/2022** or Windows SDK + Clang/MSVC
 - **CMake 3.21+**, **Ninja**, **Git** with submodules support
 
@@ -69,7 +72,7 @@ Contributions are welcome! Please:
 - `src/okami-apclient/` - Main mod DLL
 - `tests/` - Unit tests
 - `scripts/` - Helper scripts for build-time code generation
-- `include/` - WOLF SDK and other external includes
+- `include/` - WOLF plugin API and game-specific data structures (enums, bitfields, game state definitions)
 - `external/` - Dependency Git submodules
 - `cmake/` - Build system utilities
 
