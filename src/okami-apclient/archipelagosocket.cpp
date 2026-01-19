@@ -250,6 +250,14 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
         {
             wolf::logDebug("[Socket] Socket disconnected");
             connected_.store(false);
+
+            // Clear any pending scout requests so scoutLocationsSync doesn't hang
+            {
+                std::lock_guard<std::mutex> lock(scoutMutex_);
+                scoutPending_ = false;
+            }
+            scoutCondition_.notify_all();
+
             queueMainThreadTask([this]() { setStatus("Disconnected"); });
         });
 

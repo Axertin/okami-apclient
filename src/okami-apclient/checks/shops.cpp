@@ -14,6 +14,8 @@
 namespace checks
 {
 
+constexpr int AP_SHOP_SLOTS = 6;
+
 // Memory offsets
 constexpr uintptr_t SHOP_VARIATION_OFFSET = 0x4420C0;
 constexpr uintptr_t LOAD_RSC_OFFSET = 0x1B1770;
@@ -456,19 +458,20 @@ void ShopMan::reset()
 void ShopMan::scoutShopsForMap(uint16_t mapId)
 {
     // Check if already scouted for this map
-    if (scoutedMapId_ == mapId && !scoutedItems_.empty())
+    if (scoutedMapId_ == mapId)
     {
+        // Already attempted scouting for this map (even if it returned empty)
         return;
     }
 
-    // Clear previous cache
+    // Clear previous cache and mark this map as scouted (even if it fails)
     scoutedItems_.clear();
     scoutedMapId_ = mapId;
 
     // Gather all shop location IDs for this map
     std::list<int64_t> locationsToScout;
 
-    // Check shops 0-20 with shopNum 0
+    // Check both shopNum 0 and 1 (for Seian which has 2 shops)
     for (uint32_t shopNum = 0; shopNum <= 1; ++shopNum)
     {
         auto shopId = GetShopIdForMap(mapId, shopNum);
@@ -477,7 +480,8 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
             continue;
         }
 
-        int slotCount = GetShopSlotCount(*shopId);
+        // int slotCount = GetShopSlotCount(*shopId);
+        int slotCount = AP_SHOP_SLOTS;
         for (int slot = 0; slot < slotCount; ++slot)
         {
             locationsToScout.push_back(checks::getShopCheckId(*shopId, slot));
@@ -490,10 +494,24 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
         return;
     }
 
+    // Check if still connected before scouting
+    if (!socket_.isConnected())
+    {
+        wolf::logWarning("[ShopMan] Cannot scout - not connected to server");
+        return;
+    }
+
     wolf::logDebug("[ShopMan] Scouting %zu locations for map 0x%04X", locationsToScout.size(), mapId);
 
     // Scout all locations synchronously
+    // This may fail if the server doesn't have these locations defined
     auto scoutedItems = socket_.scoutLocationsSync(locationsToScout, 0);
+
+    if (scoutedItems.empty())
+    {
+        wolf::logDebug("[ShopMan] Scouting returned no results (server may not have shop locations)");
+        return;
+    }
 
     // Store results in cache
     for (const auto &item : scoutedItems)
@@ -501,7 +519,7 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
         scoutedItems_[item.location] = item;
     }
 
-    wolf::logDebug("[ShopMan] Received %zu scouted items", scoutedItems.size());
+    wolf::logInfo("[ShopMan] Received %zu scouted items for map 0x%04X", scoutedItems.size(), mapId);
 }
 
 void ShopMan::populateShopFromScoutedData(int shopId)
@@ -515,7 +533,8 @@ void ShopMan::populateShopFromScoutedData(int shopId)
 
     shop->ClearStock();
 
-    int slotCount = GetShopSlotCount(shopId);
+    // int slotCount = GetShopSlotCount(shopId);
+    int slotCount = AP_SHOP_SLOTS;
     for (int slot = 0; slot < slotCount; ++slot)
     {
         int64_t locationId = checks::getShopCheckId(shopId, slot);
@@ -600,15 +619,24 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
                 // Lazy scouting: scout on first shop access for this map
                 activeInstance_->scoutShopsForMap(mapId);
 
-                // Populate shop from scouted data
-                activeInstance_->populateShopFromScoutedData(*shopId);
-
-                // Return the ISL data
-                const void *pResult = GetCurrentItemShopData(mapId, nIdx);
-                if (pResult != nullptr)
+                // Only populate from scouted data if we got results
+                // If scouting returned nothing (server doesn't have shop locations), fall back to vanilla
+                if (!activeInstance_->scoutedItems_.empty())
                 {
-                    wolf::logDebug("[ShopMan] Injecting custom ISL data for map 0x%04X shop %u (shopId=%d)", mapId, nIdx, *shopId);
-                    return pResult;
+                    // Populate shop from scouted data
+                    activeInstance_->populateShopFromScoutedData(*shopId);
+
+                    // Return the ISL data
+                    const void *pResult = GetCurrentItemShopData(mapId, nIdx);
+                    if (pResult != nullptr)
+                    {
+                        wolf::logDebug("[ShopMan] Injecting custom ISL data for map 0x%04X shop %u (shopId=%d)", mapId, nIdx, *shopId);
+                        return pResult;
+                    }
+                }
+                else
+                {
+                    wolf::logDebug("[ShopMan] No scouted items for map 0x%04X, using vanilla shop", mapId);
                 }
             }
         }
