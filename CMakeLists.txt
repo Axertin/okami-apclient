@@ -58,3 +58,12 @@ endif()
 # Always configure tests for CTest
 enable_testing()
 add_subdirectory(tests)
+
+# Create symlink for compile_commands.json in project root for clangd
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+    file(CREATE_LINK
+        ${CMAKE_BINARY_DIR}/compile_commands.json
+        ${CMAKE_SOURCE_DIR}/compile_commands.json
+        SYMBOLIC
+    )
+endif()
