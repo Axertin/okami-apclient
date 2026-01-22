@@ -521,7 +521,7 @@ void ShopMan::populateShopFromScoutedData(int shopId)
         auto it = scoutedItems_.find(locationId);
         if (it == scoutedItems_.end())
         {
-            // No item at this slot - stop here (sparse slots not supported yet)
+            // No item at this slot - stop here
             break;
         }
 
@@ -543,13 +543,13 @@ void ShopMan::populateShopFromScoutedData(int shopId)
             else
             {
                 // At max stage, use placeholder
-                gameItem = okami::ItemTypes::ArchipelagoTestItem1;
+                gameItem = okami::ItemTypes::Chestnut;
             }
         }
         else
         {
             // Non-game items (brushes, event flags, etc.) use placeholder
-            gameItem = okami::ItemTypes::ArchipelagoTestItem1;
+            gameItem = okami::ItemTypes::Chestnut;
         }
 
         // TODO: Get actual price from AP data or slot_data
@@ -580,9 +580,8 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
 {
     if (std::strcmp(pszType, "ISL") == 0)
     {
-        // Only inject custom shop data if connected to AP server
-        // TODO: Also check slot_data for whether shops are randomized
-        if (activeInstance_ && activeInstance_->socket_.isConnected())
+        // Only inject custom shop data if we can and need to
+        if (activeInstance_ && activeInstance_->socket_.isConnected() && activeInstance_->socket_.getSlotConfig().randomizeShops)
         {
             // Get current map ID
             uintptr_t mainBase = reinterpret_cast<uintptr_t>(wolf::getModuleBase("main.dll"));
