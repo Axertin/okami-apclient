@@ -337,19 +337,10 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             client_->ConnectUpdate(false, ITEM_HANDLING, true, tags);
             client_->StatusUpdate(APClient::ClientStatus::PLAYING);
 
-            // Process checked_locations from Connected packet and sync with server
-            if (data.contains("checked_locations") && checkMan_)
-            {
-                auto checkedLocs = data["checked_locations"].get<std::list<int64_t>>();
-                wolf::logInfo("[Socket] Server reports %zu checked locations", checkedLocs.size());
-                checkMan_->syncWithServer(checkedLocs);
-            }
-
             // Parse slot_data configuration
-            if (data.contains("slot_data"))
+            if (!data.is_null() && data.is_object())
             {
-                wolf::logDebug("[Socket] Received slot_data: %s", data["slot_data"].dump().c_str());
-                auto result = SlotConfig::parse(data["slot_data"]);
+                auto result = SlotConfig::parse(data);
                 if (result.has_value())
                 {
                     slotConfig_ = result.value();
@@ -473,6 +464,16 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             }
             scoutCondition_.notify_all();
         });
+
+    client_->set_location_checked_handler(
+        [this](const std::list<int64_t> &locations)
+        {
+            wolf::logInfo("[Socket] Server reports %zu checked locations", locations.size());
+            if (checkMan_)
+            {
+                checkMan_->syncWithServer(locations);
+            }
+        });
 }
 
 void ArchipelagoSocket::disconnect()
@@ -556,12 +557,7 @@ void ArchipelagoSocket::sendLocation(int64_t locationID)
 {
     try
     {
-        withClient(
-            [locationID](APClient &client)
-            {
-                wolf::logInfo("[Socket] Sending location: 0x%llX", locationID);
-                client.LocationChecks({locationID});
-            });
+        withClient([locationID](APClient &client) { client.LocationChecks({locationID}); });
     }
     catch (const std::exception &e)
     {
@@ -581,7 +577,6 @@ void ArchipelagoSocket::sendLocations(const std::vector<int64_t> &locationIDs)
         withClient(
             [&locationIDs](APClient &client)
             {
-                wolf::logInfo("[Socket] Sending %zu locations", locationIDs.size());
                 std::list<int64_t> locList(locationIDs.begin(), locationIDs.end());
                 client.LocationChecks(locList);
             });

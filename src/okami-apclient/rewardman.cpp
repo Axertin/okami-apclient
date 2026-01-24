@@ -26,7 +26,6 @@ void RewardMan::queueReward(int64_t apItemId)
 {
     std::lock_guard lock(queueMutex_);
     queuedRewards_.push_back(apItemId);
-    wolf::logDebug("[RewardMan] Queued reward: 0x%llX (queue size: %zu)", apItemId, queuedRewards_.size());
 }
 
 bool RewardMan::processQueuedRewards()
@@ -103,11 +102,6 @@ std::expected<void, rewards::RewardError> RewardMan::grantReward(int64_t apItemI
     if (onCheckSendingChange_)
     {
         onCheckSendingChange_(true);
-    }
-
-    if (result)
-    {
-        wolf::logInfo("[RewardMan] Successfully granted reward");
     }
 
     return result;

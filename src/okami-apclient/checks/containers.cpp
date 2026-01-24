@@ -90,8 +90,6 @@ void ContainerMan::onSpawnTablePopulate(void *spawnTable)
     // Clear tracking from previous level
     trackedContainerIndices_.clear();
 
-    wolf::logDebug("[ContainerMan] SpawnTable populated for level 0x%04X", currentLevelId_);
-
     int replacedCount = 0;
 
     // Scan spawn table entries for containers (spawn_type_1 == 1)
@@ -122,14 +120,15 @@ void ContainerMan::onSpawnTablePopulate(void *spawnTable)
 
         // Replace item with dummy
         okami::ContainerData *containerData = entry->spawn_data;
-        wolf::logDebug("[ContainerMan] Idx %d: Replacing item 0x%02X with dummy 0x%02X (check %" PRId64 ")", i, containerData->item_id, DUMMY_ITEM_ID, checkId);
-
         containerData->item_id = DUMMY_ITEM_ID;
         trackedContainerIndices_.insert(i);
         replacedCount++;
     }
 
-    wolf::logDebug("[ContainerMan] Randomized %d containers in level 0x%04X", replacedCount, currentLevelId_);
+    if (replacedCount > 0)
+    {
+        wolf::logInfo("[ContainerMan] Randomized %d containers in level 0x%04X", replacedCount, currentLevelId_);
+    }
 }
 
 void ContainerMan::poll()
@@ -157,10 +156,7 @@ void ContainerMan::poll()
         if (entry->spawn_type_1 == 0)
         {
             int64_t checkId = getContainerCheckId(currentLevelId_, containerIdx);
-
-            wolf::logInfo("[ContainerMan] Container at idx %d collected, sending check %" PRId64, containerIdx, checkId);
             checkCallback_(checkId);
-
             pickedUp.push_back(containerIdx);
         }
     }

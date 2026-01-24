@@ -107,7 +107,7 @@ std::expected<SlotConfig, std::string> SlotConfig::parse(const nlohmann::json &s
     }
 
     SlotConfig config{
-        // Seed/session info (current APWorld fields)
+        // Seed/session info
         .seedNumber = getString(slotData, "SeedNumber"),
         .seedName = getString(slotData, "SeedName"),
         .totalLocations = getOptionalInt(slotData, "TotalLocations"),
@@ -115,24 +115,27 @@ std::expected<SlotConfig, std::string> SlotConfig::parse(const nlohmann::json &s
         // Version compatibility
         .supportedClientVersion = getString(slotData, "supported_client_version"),
 
-        // Randomization flags
-        .randomizeContainers = getBool(slotData, "randomize_containers", false),
-        .randomizeShops = getBool(slotData, "randomize_shops", false),
-        .randomizeBrushes = getBool(slotData, "randomize_brushes", false),
+        // Randomization flags (APWorld sends PascalCase)
+        .randomizeContainers = getBool(slotData, "RandomizeContainers", false),
+        .randomizeShops = getBool(slotData, "RandomizeShops", false),
+        .randomizeBrushes = getBool(slotData, "RandomizeBrushes", false),
+
+        // General options
+        .buriedChestsByNight = getBool(slotData, "BuriedChestsByNight", true),
+        .karmicTransformers = getInt(slotData, "KarmicTransformers", 1),
+        .openGameStart = getBool(slotData, "OpenGameStart", true),
+        .progressiveWeapons = getBool(slotData, "ProgressiveWeapons", false),
+        .removeBlockHead = getBool(slotData, "RemoveBlockHead", true),
+        .bloomGuardianSaplings = getBool(slotData, "BloomGuardianSaplings", true),
+
+        // Orochi arc options
+        .requiredDoggorbs = getInt(slotData, "RequiredDoggorbs", 1),
+        .canineRewards = getInt(slotData, "CanineRewards", 1),
+        .moonCaveAccess = getInt(slotData, "MoonCaveAccess", 0),
 
         // Shop configuration
-        .shopSlots = getInt(slotData, "shop_slots", 6),
+        .shopSlots = getInt(slotData, "ShopSlots", 6),
     };
-
-    wolf::logInfo("[SlotConfig] Parsed: seed=%s, name=%s, locations=%s, supported_version=%s",
-                  config.seedNumber.empty() ? "(none)" : config.seedNumber.c_str(),
-                  config.seedName.empty() ? "(none)" : config.seedName.c_str(),
-                  config.totalLocations.has_value() ? std::to_string(*config.totalLocations).c_str() : "(none)",
-                  config.supportedClientVersion.empty() ? "(none)" : config.supportedClientVersion.c_str());
-
-    wolf::logDebug("[SlotConfig] Options: containers=%s, shops=%s, brushes=%s, shop_slots=%d",
-                   config.randomizeContainers ? "true" : "false", config.randomizeShops ? "true" : "false",
-                   config.randomizeBrushes ? "true" : "false", config.shopSlots);
 
     return config;
 }
@@ -147,6 +150,15 @@ SlotConfig SlotConfig::defaults()
         .randomizeContainers = false,
         .randomizeShops = false,
         .randomizeBrushes = false,
+        .buriedChestsByNight = true,
+        .karmicTransformers = 0,
+        .openGameStart = false,
+        .progressiveWeapons = false,
+        .removeBlockHead = false,
+        .bloomGuardianSaplings = false,
+        .requiredDoggorbs = 1,
+        .canineRewards = 1,
+        .moonCaveAccess = 0,
         .shopSlots = 6,
     };
 }

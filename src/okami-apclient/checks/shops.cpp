@@ -469,28 +469,16 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
         }
     }
 
-    if (locationsToScout.empty())
+    if (locationsToScout.empty() || !socket_.isConnected())
     {
-        wolf::logDebug("[ShopMan] No shops found for map 0x%04X", mapId);
         return;
     }
-
-    // Check if still connected before scouting
-    if (!socket_.isConnected())
-    {
-        wolf::logWarning("[ShopMan] Cannot scout - not connected to server");
-        return;
-    }
-
-    wolf::logDebug("[ShopMan] Scouting %zu locations for map 0x%04X", locationsToScout.size(), mapId);
 
     // Scout all locations synchronously
-    // This may fail if the server doesn't have these locations defined
     auto scoutedItems = socket_.scoutLocationsSync(locationsToScout, 0);
 
     if (scoutedItems.empty())
     {
-        wolf::logDebug("[ShopMan] Scouting returned no results (server may not have shop locations)");
         return;
     }
 
@@ -499,8 +487,6 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
     {
         scoutedItems_[item.location] = item;
     }
-
-    wolf::logInfo("[ShopMan] Received %zu scouted items for map 0x%04X", scoutedItems.size(), mapId);
 }
 
 void ShopMan::populateShopFromScoutedData(int shopId)
@@ -556,8 +542,6 @@ void ShopMan::populateShopFromScoutedData(int shopId)
         constexpr int32_t placeholderCost = 100;
         shop->AddItem(gameItem, placeholderCost);
     }
-
-    wolf::logDebug("[ShopMan] Populated shop %d with items from scouted data", shopId);
 }
 
 // ============================================================================
@@ -599,23 +583,15 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
                 activeInstance_->scoutShopsForMap(mapId);
 
                 // Only populate from scouted data if we got results
-                // If scouting returned nothing (server doesn't have shop locations), fall back to vanilla
                 if (!activeInstance_->scoutedItems_.empty())
                 {
-                    // Populate shop from scouted data
                     activeInstance_->populateShopFromScoutedData(*shopId);
 
-                    // Return the ISL data
                     const void *pResult = GetCurrentItemShopData(mapId, nIdx);
                     if (pResult != nullptr)
                     {
-                        wolf::logDebug("[ShopMan] Injecting custom ISL data for map 0x%04X shop %u (shopId=%d)", mapId, nIdx, *shopId);
                         return pResult;
                     }
-                }
-                else
-                {
-                    wolf::logDebug("[ShopMan] No scouted items for map 0x%04X, using vanilla shop", mapId);
                 }
             }
         }
@@ -643,7 +619,6 @@ okami::ItemShopStock *__fastcall ShopMan::hookCKibaShop_GetShopStockList(void *p
         okami::ItemShopStock *pResult = GetCurrentDemonFangShopData(mapId, numItems);
         if (pResult != nullptr)
         {
-            wolf::logDebug("[ShopMan] Injecting custom demon fang shop data for map 0x%04X", mapId);
             return pResult;
         }
     }
@@ -662,20 +637,15 @@ void __fastcall ShopMan::hookCItemShop_PurchaseItem(void *pShop)
 {
     if (activeInstance_ && activeInstance_->currentShopId_ >= 0)
     {
-        // Read selected item index from shop struct
         auto *shopBase = reinterpret_cast<uint8_t *>(pShop);
         uint8_t scrollOffset = shopBase[SHOP_SCROLL_OFFSET];
         uint8_t visualSelectIndex = shopBase[SHOP_VISUAL_SELECT_INDEX];
         int selectedSlot = scrollOffset + visualSelectIndex;
 
-        // Calculate check ID and send it
         int64_t checkId = checks::getShopCheckId(activeInstance_->currentShopId_, selectedSlot);
-        wolf::logInfo("[ShopMan] Item shop purchase: shop=%d slot=%d checkId=%lld", activeInstance_->currentShopId_, selectedSlot, checkId);
-
         activeInstance_->checkCallback_(checkId);
     }
 
-    // Call original to complete the purchase
     if (originalCItemShop_PurchaseItem_)
     {
         originalCItemShop_PurchaseItem_(pShop);
@@ -686,20 +656,15 @@ void __fastcall ShopMan::hookCKibaShop_PurchaseItem(void *pShop)
 {
     if (activeInstance_ && activeInstance_->currentShopId_ >= 0)
     {
-        // Read selected item index from shop struct (same offsets as item shop)
         auto *shopBase = reinterpret_cast<uint8_t *>(pShop);
         uint8_t scrollOffset = shopBase[SHOP_SCROLL_OFFSET];
         uint8_t visualSelectIndex = shopBase[SHOP_VISUAL_SELECT_INDEX];
         int selectedSlot = scrollOffset + visualSelectIndex;
 
-        // Calculate check ID and send it
         int64_t checkId = checks::getShopCheckId(activeInstance_->currentShopId_, selectedSlot);
-        wolf::logInfo("[ShopMan] Demon fang shop purchase: shop=%d slot=%d checkId=%lld", activeInstance_->currentShopId_, selectedSlot, checkId);
-
         activeInstance_->checkCallback_(checkId);
     }
 
-    // Call original to complete the purchase
     if (originalCKibaShop_PurchaseItem_)
     {
         originalCKibaShop_PurchaseItem_(pShop);

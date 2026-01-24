@@ -272,7 +272,7 @@ These items upgrade through multiple tiers when received multiple times:
 
 ## slot_data Format
 
-The client parses these Okami-specific fields from `slot_data`:
+The client parses `slot_data` for various options and other information:
 
 ```json
 {
@@ -292,8 +292,6 @@ The client parses these Okami-specific fields from `slot_data`:
   }
 }
 ```
-
-**Note**: This format is not finalized. Missing fields use safe defaults.
 
 ---
 
