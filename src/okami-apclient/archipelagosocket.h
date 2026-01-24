@@ -30,6 +30,7 @@ class ArchipelagoSocket : public ISocket
     void processMainThreadTasks() override;
 
     std::string getItemName(int64_t id, int player) const override;
+    std::string getLocalItemName(int64_t id) const;
     std::string getItemDesc(int player) const override;
     std::string getConnectionInfo() const override;
     std::string getUUID() const override;

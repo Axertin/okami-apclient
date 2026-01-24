@@ -4,6 +4,7 @@
 
 #include "checkman.h"
 #include "loginwindow.h"
+#include "notificationwindow.h"
 #include "rewardman.h"
 
 #pragma warning(push, 0)
@@ -429,6 +430,8 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                             {
                                 rewardMan_->queueReward(itemId);
                             }
+                            // Show notification banner for received item
+                            notificationwindow::queue("Received: " + getLocalItemName(itemId));
                         });
                     newItemCount++;
                     highestIndex = std::max(highestIndex, item.index);
@@ -613,6 +616,19 @@ std::string ArchipelagoSocket::getItemName(int64_t id, int player) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get item name: %s", e.what());
+        return "Unknown Item";
+    }
+}
+
+std::string ArchipelagoSocket::getLocalItemName(int64_t id) const
+{
+    try
+    {
+        return withClient([id](APClient &client) { return client.get_item_name(id, GAME_NAME); });
+    }
+    catch (const std::exception &e)
+    {
+        wolf::logError("[Socket] Failed to get local item name: %s", e.what());
         return "Unknown Item";
     }
 }

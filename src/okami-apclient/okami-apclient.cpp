@@ -1,19 +1,67 @@
 #include <memory>
 
-#include <imgui.h>
-
 #include <wolf_framework.hpp>
 
 #include "archipelagosocket.h"
 #include "checkman.h"
 #include "gamestate_accessors.hpp"
 #include "loginwindow.h"
+#include "notificationwindow.h"
 #include "rewardman.h"
 #include "version.h"
 
-// Global manager instances (explicit construction, not singletons)
+#ifdef _WIN32
+#include <d3d11.h>
+
+#include "imgui.h"
+#include "imgui_impl_dx11.h"
+#endif
+
+// Global manager instances
 static std::unique_ptr<RewardMan> g_rewardMan;
 static std::unique_ptr<CheckMan> g_checkMan;
+
+// GUI window name for wolf registration
+static const char *g_guiWindowName = "APClient GUI";
+
+// Main GUI render function - calls all internal windows
+static void renderGui(int outerWidth, int outerHeight, [[maybe_unused]] float uiScale)
+{
+#ifdef _WIN32
+    WOLF_IMGUI_BEGIN(outerWidth, outerHeight, uiScale);
+
+    // Draw all windows
+    loginwindow::draw();
+    notificationwindow::draw(outerWidth, outerHeight);
+
+    WOLF_IMGUI_END();
+#endif
+}
+
+static void initializeGui()
+{
+    if (!wolf::setupSharedImGuiAllocators())
+    {
+        wolf::logError("[GUI] Failed to setup mod ImGui context!");
+        return;
+    }
+
+    WOLF_IMGUI_INIT_BACKEND();
+
+    if (!wolf::registerGuiWindow(g_guiWindowName, renderGui, true))
+    {
+        wolf::logError("[GUI] Failed to register GUI window");
+        return;
+    }
+
+    wolf::logInfo("[GUI] Initialized");
+}
+
+static void shutdownGui()
+{
+    wolf::unregisterGuiWindow(g_guiWindowName);
+    wolf::logInfo("[GUI] Shutdown complete");
+}
 
 class APClientMod
 {
@@ -46,6 +94,7 @@ class APClientMod
         ArchipelagoSocket::instance().setCheckMan(g_checkMan.get());
 
         // Initialize UI
+        initializeGui();
         loginwindow::initialize(ArchipelagoSocket::instance());
 
         // Initialize check manager (sets up monitors and container hooks)
@@ -70,7 +119,9 @@ class APClientMod
         }
         g_checkMan.reset();
         g_rewardMan.reset();
+        notificationwindow::shutdown();
         loginwindow::shutdown();
+        shutdownGui();
     }
 
     static const char *getName()

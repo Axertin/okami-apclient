@@ -10,9 +10,8 @@ namespace loginwindow
 {
 
 /**
- * @brief Initialize Login Window GUI system
+ * @brief Initialize Login Window state (load saved connection data)
  *
- * Sets up ImGui integration and registers GUI callback with WOLF framework.
  * Call this once during mod initialization.
  */
 void initialize(ISocket &socket);
@@ -23,26 +22,22 @@ void initialize(ISocket &socket);
 void shutdown();
 
 /**
- * @brief Render Login Window
+ * @brief Draw Login Window content
  *
- * Called automatically by WOLF's GUI system each frame.
+ * Called by the GUI manager inside the ImGui frame.
  * Shows connection form and status.
- *
- * @param width Outer window width
- * @param height Outer window height
- * @param scale UI scale factor
  */
-void render(int width, int height, float scale);
+void draw();
 
 /**
- * @brief Show the login window
+ * @brief Check if window is visible
  */
-void show();
+bool isVisible();
 
 /**
- * @brief Hide the login window
+ * @brief Set window visibility
  */
-void hide();
+void setVisible(bool visible);
 
 /**
  * @brief Toggle login window visibility

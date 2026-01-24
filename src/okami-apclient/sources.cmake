@@ -7,6 +7,7 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/shops.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/gamestate_accessors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/loginwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/notificationwindow.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/okami-apclient.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewardman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/brushes.cpp
