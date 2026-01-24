@@ -131,7 +131,7 @@ class APClientMod
 
     static const char *getVersion()
     {
-        return version::string();
+        return version::string.data();
     }
 };
 

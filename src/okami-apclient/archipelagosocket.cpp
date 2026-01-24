@@ -53,7 +53,7 @@ void checkVersionCompatibility(const std::string &supportedVersion)
         return;
     }
 
-    version_utils::Version client{version::major(), version::minor(), version::patch()};
+    version_utils::Version client{version::major, version::minor, version::patch};
 
     auto compat = version_utils::checkCompatibility(client, *server);
 

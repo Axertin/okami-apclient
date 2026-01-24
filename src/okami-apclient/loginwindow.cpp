@@ -16,7 +16,7 @@
 #endif
 
 // Static state
-static std::string WindowName = "Archipelago Client " + std::string(version::string());
+static std::string WindowName = "Archipelago Client " + std::string(version::string);
 static ISocket *g_socket = nullptr;
 static bool g_visible = true;
 
