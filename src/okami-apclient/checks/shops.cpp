@@ -73,6 +73,7 @@ void ShopDefinition::CheckDirty()
 const uint8_t *ShopDefinition::GetData()
 {
     CheckDirty();
+    wolf::logDebug("[ShopMan] GetData() returning %zu bytes at %p", dataISL.size(), dataISL.data());
     return dataISL.data();
 }
 
@@ -452,6 +453,7 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
 
     // Gather all shop location IDs for this map
     std::list<int64_t> locationsToScout;
+    std::optional<int> lastShopId;
 
     // Check both shopNum 0 and 1 (for Seian which has 2 shops)
     for (uint32_t shopNum = 0; shopNum <= 1; ++shopNum)
@@ -461,6 +463,13 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
         {
             continue;
         }
+
+        // Skip if we already processed this shop ID (most maps have same shop for both shopNum values)
+        if (lastShopId && *lastShopId == *shopId)
+        {
+            continue;
+        }
+        lastShopId = *shopId;
 
         int slotCount = socket_.getSlotConfig().shopSlots;
         for (int slot = 0; slot < slotCount; ++slot)
@@ -491,6 +500,8 @@ void ShopMan::scoutShopsForMap(uint16_t mapId)
 
 void ShopMan::populateShopFromScoutedData(int shopId)
 {
+    wolf::logDebug("[ShopMan] populateShopFromScoutedData called for shopId=%d", shopId);
+
     ShopDefinition *shop = GetShopById(shopId);
     if (!shop)
     {
@@ -501,13 +512,15 @@ void ShopMan::populateShopFromScoutedData(int shopId)
     shop->ClearStock();
 
     int slotCount = socket_.getSlotConfig().shopSlots;
+    wolf::logDebug("[ShopMan] Populating %d slots", slotCount);
+
     for (int slot = 0; slot < slotCount; ++slot)
     {
         int64_t locationId = checks::getShopCheckId(shopId, slot);
         auto it = scoutedItems_.find(locationId);
         if (it == scoutedItems_.end())
         {
-            // No item at this slot - stop here
+            wolf::logDebug("[ShopMan] No item at slot %d (locationId=%lld), stopping", slot, locationId);
             break;
         }
 
@@ -515,33 +528,44 @@ void ShopMan::populateShopFromScoutedData(int shopId)
 
         // Convert AP item ID to game item
         okami::ItemTypes::Enum gameItem;
+
+        // Helper to check if a game item is a weapon (divine instruments can't be displayed in shops)
+        auto isWeapon = [](int itemId) { return itemId >= okami::ItemTypes::DivineRetribution && itemId <= okami::ItemTypes::ThunderEdge; };
+
         if (rewards::game_items::isDirectGameItem(scouted.item))
         {
-            gameItem = static_cast<okami::ItemTypes::Enum>(rewards::game_items::getItemId(scouted.item));
-        }
-        else if (rewards::game_items::isProgressiveWeapon(scouted.item))
-        {
-            auto nextItem = rewards::game_items::getNextItemToGrant(scouted.item);
-            if (nextItem)
+            int rawItem = rewards::game_items::getItemId(scouted.item);
+            if (isWeapon(rawItem))
             {
-                gameItem = static_cast<okami::ItemTypes::Enum>(*nextItem);
+                // Weapons can't be displayed in item shops - use placeholder
+                gameItem = okami::ItemTypes::HolyBoneS;
+                wolf::logDebug("[ShopMan] Slot %d: AP item %lld -> weapon %d, using placeholder", slot, scouted.item, rawItem);
             }
             else
             {
-                // At max stage, use placeholder
-                gameItem = okami::ItemTypes::Chestnut;
+                gameItem = okami::ItemTypes::HolyBoneS;
+                wolf::logDebug("[ShopMan] Slot %d: AP item %lld -> direct game item %d", slot, scouted.item, gameItem);
             }
+        }
+        else if (rewards::game_items::isProgressiveWeapon(scouted.item))
+        {
+            // Progressive weapons always need placeholder in shops
+            gameItem = okami::ItemTypes::FeedbagSeeds;
+            wolf::logDebug("[ShopMan] Slot %d: AP item %lld -> progressive weapon, using placeholder", slot, scouted.item);
         }
         else
         {
             // Non-game items (brushes, event flags, etc.) use placeholder
-            gameItem = okami::ItemTypes::Chestnut;
+            gameItem = okami::ItemTypes::FeedbagMeat;
+            wolf::logDebug("[ShopMan] Slot %d: AP item %lld -> non-game item, using placeholder", slot, scouted.item);
         }
 
         // TODO: Get actual price from AP data or slot_data
         constexpr int32_t placeholderCost = 100;
         shop->AddItem(gameItem, placeholderCost);
     }
+
+    wolf::logDebug("[ShopMan] Shop population complete");
 }
 
 // ============================================================================
@@ -564,6 +588,8 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
 {
     if (std::strcmp(pszType, "ISL") == 0)
     {
+        wolf::logDebug("[ShopMan] hookLoadRsc called for ISL, nIdx=%u", nIdx);
+
         // Only inject custom shop data if we can and need to
         if (activeInstance_ && activeInstance_->socket_.isConnected() && activeInstance_->socket_.getSlotConfig().randomizeShops)
         {
@@ -572,10 +598,14 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
             auto *currentMapPtr = reinterpret_cast<uint16_t *>(mainBase + EXTERIOR_MAP_ID_OFFSET);
             uint16_t mapId = *currentMapPtr;
 
+            wolf::logDebug("[ShopMan] mapId=0x%04X, randomizeShops=true", mapId);
+
             // Get shop ID for this map/shopNum combination
             auto shopId = GetShopIdForMap(mapId, nIdx);
             if (shopId)
             {
+                wolf::logDebug("[ShopMan] shopId=%d", *shopId);
+
                 // Track current shop for purchase detection
                 activeInstance_->currentShopId_ = *shopId;
 
@@ -585,15 +615,35 @@ const void *__fastcall ShopMan::hookLoadRsc(void *pRscPackage, const char *pszTy
                 // Only populate from scouted data if we got results
                 if (!activeInstance_->scoutedItems_.empty())
                 {
+                    wolf::logDebug("[ShopMan] Have %zu scouted items, populating shop", activeInstance_->scoutedItems_.size());
                     activeInstance_->populateShopFromScoutedData(*shopId);
 
                     const void *pResult = GetCurrentItemShopData(mapId, nIdx);
                     if (pResult != nullptr)
                     {
+                        wolf::logDebug("[ShopMan] Returning custom ISL data at %p", pResult);
                         return pResult;
                     }
+                    else
+                    {
+                        wolf::logWarning("[ShopMan] GetCurrentItemShopData returned nullptr!");
+                    }
+                }
+                else
+                {
+                    wolf::logDebug("[ShopMan] No scouted items, falling through to original");
                 }
             }
+            else
+            {
+                wolf::logDebug("[ShopMan] No shop for this map/nIdx, falling through to original");
+            }
+        }
+        else
+        {
+            wolf::logDebug("[ShopMan] Not injecting: instance=%p, connected=%d, randomize=%d", activeInstance_,
+                           activeInstance_ ? activeInstance_->socket_.isConnected() : false,
+                           activeInstance_ ? activeInstance_->socket_.getSlotConfig().randomizeShops : false);
         }
     }
 

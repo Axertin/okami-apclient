@@ -60,7 +60,8 @@ void checkVersionCompatibility(const std::string &supportedVersion)
     switch (compat)
     {
     case version_utils::Compatibility::Compatible:
-        wolf::logInfo("[Socket] Client version %d.%d.%d is compatible with APWorld (%s)", client.major, client.minor, client.patch, supportedVersion.c_str());
+        wolf::logInfo("[Socket] Client version %d.%d.%d is compatible with APWorld (server expects %s)", client.major, client.minor, client.patch,
+                      supportedVersion.c_str());
         break;
     case version_utils::Compatibility::ClientTooOld:
         wolf::logWarning("[Socket] Client version %d.%d.%d is missing features APWorld expects (%s). "
@@ -68,7 +69,7 @@ void checkVersionCompatibility(const std::string &supportedVersion)
                          client.major, client.minor, client.patch, supportedVersion.c_str());
         break;
     case version_utils::Compatibility::MajorMismatch:
-        wolf::logWarning("[Socket] Client version %d.%d.%d is incompatible with APWorld (%s). "
+        wolf::logWarning("[Socket] Client version %d.%d.%d is incompatible with APWorld (server expects %s). "
                          "Major version mismatch.",
                          client.major, client.minor, client.patch, supportedVersion.c_str());
         break;
