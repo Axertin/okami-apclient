@@ -4,6 +4,7 @@
 
 #include <wolf_framework.hpp>
 
+#include "notificationwindow.h"
 #include "rewards/brushes.hpp"
 #include "rewards/event_flags.hpp"
 #include "rewards/game_items.hpp"
@@ -22,15 +23,15 @@ void RewardMan::reset()
     grantingEnabled_ = false;
 }
 
-void RewardMan::queueReward(int64_t apItemId)
+void RewardMan::queueReward(int64_t apItemId, const std::string &itemName)
 {
     std::lock_guard lock(queueMutex_);
-    queuedRewards_.push_back(apItemId);
+    queuedRewards_.push_back({apItemId, itemName});
 }
 
 bool RewardMan::processQueuedRewards()
 {
-    std::vector<int64_t> toProcess;
+    std::vector<QueuedReward> toProcess;
 
     {
         std::lock_guard lock(queueMutex_);
@@ -42,13 +43,18 @@ bool RewardMan::processQueuedRewards()
     }
 
     bool allSucceeded = true;
-    for (int64_t apItemId : toProcess)
+    for (const auto &reward : toProcess)
     {
-        auto result = grantReward(apItemId);
+        auto result = grantReward(reward.apItemId);
         if (!result)
         {
-            wolf::logWarning("[RewardMan] Failed to grant reward 0x%llX: %s", apItemId, result.error().message.c_str());
+            wolf::logWarning("[RewardMan] Failed to grant reward 0x%llX: %s", reward.apItemId, result.error().message.c_str());
             allSucceeded = false;
+        }
+        else
+        {
+            // Show notification for successfully granted reward
+            notificationwindow::queue("Received: " + reward.itemName);
         }
     }
 

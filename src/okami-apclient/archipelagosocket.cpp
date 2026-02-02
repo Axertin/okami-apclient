@@ -4,7 +4,6 @@
 
 #include "checkman.h"
 #include "loginwindow.h"
-#include "notificationwindow.h"
 #include "rewardman.h"
 
 #pragma warning(push, 0)
@@ -429,10 +428,10 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                         {
                             if (rewardMan_)
                             {
-                                rewardMan_->queueReward(itemId);
+                                // Get item name on main thread to avoid re-entrancy issues
+                                std::string itemName = getLocalItemName(itemId);
+                                rewardMan_->queueReward(itemId, itemName);
                             }
-                            // Show notification banner for received item
-                            notificationwindow::queue("Received: " + getLocalItemName(itemId));
                         });
                     newItemCount++;
                     highestIndex = std::max(highestIndex, item.index);
@@ -617,7 +616,7 @@ std::string ArchipelagoSocket::getItemName(int64_t id, int player) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get item name: %s", e.what());
-        return "Unknown Item";
+        return std::format("Unknown Item ({})", id);
     }
 }
 
@@ -630,7 +629,7 @@ std::string ArchipelagoSocket::getLocalItemName(int64_t id) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get local item name: %s", e.what());
-        return "Unknown Item";
+        return std::format("Unknown Item ({})", id);
     }
 }
 
@@ -643,7 +642,7 @@ std::string ArchipelagoSocket::getItemDesc(int player) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get item description: %s", e.what());
-        return "Unknown Player";
+        return std::format("Unknown Player ({})", player);
     }
 }
 

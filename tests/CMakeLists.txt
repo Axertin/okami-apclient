@@ -29,6 +29,7 @@ add_library(apclient-testable STATIC
     # Mock implementations
     mocks/wolf_framework.cpp
     mocks/mock_archipelagosocket.cpp
+    mocks/mock_notificationwindow.cpp
 )
 
 target_include_directories(apclient-testable PUBLIC

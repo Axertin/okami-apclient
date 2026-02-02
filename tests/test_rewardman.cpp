@@ -64,8 +64,8 @@ TEST_CASE("Queue management", "[rewardman]")
 
     SECTION("processQueuedRewards clears queue when enabled")
     {
-        rewardMan.queueReward(0x100);
-        rewardMan.queueReward(0x101);
+        rewardMan.queueReward(0x100, "Test Item");
+        rewardMan.queueReward(0x101, "Test Item 2");
         rewardMan.setGrantingEnabled(true);
 
         rewardMan.processQueuedRewards();
@@ -75,7 +75,7 @@ TEST_CASE("Queue management", "[rewardman]")
 
     SECTION("processQueuedRewards skips when disabled")
     {
-        rewardMan.queueReward(0x100);
+        rewardMan.queueReward(0x100, "Test Item");
         rewardMan.setGrantingEnabled(false);
 
         rewardMan.processQueuedRewards();
@@ -85,7 +85,7 @@ TEST_CASE("Queue management", "[rewardman]")
 
     SECTION("reset clears queue and disables granting")
     {
-        rewardMan.queueReward(0x100);
+        rewardMan.queueReward(0x100, "Test Item");
         rewardMan.setGrantingEnabled(true);
 
         rewardMan.reset();
