@@ -7,10 +7,12 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/shops.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/gamestate_accessors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/loginwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/notificationwindow.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/okami-apclient.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewardman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/brushes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/event_flags.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/game_items.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/shopdata.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/slotconfig.cpp
 )

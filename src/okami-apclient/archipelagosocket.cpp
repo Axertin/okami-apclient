@@ -15,6 +15,10 @@
 #include <string>
 #include <thread>
 
+#include <version.h>
+
+#include "version_utils.h"
+
 // File-local constants
 static const std::string CERT_STORE = "mods/apclient/cacert.pem";
 static const std::string GAME_NAME = "Okami HD";
@@ -28,6 +32,50 @@ static const auto CONNECTION_TIMEOUT = std::chrono::seconds(10);
 static const std::string UUID_FILE = std::string(std::getenv("APPDATA")) + "\\uuid";
 static const std::string SAVE_DIR = std::string(std::getenv("APPDATA")) + "\\okami-apsaves";
 #pragma warning(pop)
+
+namespace
+{
+
+// Check version compatibility and log appropriate warnings
+void checkVersionCompatibility(const std::string &supportedVersion)
+{
+    if (supportedVersion.empty())
+    {
+        wolf::logWarning("[Socket] No supported_client_version in slot_data, skipping version check");
+        return;
+    }
+
+    auto server = version_utils::parseVersion(supportedVersion);
+    if (!server)
+    {
+        wolf::logWarning("[Socket] Could not parse supported_client_version '%s'", supportedVersion.c_str());
+        return;
+    }
+
+    version_utils::Version client{version::major, version::minor, version::patch};
+
+    auto compat = version_utils::checkCompatibility(client, *server);
+
+    switch (compat)
+    {
+    case version_utils::Compatibility::Compatible:
+        wolf::logInfo("[Socket] Client version %d.%d.%d is compatible with APWorld (server expects %s)", client.major, client.minor, client.patch,
+                      supportedVersion.c_str());
+        break;
+    case version_utils::Compatibility::ClientTooOld:
+        wolf::logWarning("[Socket] Client version %d.%d.%d is missing features APWorld expects (%s). "
+                         "Consider updating the client.",
+                         client.major, client.minor, client.patch, supportedVersion.c_str());
+        break;
+    case version_utils::Compatibility::MajorMismatch:
+        wolf::logWarning("[Socket] Client version %d.%d.%d is incompatible with APWorld (server expects %s). "
+                         "Major version mismatch.",
+                         client.major, client.minor, client.patch, supportedVersion.c_str());
+        break;
+    }
+}
+
+} // namespace
 
 ArchipelagoSocket &ArchipelagoSocket::instance()
 {
@@ -290,19 +338,29 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             client_->ConnectUpdate(false, ITEM_HANDLING, true, tags);
             client_->StatusUpdate(APClient::ClientStatus::PLAYING);
 
-            // Process checked_locations from Connected packet and sync with server
-            if (data.contains("checked_locations") && checkMan_)
+            // Parse slot_data configuration
+            if (!data.is_null() && data.is_object())
             {
-                auto checkedLocs = data["checked_locations"].get<std::list<int64_t>>();
-                wolf::logInfo("[Socket] Server reports %zu checked locations", checkedLocs.size());
-                checkMan_->syncWithServer(checkedLocs);
+                auto result = SlotConfig::parse(data);
+                if (result.has_value())
+                {
+                    slotConfig_ = result.value();
+                }
+                else
+                {
+                    wolf::logError("[Socket] Failed to parse slot_data: %s", result.error().c_str());
+                    slotConfig_ = SlotConfig::defaults();
+                }
             }
+            else
+            {
+                wolf::logWarning("[Socket] No slot_data received, using defaults");
+                slotConfig_ = SlotConfig::defaults();
+            }
+            slotConfigReady_.store(true, std::memory_order_release);
 
-            // TODO: Parse slot_data fields when apworld structure is defined
-            if (data.contains("slot_data"))
-            {
-                wolf::logDebug("[Socket] Received slot_data: %s", data["slot_data"].dump().c_str());
-            }
+            // Check version compatibility
+            checkVersionCompatibility(slotConfig_.supportedClientVersion);
         });
 
     client_->set_slot_disconnected_handler(
@@ -370,7 +428,9 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                         {
                             if (rewardMan_)
                             {
-                                rewardMan_->queueReward(itemId);
+                                // Get item name on main thread to avoid re-entrancy issues
+                                std::string itemName = getLocalItemName(itemId);
+                                rewardMan_->queueReward(itemId, itemName);
                             }
                         });
                     newItemCount++;
@@ -407,11 +467,22 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             }
             scoutCondition_.notify_all();
         });
+
+    client_->set_location_checked_handler(
+        [this](const std::list<int64_t> &locations)
+        {
+            wolf::logInfo("[Socket] Server reports %zu checked locations", locations.size());
+            if (checkMan_)
+            {
+                checkMan_->syncWithServer(locations);
+            }
+        });
 }
 
 void ArchipelagoSocket::disconnect()
 {
     connected_.store(false);
+    slotConfigReady_.store(false, std::memory_order_release);
     lastProcessedItemIndex_ = -1;
 
     std::lock_guard<std::mutex> lock(clientMutex_);
@@ -489,12 +560,7 @@ void ArchipelagoSocket::sendLocation(int64_t locationID)
 {
     try
     {
-        withClient(
-            [locationID](APClient &client)
-            {
-                wolf::logInfo("[Socket] Sending location: 0x%llX", locationID);
-                client.LocationChecks({locationID});
-            });
+        withClient([locationID](APClient &client) { client.LocationChecks({locationID}); });
     }
     catch (const std::exception &e)
     {
@@ -514,7 +580,6 @@ void ArchipelagoSocket::sendLocations(const std::vector<int64_t> &locationIDs)
         withClient(
             [&locationIDs](APClient &client)
             {
-                wolf::logInfo("[Socket] Sending %zu locations", locationIDs.size());
                 std::list<int64_t> locList(locationIDs.begin(), locationIDs.end());
                 client.LocationChecks(locList);
             });
@@ -551,7 +616,20 @@ std::string ArchipelagoSocket::getItemName(int64_t id, int player) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get item name: %s", e.what());
-        return "Unknown Item";
+        return std::format("Unknown Item ({})", id);
+    }
+}
+
+std::string ArchipelagoSocket::getLocalItemName(int64_t id) const
+{
+    try
+    {
+        return withClient([id](APClient &client) { return client.get_item_name(id, GAME_NAME); });
+    }
+    catch (const std::exception &e)
+    {
+        wolf::logError("[Socket] Failed to get local item name: %s", e.what());
+        return std::format("Unknown Item ({})", id);
     }
 }
 
@@ -564,7 +642,7 @@ std::string ArchipelagoSocket::getItemDesc(int player) const
     catch (const std::exception &e)
     {
         wolf::logError("[Socket] Failed to get item description: %s", e.what());
-        return "Unknown Player";
+        return std::format("Unknown Player ({})", player);
     }
 }
 
@@ -677,4 +755,14 @@ void ArchipelagoSocket::setRewardMan(RewardMan *rewardMan)
 void ArchipelagoSocket::setCheckMan(CheckMan *checkMan)
 {
     checkMan_ = checkMan;
+}
+
+const SlotConfig &ArchipelagoSocket::getSlotConfig() const
+{
+    return slotConfig_;
+}
+
+bool ArchipelagoSocket::isSlotConfigReady() const
+{
+    return slotConfigReady_.load(std::memory_order_acquire);
 }

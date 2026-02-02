@@ -99,10 +99,15 @@ function(add_git_version_info target)
   file(WRITE ${VERSION_HEADER}
     "#pragma once
 
+#include <string_view>
+
 namespace version {
-    const char* string() { return \"${VERSION_STRING}\"; }
-    const char* hash() { return \"${VERSION_HASH}\"; }
-    const char* branch() { return \"${VERSION_BRANCH}\"; }
+    inline constexpr std::string_view string{\"${VERSION_STRING}\"};
+    inline constexpr int major{${VERSION_MAJOR}};
+    inline constexpr int minor{${VERSION_MINOR}};
+    inline constexpr int patch{${VERSION_PATCH}};
+    inline constexpr std::string_view hash{\"${VERSION_HASH}\"};
+    inline constexpr std::string_view branch{\"${VERSION_BRANCH}\"};
 }
 ")
 

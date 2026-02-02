@@ -97,17 +97,14 @@ std::expected<void, RewardError> grant(int64_t apItemId)
 
         if (!nextItem)
         {
-            wolf::logDebug("[rewards::game_items] Progressive weapon 0x%llX already at max stage", apItemId);
-            return {};
+            return {}; // Already at max stage
         }
 
         itemToGive = *nextItem;
-        wolf::logDebug("[rewards::game_items] Progressive weapon 0x%llX -> granting item 0x%02X", apItemId, itemToGive);
     }
     else
     {
         itemToGive = getItemId(apItemId);
-        wolf::logDebug("[rewards::game_items] Granting item 0x%02X", itemToGive);
     }
 
     wolf::giveItem(itemToGive, 1);

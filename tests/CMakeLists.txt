@@ -24,10 +24,12 @@ add_library(apclient-testable STATIC
 
     # Other testable sources
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/slotconfig.cpp
 
     # Mock implementations
     mocks/wolf_framework.cpp
     mocks/mock_archipelagosocket.cpp
+    mocks/mock_notificationwindow.cpp
 )
 
 target_include_directories(apclient-testable PUBLIC
@@ -54,6 +56,7 @@ add_executable(apclient-tests
     test_containers.cpp
     test_gamestate_monitors.cpp
     test_shops.cpp
+    test_version_utils.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE

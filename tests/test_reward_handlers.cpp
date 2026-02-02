@@ -83,7 +83,7 @@ TEST_CASE("Progressive item detection boundaries", "[rewards]")
     SECTION("Direct game items exclude progressive weapons")
     {
         CHECK(rewards::game_items::isDirectGameItem(0xFF));
-        CHECK_FALSE(rewards::game_items::isDirectGameItem(0x100));  // Brush
-        CHECK_FALSE(rewards::game_items::isDirectGameItem(0x300));  // Progressive weapon
+        CHECK_FALSE(rewards::game_items::isDirectGameItem(0x100)); // Brush
+        CHECK_FALSE(rewards::game_items::isDirectGameItem(0x300)); // Progressive weapon
     }
 }

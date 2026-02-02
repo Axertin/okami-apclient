@@ -1,6 +1,7 @@
 #include "loginwindow.h"
 
 #include <algorithm>
+#include <cstring>
 #include <fstream>
 #include <string>
 
@@ -8,17 +9,16 @@
 #include <wolf_framework.hpp>
 
 #include "isocket.h"
+#include "version.h"
 
 #ifdef _WIN32
-#include <d3d11.h>
-
 #include "imgui.h"
-#include "imgui_impl_dx11.h"
 #endif
 
 // Static state
-static const std::string WindowName = "Archipelago Client";
+static std::string WindowName = "Archipelago Client " + std::string(version::string);
 static ISocket *g_socket = nullptr;
+static bool g_visible = true;
 
 // Connection form data (kept as char arrays for ImGui)
 static char g_server[128] = "archipelago.gg:38281";
@@ -37,7 +37,6 @@ template <size_t N> static void copyToBuffer(char (&buffer)[N], const std::strin
 
 namespace loginwindow
 {
-
 // Forward declarations
 static void renderConnectionForm();
 static void renderConnectionStatus();
@@ -48,69 +47,43 @@ void initialize(ISocket &socket)
 {
     g_socket = &socket;
     loadConnectionData();
-
-    if (!wolf::setupSharedImGuiAllocators())
-    {
-        wolf::logError("Failed to setup mod ImGui context!");
-        return;
-    }
-
-    WOLF_IMGUI_INIT_BACKEND();
-
-    // Register with Wolf GUI system
-    if (!wolf::registerGuiWindow(WindowName.c_str(), render, true))
-    {
-        wolf::logError("Failed to register ");
-        return;
-    }
-
-    // Register cleanup handler
-    wolf::registerCleanupHandler(
-        []()
-        {
-            wolf::unregisterGuiWindow(WindowName.c_str());
-            wolf::logInfo(": GUI cleanup complete");
-        });
 }
 
 void shutdown()
 {
-    wolf::unregisterGuiWindow(WindowName.c_str());
     g_socket = nullptr;
 }
 
-void show()
+bool isVisible()
 {
-    wolf::logDebug("Showing Login Window");
-    wolf::setGuiWindowVisible(WindowName.c_str(), true);
+    return g_visible;
 }
 
-void hide()
+void setVisible(bool visible)
 {
-    wolf::logDebug("Hiding Login Window");
-    wolf::setGuiWindowVisible(WindowName.c_str(), false);
+    g_visible = visible;
 }
 
 void toggle()
 {
-    wolf::logDebug("Toggling Login Window Visibility");
-    wolf::toggleGuiWindow(WindowName.c_str());
+    g_visible = !g_visible;
 }
 
-void render(int outerWidth, int outerHeight, float uiScale)
+void draw()
 {
 #ifdef _WIN32
+    if (!g_visible)
+    {
+        return;
+    }
 
-    WOLF_IMGUI_BEGIN(outerWidth, outerHeight, uiScale);
-
-    ImGui::Begin(WindowName.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize);
+    ImGui::Begin(WindowName.c_str(), &g_visible, ImGuiWindowFlags_AlwaysAutoResize);
 
     renderConnectionStatus();
     ImGui::Separator();
     renderConnectionForm();
 
     ImGui::End();
-    WOLF_IMGUI_END();
 #endif
 }
 

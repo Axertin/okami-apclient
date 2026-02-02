@@ -81,6 +81,8 @@ class MockArchipelagoSocket : public ISocket
     std::vector<ScoutedItem> scoutLocationsSync(const std::list<int64_t> &locations, int createAsHint = 0,
                                                 std::chrono::milliseconds timeout = std::chrono::seconds(5)) override;
     int getPlayerSlot() const override;
+    const SlotConfig &getSlotConfig() const override;
+    bool isSlotConfigReady() const override;
 
     // === Connection Configuration ===
 
@@ -133,6 +135,8 @@ class MockArchipelagoSocket : public ISocket
     void setUUID(const std::string &uuid);
     void setItemName(int64_t id, int player, const std::string &name);
     void setItemDesc(int player, const std::string &desc);
+    void setSlotConfig(const SlotConfig &config);
+    void setSlotConfigReady(bool ready);
 
     // === Compatibility (for tests migrating from MockISocket) ===
 
@@ -187,6 +191,10 @@ class MockArchipelagoSocket : public ISocket
 
     // Error simulation
     int disconnectAfterPolls_ = -1;
+
+    // Slot configuration
+    SlotConfig slotConfig_;
+    bool slotConfigReady_ = false;
 };
 
 } // namespace mock

@@ -5,6 +5,7 @@
 #include <functional>
 #include <mutex>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "rewards/reward_types.hpp"
@@ -46,8 +47,9 @@ class RewardMan
      * Thread-safe - can be called from network thread.
      *
      * @param apItemId The Archipelago item ID to queue
+     * @param itemName Display name for the item (for notifications)
      */
-    void queueReward(int64_t apItemId);
+    void queueReward(int64_t apItemId, const std::string &itemName);
 
     /**
      * @brief Process all queued rewards
@@ -111,8 +113,13 @@ class RewardMan
     [[nodiscard]] size_t getQueuedCount() const;
 
   private:
-    // Queued AP item IDs waiting to be granted
-    std::vector<int64_t> queuedRewards_;
+    // Queued rewards waiting to be granted (item ID + display name)
+    struct QueuedReward
+    {
+        int64_t apItemId;
+        std::string itemName;
+    };
+    std::vector<QueuedReward> queuedRewards_;
 
     // Mutex protecting the queue (for thread-safe queueing)
     mutable std::mutex queueMutex_;

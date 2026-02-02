@@ -109,28 +109,22 @@ void CheckMan::onItemPickup(int itemId, int quantity)
 
     if (!sendingEnabled_)
     {
-        wolf::logWarning("[CheckMan] Sending disabled, ignoring item pickup");
         return;
     }
 
     int64_t checkId = checks::getItemCheckId(itemId);
     sendCheck(checkId);
-
-    wolf::logDebug("[CheckMan] Item pickup: item=0x%X, check=%" PRId64, itemId, checkId);
 }
 
 void CheckMan::onBrushAcquired(int brushIndex)
 {
     if (!sendingEnabled_)
     {
-        wolf::logWarning("[CheckMan] Sending disabled, ignoring brush acquisition");
         return;
     }
 
     int64_t checkId = checks::getBrushCheckId(brushIndex);
     sendCheck(checkId);
-
-    wolf::logDebug("[CheckMan] Brush acquired: brush=%d, check=%" PRId64, brushIndex, checkId);
 }
 
 void CheckMan::onShopPurchase(int shopId, int itemSlot, int itemId)
@@ -139,14 +133,11 @@ void CheckMan::onShopPurchase(int shopId, int itemSlot, int itemId)
 
     if (!sendingEnabled_)
     {
-        wolf::logWarning("[CheckMan] Sending disabled, ignoring shop purchase");
         return;
     }
 
     int64_t checkId = checks::getShopCheckId(shopId, itemSlot);
     sendCheck(checkId);
-
-    wolf::logDebug("[CheckMan] Shop purchase: shop=%d, slot=%d, check=%" PRId64, shopId, itemSlot, checkId);
 }
 
 // ========================================
@@ -219,28 +210,20 @@ size_t CheckMan::getSentCount() const
 
 void CheckMan::sendCheck(int64_t checkId)
 {
-    if (!sendingEnabled_)
+    if (!sendingEnabled_ || !socket_.isConnected())
     {
-        wolf::logWarning("[CheckMan] Sending disabled, aborting send");
-        return;
-    }
-
-    if (!socket_.isConnected())
-    {
-        wolf::logWarning("[CheckMan] Socket not connected, aborting send");
         return;
     }
 
     if (hasCheckBeenSent(checkId))
     {
-        wolf::logWarning("[CheckMan] Check %" PRId64 " already sent, skipping", checkId);
-        return;
+        return; // Already sent
     }
 
     socket_.sendLocation(checkId);
     markCheckSent(checkId);
 
-    wolf::logInfo("[CheckMan] Sent check: %" PRId64 " (total sent: %zu)", checkId, sentChecks_.size());
+    wolf::logInfo("[CheckMan] Sent check: %" PRId64 " (total: %zu)", checkId, sentChecks_.size());
 }
 
 bool CheckMan::hasCheckBeenSent(int64_t checkId) const

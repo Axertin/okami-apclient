@@ -193,6 +193,16 @@ int MockArchipelagoSocket::getPlayerSlot() const
     return -1;
 }
 
+const SlotConfig &MockArchipelagoSocket::getSlotConfig() const
+{
+    return slotConfig_;
+}
+
+bool MockArchipelagoSocket::isSlotConfigReady() const
+{
+    return slotConfigReady_;
+}
+
 // === Connection Configuration ===
 
 void MockArchipelagoSocket::setHandshakeConfig(const HandshakeConfig &config)
@@ -351,6 +361,16 @@ void MockArchipelagoSocket::setItemDesc(int player, const std::string &desc)
     itemDescs_[player] = desc;
 }
 
+void MockArchipelagoSocket::setSlotConfig(const SlotConfig &config)
+{
+    slotConfig_ = config;
+}
+
+void MockArchipelagoSocket::setSlotConfigReady(bool ready)
+{
+    slotConfigReady_ = ready;
+}
+
 // === Compatibility ===
 
 void MockArchipelagoSocket::setConnected(bool connected)
@@ -407,6 +427,9 @@ void MockArchipelagoSocket::reset()
     scoutTimeouts_.clear();
 
     disconnectAfterPolls_ = -1;
+
+    slotConfig_ = SlotConfig::defaults();
+    slotConfigReady_ = false;
 }
 
 // === Private Helpers ===

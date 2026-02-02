@@ -28,7 +28,6 @@ constexpr std::array<uint32_t, 2> kCherryBombUpgrades = {6, 11};
  */
 void grantSimpleBrush(int brushIndex)
 {
-    wolf::logDebug("[rewards::brushes] Granting brush technique index %d", brushIndex);
     apgame::usableBrushTechniques->Set(brushIndex);
     apgame::obtainedBrushTechniques->Set(brushIndex);
 }
@@ -47,7 +46,6 @@ template <size_t N> std::expected<void, RewardError> grantProgressiveBrush(int b
 
     if (!hasBase)
     {
-        wolf::logDebug("[rewards::brushes] Granting base progressive brush index %d", brushIndex);
         apgame::usableBrushTechniques->Set(brushIndex);
         apgame::obtainedBrushTechniques->Set(brushIndex);
         return {};
@@ -59,14 +57,12 @@ template <size_t N> std::expected<void, RewardError> grantProgressiveBrush(int b
         uint32_t upgradeBit = upgrades[i];
         if (!apgame::brushUpgrades->IsSet(upgradeBit))
         {
-            wolf::logDebug("[rewards::brushes] Granting brush upgrade level %zu (bit %u)", i + 2, upgradeBit);
             apgame::brushUpgrades->Set(upgradeBit);
             return {};
         }
     }
 
-    wolf::logDebug("[rewards::brushes] Progressive brush index %d already at max level", brushIndex);
-    return {};
+    return {}; // Already at max level
 }
 
 } // anonymous namespace
