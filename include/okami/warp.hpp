@@ -101,10 +101,8 @@ inline const std::vector<WarpPreset> ArkOfYamato = {
 
 // Boss arenas (non-Ark)
 inline const std::vector<WarpPreset> BossArenas = {
-    {"Spider Queen Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x0106, 0x00, 0x00, 0}},
-    {"Crimson Helm Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x010D, 0x00, 0x00, 0}},
-    {"Blight Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x020B, 0x00, 0x00, 0}},
-    {"Wawku Nechku Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x0304, 0x00, 0x00, 0}},
+    {"Spider Queen Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x0106, 0x00, 0x00, 0}},    {"Crimson Helm Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x010D, 0x00, 0x00, 0}},
+    {"Blight Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x020B, 0x00, 0x00, 0}},          {"Wawku Nechku Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x0304, 0x00, 0x00, 0}},
     {"Lechku & Nechku Arena", {0.0f, 0.0f, 0.0f, 0.0f, 0x0314, 0x00, 0x00, 0}},
 };
 
