@@ -13,6 +13,10 @@ Accessor<okami::CollectionData> collectionData;
 Accessor<okami::WorldStateData> worldStateData;
 Accessor<okami::TrackerData> trackerData;
 
+// Warp system accessors
+Accessor<okami::WarpData> warpData;
+Accessor<uint8_t> mapLoadFlags;
+
 void initialize()
 {
     // CollectionData is at 0xB205D0
@@ -37,6 +41,10 @@ void initialize()
 
     // Brush upgrades from TrackerData
     brushUpgrades = BitFieldAccessor<32>("main.dll", trackerDataAddr + offsetof(okami::TrackerData, brushUpgrades));
+
+    // Warp system accessors
+    warpData = Accessor<okami::WarpData>("main.dll", okami::main::warpData);
+    mapLoadFlags = Accessor<uint8_t>("main.dll", okami::main::mapLoadFlags);
 
     wolf::logInfo("[apgame] Game state accessors initialized");
 }

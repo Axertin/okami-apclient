@@ -15,4 +15,5 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/game_items.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/shopdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/slotconfig.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/warpwindow.cpp
 )

@@ -22,7 +22,7 @@ class RewardManFixture
         checkSendingStates_.clear();
 
         // Reserve enough memory for all game state accessors
-        wolf::mock::reserveMemory(0xB21780 + sizeof(okami::TrackerData) + 1024);
+        wolf::mock::reserveMemory(0xC00000 + 1024);
         apgame::initialize();
 
         rewardMan_ = std::make_unique<RewardMan>([this](bool enabled) { checkSendingStates_.push_back(enabled); });
@@ -57,7 +57,7 @@ class RewardManFixture
 TEST_CASE("Queue management", "[rewardman]")
 {
     wolf::mock::reset();
-    wolf::mock::reserveMemory(0xB21780 + sizeof(okami::TrackerData) + 1024);
+    wolf::mock::reserveMemory(0xC00000 + 1024);
     apgame::initialize();
 
     RewardMan rewardMan([](bool) {});

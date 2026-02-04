@@ -1,6 +1,7 @@
 #pragma once
 
 #include <okami/structs.hpp>
+#include <okami/warp.hpp>
 #include <wolf_framework.hpp>
 
 namespace apgame
@@ -21,6 +22,10 @@ extern BitFieldAccessor<32> brushUpgrades;
 extern Accessor<okami::CollectionData> collectionData;
 extern Accessor<okami::WorldStateData> worldStateData;
 extern Accessor<okami::TrackerData> trackerData;
+
+// Warp system accessors
+extern Accessor<okami::WarpData> warpData;
+extern Accessor<uint8_t> mapLoadFlags;
 
 // Initialize all accessors
 // Must be called during mod startup before receiving any items
