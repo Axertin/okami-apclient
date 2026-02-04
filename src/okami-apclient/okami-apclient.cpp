@@ -9,6 +9,7 @@
 #include "notificationwindow.h"
 #include "rewardman.h"
 #include "version.h"
+#include "warpwindow.h"
 
 #ifdef _WIN32
 #include <d3d11.h>
@@ -32,6 +33,7 @@ static void renderGui(int outerWidth, int outerHeight, [[maybe_unused]] float ui
 
     // Draw all windows
     loginwindow::draw();
+    warpwindow::draw();
     notificationwindow::draw(outerWidth, outerHeight);
 
     WOLF_IMGUI_END();
@@ -96,6 +98,7 @@ class APClientMod
         // Initialize UI
         initializeGui();
         loginwindow::initialize(ArchipelagoSocket::instance());
+        warpwindow::initialize();
 
         // Initialize check manager (sets up monitors and container hooks)
         g_checkMan->initialize();
@@ -119,6 +122,7 @@ class APClientMod
         }
         g_checkMan.reset();
         g_rewardMan.reset();
+        warpwindow::shutdown();
         notificationwindow::shutdown();
         loginwindow::shutdown();
         shutdownGui();
