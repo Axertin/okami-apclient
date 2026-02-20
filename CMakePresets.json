@@ -198,6 +198,48 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "llvm-mingw-cross-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "cacheVariables": {
+                "CXX_STD": "23",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/external/vcpkg/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+                "VCPKG_TARGET_TRIPLET": "x64-mingw-llvm-static",
+                "VCPKG_HOST_TRIPLET": "x64-linux",
+                "VCPKG_CHAINLOAD_TOOLCHAIN_FILE": "${sourceDir}/cmake/toolchains/llvm-mingw.cmake",
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/cmake/vcpkg-overlays",
+                "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/vcpkg-overlays/triplets",
+                "VCPKG_APPLOCAL_DEPS": "OFF"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "environment": {
+                "VCPKG_DEFAULT_TRIPLET": "x64-mingw-llvm-static",
+                "VCPKG_DEFAULT_HOST_TRIPLET": "x64-linux"
+            }
+        },
+        {
+            "name": "llvm-mingw-cross-debug",
+            "displayName": "Linux Cross Debug (llvm-mingw)",
+            "inherits": "llvm-mingw-cross-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "llvm-mingw-cross-release",
+            "displayName": "Linux Cross Release (llvm-mingw)",
+            "inherits": "llvm-mingw-cross-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ],
     "buildPresets": [

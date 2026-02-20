@@ -59,6 +59,56 @@ cmake --build --preset x64-clang-debug
 - `x64-clang-release` - Release build with Clang
 - `x64-debug` - Debug build with MSVC
 - `x64-release` - Release build with MSVC
+- `linux-cross-debug` - Cross-compile for Windows from Linux using GCC MinGW-w64 (GCC 13.3+ required)
+- `linux-cross-release` - Release cross-compile for Windows from Linux using GCC MinGW-w64
+- `llvm-mingw-cross-debug` - Cross-compile for Windows from Linux using llvm-mingw (recommended)
+- `llvm-mingw-cross-release` - Release cross-compile for Windows from Linux using llvm-mingw
+
+### Linux Cross-Compilation
+
+Two toolchain options are available. **llvm-mingw is recommended** — it works on all
+distros including Ubuntu, and uses the same Clang compiler used for the Windows builds.
+
+#### Option A: llvm-mingw (Recommended)
+
+[llvm-mingw](https://github.com/mstorsjo/llvm-mingw) is a Clang/LLVM-based MinGW-w64
+toolchain that builds cleanly on all Linux distros.
+
+1. Download the latest Linux x86_64 UCRT release from
+   [github.com/mstorsjo/llvm-mingw/releases](https://github.com/mstorsjo/llvm-mingw/releases).
+   The filename looks like `llvm-mingw-YYYYMMDD-ucrt-ubuntu-20.04-x86_64.tar.xz`.
+
+2. Extract it and set the `LLVM_MINGW_ROOT` environment variable:
+
+   ```bash
+   sudo tar -xf llvm-mingw-*-ucrt-ubuntu-20.04-x86_64.tar.xz -C /opt
+   sudo mv /opt/llvm-mingw-* /opt/llvm-mingw
+   export LLVM_MINGW_ROOT=/opt/llvm-mingw   # add to ~/.bashrc to persist
+   ```
+
+3. Build using the `llvm-mingw-cross-*` presets:
+
+   ```bash
+   cmake --preset llvm-mingw-cross-debug
+   cmake --build --preset llvm-mingw-cross-debug
+   ```
+
+#### Option B: GCC MinGW-w64 (GCC 13.3+ required)
+
+```bash
+sudo apt install gcc-mingw-w64-x86-64 g++-mingw-w64-x86-64 ninja-build
+cmake --preset linux-cross-debug
+cmake --build --preset linux-cross-debug
+```
+
+> **Ubuntu compatibility:** Ubuntu ships GCC 13.2 for `gcc-mingw-w64-x86-64` across all
+> releases through 25.10, with no newer version available via apt. GCC 13.2 rejects the
+> template-id constructor syntax in `websocketpp` as a hard parse error in C++20 mode
+> ([CWG DR 2037][cwgdr2037]) with no pragma-level workaround. The CMake configure step
+> will fail with an actionable error message on unsupported compilers.
+> **Fedora** (and other distros that ship GCC 13.3+) cross-compile without issue.
+
+[cwgdr2037]: https://cplusplus.github.io/CWG/issues/2037.html
 
 ### Custom Ninja Path
 
