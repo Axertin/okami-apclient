@@ -38,6 +38,7 @@
 // Core runtime API (uses function table)
 
 // === Expanded from wolf_core.hpp ===
+#include <atomic>
 #include <cassert>
 #include <cstdarg>
 #include <cstdint>
@@ -2502,6 +2503,15 @@ template <typename T> class MemoryAccessor
     T *operator->() const
     {
         return get_ptr();
+    }
+
+    /**
+     * @brief Dereference operator for reference-style access
+     * @return Reference to memory location
+     */
+    T &operator*() const
+    {
+        return *get_ptr();
     }
 };
 

@@ -104,5 +104,14 @@ include(CTest)
 
 # Include Catch2's test discovery
 include(Catch)
-catch_discover_tests(apclient-tests)
-catch_discover_tests(apclient-harness-tests)
+
+# When cross-compiling (e.g. Windows EXEs built on Linux), running the executable
+# at build time for POST_BUILD test discovery will fail. Defer to PRE_TEST so the
+# build succeeds; test discovery runs at CTest invocation time instead.
+if(CMAKE_CROSSCOMPILING)
+    set(CATCH_DISCOVERY_MODE DISCOVERY_MODE PRE_TEST)
+else()
+    set(CATCH_DISCOVERY_MODE "")
+endif()
+catch_discover_tests(apclient-tests ${CATCH_DISCOVERY_MODE})
+catch_discover_tests(apclient-harness-tests ${CATCH_DISCOVERY_MODE})

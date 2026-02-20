@@ -53,6 +53,41 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CROSS_COMPILING_WINDOWS)
         -static
         LINKER:--allow-multiple-definition
         LINKER:--enable-stdcall-fixup)
+    # websocketpp uses template-id ctor/dtor syntax (e.g. basic<T,U>()) which is ill-formed
+    # in C++20 per CWG DR 2037. GCC 13.3+ demotes this to a suppressible warning via
+    # -Wno-template-id-cdtor. GCC 13.2 and earlier treat it as a hard parse error with no
+    # workaround short of modifying the library. Ubuntu ships GCC 13.2 for mingw-w64 across
+    # all releases through 25.10 with no newer package available via apt.
+    # Minimum required MinGW-w64 cross-compiler: GCC 13.3.0
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "13.3.0")
+        message(FATAL_ERROR
+            "MinGW-w64 cross-compiler GCC ${CMAKE_CXX_COMPILER_VERSION} is not supported.\n"
+            "websocketpp uses template-id ctor/dtor syntax (CWG DR 2037) that GCC < 13.3 "
+            "rejects as a hard parse error in C++20 mode with no pragma-level workaround.\n"
+            "Ubuntu 24.04–25.10 only ship GCC 13.2 for mingw-w64 (no newer apt package).\n"
+            "To cross-compile, use llvm-mingw (cmake/toolchains/llvm-mingw.cmake) "
+            "or a system with GCC 13.3+ mingw-w64 (e.g. Fedora), "
+            "or build using the Windows/MSVC presets instead.")
+    else()
+        target_compile_options(okami-apclient PRIVATE -Wno-template-id-cdtor)
+    endif()
+    # Remove lib prefix and skip import library generation
+    set_target_properties(okami-apclient PROPERTIES
+        PREFIX ""
+        IMPORT_SUFFIX ""
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/implib")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CROSS_COMPILING_WINDOWS)
+    # llvm-mingw cross-compilation: Clang uses the LLVM integrated assembler (no -Wa,-mbig-obj
+    # needed) and has no libgcc (no -static-libgcc). websocketpp compiles cleanly with Clang.
+    # UCRT is a Windows system DLL (present on Win10+); don't force -static which would break
+    # its __declspec(dllimport) symbols. Instead, link libc++/libunwind as static archives so
+    # the DLL has no dependency on libc++.dll or libunwind.dll.
+    target_link_libraries(okami-apclient PRIVATE dwmapi d3dcompiler)
+    target_compile_options(okami-apclient PRIVATE -g1)
+    target_link_options(okami-apclient PRIVATE
+        LINKER:--allow-multiple-definition
+        LINKER:--enable-stdcall-fixup)
+    target_link_libraries(okami-apclient PRIVATE -l:libc++.a -l:libc++abi.a -l:libunwind.a)
     # Remove lib prefix and skip import library generation
     set_target_properties(okami-apclient PROPERTIES
         PREFIX ""
