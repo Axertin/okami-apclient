@@ -270,6 +270,76 @@ Debug logs are automatically saved to `logs/` directory with timestamps. Check l
 2. Add handler logic in the reward or check manager
 3. Add unit tests in `tests/` to verify behavior
 
+## Debugging
+
+### TDR: Why Debugger Attach Crashes the Game
+
+The crash is caused by **Windows TDR (Timeout Detection and Recovery)**:
+
+1. Debugger attach (`DebugActiveProcess`) suspends all threads
+2. The render thread stops mid-frame, stalling the GPU command queue
+3. After ~2 seconds (default `TdrDelay`), Windows resets the GPU
+4. The D3D11 device becomes invalid (`DXGI_ERROR_DEVICE_REMOVED`)
+5. The game has no device-lost recovery — next D3D11 call crashes the process
+
+### TDR Workaround
+
+Run as admin, then **reboot**:
+
+```bat
+:: Increase TDR timeout to 120 seconds (TDR still works for real hangs)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 120 /f
+
+:: OR fully disable TDR (dev machines only)
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 0 /f
+```
+
+To restore defaults:
+
+```bat
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrDelay /t REG_DWORD /d 2 /f
+reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v TdrLevel /t REG_DWORD /d 3 /f
+```
+
+### Local Debugging (Windows)
+
+Prerequisites:
+- Install the [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb)
+  VSCode extension (listed in `.vscode/extensions.json`)
+- Apply the TDR workaround above
+
+Workflow:
+
+1. Build and install: run the **CMake: install** task (or use the launch config that does it
+   automatically)
+2. Launch the game via WOLF
+3. In VSCode, select **"Attach to Okami (LLDB)"** and press F5
+4. Pick the game process from the list
+5. Set breakpoints in `okami-apclient` source files
+
+The PDB is in the build directory and its path is embedded in the DLL, so LLDB finds symbols
+automatically.
+
+### Remote Debugging
+
+For debugging the game remotely:
+
+Install LLDB (included in the
+[LLVM installer](https://github.com/llvm/llvm-project/releases), check the "LLDB" component).
+Then start the debug server:
+
+```bat
+lldb-server gdbserver --attach <GAME_PID> 0.0.0.0:12345
+```
+
+Where `<GAME_PID>` is the PID of the game process.
+
+select **"Remote Attach to Okami"** in the VSCode Run
+panel and press F5. Enter the Windows machine's IP and port when prompted.
+
+This config uses the active CMake preset's build output for symbols (`target.exec-search-paths`), so make sure that
+the same binary you've just built remotely is deployed to the machine running the game.
+
 ## Performance Considerations
 
 - **Minimize allocations** in hot paths (game loop, memory monitoring)
@@ -288,5 +358,5 @@ Debug logs are automatically saved to `logs/` directory with timestamps. Check l
 ## Getting Help
 
 - **Build issues** - Check vcpkg and CMake output
-- **Runtime crashes** - Check log files and use debugger
+- **Runtime crashes** - Check log files and see [Debugging](#debugging)
 - **Community discussion** - [Archipelago Discord](https://discord.com/channels/731205301247803413/1196620860405067848)
