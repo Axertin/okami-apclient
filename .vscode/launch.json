@@ -1,0 +1,52 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Attach to Okami (LLDB)",
+			"type": "lldb",
+			"request": "attach",
+			"pid": "${command:pickProcess}",
+			"sourceMap": {
+				".": "${workspaceFolder}"
+			},
+			"preLaunchTask": "CMake: install"
+		},
+		{
+			"name": "Attach to Okami (LLDB, no build)",
+			"type": "lldb",
+			"request": "attach",
+			"pid": "${command:pickProcess}",
+			"sourceMap": {
+				".": "${workspaceFolder}"
+			}
+		},
+		{
+			"name": "Remote Attach to Okami",
+			"type": "lldb",
+			"request": "attach",
+			"initCommands": [
+				"settings set target.exec-search-paths ${command:cmake.buildDirectory}/src/okami-apclient"
+			],
+			"processCreateCommands": [
+				"gdb-remote ${input:windowsHost}:${input:debugPort}"
+			],
+			"sourceMap": {
+				".": "${workspaceFolder}"
+			}
+		}
+	],
+	"inputs": [
+		{
+			"id": "windowsHost",
+			"type": "promptString",
+			"description": "Windows machine hostname or IP",
+			"default": "localhost"
+		},
+		{
+			"id": "debugPort",
+			"type": "promptString",
+			"description": "lldb-server port on Windows",
+			"default": "12345"
+		}
+	]
+}
