@@ -12,45 +12,45 @@ class FileBuffer
   public:
     void append(const auto &value)
     {
-        const uint8_t *valBytes = reinterpret_cast<const uint8_t *>(&value);
-        this->buffer.insert(this->buffer.end(), valBytes, valBytes + sizeof(value));
+        const auto *valBytes = reinterpret_cast<const uint8_t *>(&value);
+        buffer.insert(buffer.end(), valBytes, valBytes + sizeof(value));
     }
 
     void append_range(const std::ranges::range auto &container)
     {
         for (const auto &v : container)
         {
-            this->append(v);
+            append(v);
         }
     }
 
     void append_bytes(size_t count, uint8_t value = 0)
     {
-        this->buffer.insert(this->buffer.end(), count, value);
+        buffer.insert(buffer.end(), count, value);
     }
 
-    size_t size() const
+    [[nodiscard]] size_t size() const noexcept
     {
-        return this->buffer.size();
+        return buffer.size();
     }
 
     void clear()
     {
-        this->buffer.clear();
+        buffer.clear();
     }
 
     void reserve(size_t count)
     {
-        this->buffer.reserve(count);
+        buffer.reserve(count);
     }
 
-    const uint8_t *data() const
+    [[nodiscard]] const uint8_t *data() const noexcept
     {
-        return this->buffer.data();
+        return buffer.data();
     }
 
-    std::vector<uint8_t> &get_buffer()
+    [[nodiscard]] std::vector<uint8_t> &get_buffer() noexcept
     {
-        return this->buffer;
+        return buffer;
     }
 };

@@ -4,7 +4,7 @@
 namespace okami
 {
 
-enum ItemParamFlags
+enum class ItemParamFlags : uint32_t
 {
     ItmIsFood = 0x100000,
     ItmIsTreasureTome = 0x8000000,
@@ -19,5 +19,6 @@ struct ItemParam
     uint8_t category;
     // 3 bytes padding
 };
+static_assert(sizeof(ItemParam) == 12);
 
 } // namespace okami

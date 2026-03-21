@@ -100,3 +100,10 @@ add_git_version_info(okami-apclient)
 
 # Only install the DLL, not the import library
 install(TARGETS okami-apclient RUNTIME DESTINATION apclient/)
+
+# Install the AP icon so customiconpkg::buildFromFile() can find it at runtime
+install(FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/ap_standard.dds
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/ap_progression.dds
+    ${CMAKE_CURRENT_SOURCE_DIR}/icons/ap_trap.dds
+    DESTINATION apclient/game-data/icons)
