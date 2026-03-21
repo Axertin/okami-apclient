@@ -5,15 +5,20 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/containers.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/gamestate_monitors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/shops.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/data/blowfish.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/data/customiconpkg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/data/msd.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/data/resourcepkg.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/data/shopdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/gamestate_accessors.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/loginwindow.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/notificationwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/itempatch.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/okami-apclient.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewardman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/brushes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/event_flags.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/game_items.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/shopdata.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/slotconfig.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/warpwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/loginwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/notificationwindow.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ui/warpwindow.cpp
 )

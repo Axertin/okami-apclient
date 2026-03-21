@@ -8,7 +8,7 @@
 #include <okami/warp.hpp>
 #include <wolf_framework.hpp>
 
-#include "gamestate_accessors.hpp"
+#include "../gamestate_accessors.hpp"
 
 #ifdef _WIN32
 #include "imgui.h"

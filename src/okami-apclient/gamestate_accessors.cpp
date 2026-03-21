@@ -17,6 +17,9 @@ Accessor<okami::TrackerData> trackerData;
 Accessor<okami::WarpData> warpData;
 Accessor<uint8_t> mapLoadFlags;
 
+// Item parameter table accessor
+Accessor<std::array<okami::ItemParam, okami::ItemTypes::NUM_ITEM_TYPES>> itemParams;
+
 void initialize()
 {
     // CollectionData is at 0xB205D0
@@ -45,6 +48,10 @@ void initialize()
     // Warp system accessors
     warpData = Accessor<okami::WarpData>("main.dll", okami::main::warpData);
     mapLoadFlags = Accessor<uint8_t>("main.dll", okami::main::mapLoadFlags);
+
+    // Item parameter table
+    constexpr uintptr_t itemParamsAddr = 0x7AB220;
+    itemParams = Accessor<std::array<okami::ItemParam, okami::ItemTypes::NUM_ITEM_TYPES>>("main.dll", itemParamsAddr);
 
     wolf::logInfo("[apgame] Game state accessors initialized");
 }

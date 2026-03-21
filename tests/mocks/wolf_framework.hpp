@@ -112,6 +112,11 @@ template <typename T> class MemoryAccessor
     {
         return ptr_;
     }
+
+    bool is_bound() const noexcept
+    {
+        return ptr_ != nullptr;
+    }
 };
 
 // Mock wolf framework functions
@@ -174,6 +179,15 @@ inline void onReturnToMenu(std::function<void()> callback)
 inline bool onItemPickupBlocking(std::function<bool(int, int)> callback)
 {
     // No-op in tests
+    return true;
+}
+
+// ResourceProvider type used by interceptResource
+using ResourceProvider = std::function<const char *(const char *originalPath)>;
+
+// Mock interceptResource - no-op in tests (build path is tested separately)
+inline bool interceptResource(const char * /*filename*/, ResourceProvider /*provider*/) noexcept
+{
     return true;
 }
 

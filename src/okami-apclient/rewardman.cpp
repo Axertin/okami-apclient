@@ -4,10 +4,10 @@
 
 #include <wolf_framework.hpp>
 
-#include "notificationwindow.h"
 #include "rewards/brushes.hpp"
 #include "rewards/event_flags.hpp"
 #include "rewards/game_items.hpp"
+#include "ui/notificationwindow.h"
 
 RewardMan::RewardMan(CheckSendingCallback onCheckSendingChange) : onCheckSendingChange_(std::move(onCheckSendingChange))
 {
@@ -23,7 +23,7 @@ void RewardMan::reset()
     grantingEnabled_ = false;
 }
 
-void RewardMan::queueReward(int64_t apItemId, const std::string &itemName)
+void RewardMan::queueReward(int64_t apItemId, const std::string &itemName, unsigned /*flags*/)
 {
     std::lock_guard lock(queueMutex_);
     queuedRewards_.push_back({apItemId, itemName});

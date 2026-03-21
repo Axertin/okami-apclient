@@ -266,16 +266,16 @@ enum Enum
     CutlassFish,
     NUM_ITEM_TYPES,
 
-    ArchipelagoTestItem1 = Unused_78,
-    ArchipelagoTestItem2 = Chestnut,
-    ArchipelagoTestItem3 = Unused_82,
-    ArchipelagoTestItem4 = Unused_A2,
-    ArchipelagoTestItem5 = Unused_A8,
-    ArchipelagoTestItem6 = Unused_AC,
-    ArchipelagoTestItem7 = Unused_AF,
+    ForeignStandardItem = Unused_78,
+    ForeignProgressionItem = Unused_82,
+    ForeignTrapItem = Unused_AF,
+    OkamiStandardItem = Unused_A2,
+    OkamiProgressionItem = Unused_A8,
+    OkamiTrapItem = Unused_AC,
+    Unknown = Unused_58
 };
 
-static const char *names[NUM_ITEM_TYPES] = {
+inline constexpr const char *names[NUM_ITEM_TYPES] = {
     "None",
     "Spirit Globe S",
     "Spirit Globe M",
@@ -396,7 +396,7 @@ static const char *names[NUM_ITEM_TYPES] = {
     "Herbal Medicine",
     "Pinwheel",
     "Marlin Rod",
-    "Unused78",
+    "Archipelago Item",
     "Karmic Transformer 3",
     "Karmic Transformer 8",
     "Karmic Transformer 7",
@@ -406,7 +406,7 @@ static const char *names[NUM_ITEM_TYPES] = {
     "[Galestorm Tech]",
     "[Thunderstorm Tech]",
     "[Power Slash 2]",
-    "Unused82",
+    "Archipelago Progression",
     "Chestnut",
     "[Enhancing Divinity]",
     "[Feeding]",
@@ -451,7 +451,7 @@ static const char *names[NUM_ITEM_TYPES] = {
     "UnusedAC",
     "Glass Beads",
     "Dragonfly Bead",
-    "UnusedAF",
+    "Archipelago Trap",
     "Coral Fragment",
     "Crystal",
     "Pearl",
@@ -534,7 +534,7 @@ static const char *names[NUM_ITEM_TYPES] = {
     "Cutlass Fish",
 };
 
-inline const char *GetName(unsigned value)
+inline constexpr const char *GetName(unsigned value)
 {
     if (value < NUM_ITEM_TYPES)
     {

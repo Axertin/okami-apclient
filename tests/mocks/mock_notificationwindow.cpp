@@ -1,5 +1,5 @@
 // Mock implementation of notificationwindow for tests
-#include "notificationwindow.h"
+#include "ui/notificationwindow.h"
 
 namespace notificationwindow
 {

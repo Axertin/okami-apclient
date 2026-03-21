@@ -8,7 +8,7 @@
 #include <nlohmann/json.hpp>
 #include <wolf_framework.hpp>
 
-#include "isocket.h"
+#include "../isocket.h"
 #include "version.h"
 
 #ifdef _WIN32

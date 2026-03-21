@@ -5,11 +5,12 @@
 #include "archipelagosocket.h"
 #include "checkman.h"
 #include "gamestate_accessors.hpp"
-#include "loginwindow.h"
-#include "notificationwindow.h"
+#include "itempatch.hpp"
 #include "rewardman.h"
+#include "ui/loginwindow.h"
+#include "ui/notificationwindow.h"
+#include "ui/warpwindow.h"
 #include "version.h"
-#include "warpwindow.h"
 
 #ifdef _WIN32
 #include <d3d11.h>
@@ -70,6 +71,7 @@ class APClientMod
   public:
     static void earlyGameInit()
     {
+        itempatch::initializeEarly();
     }
 
     static void lateGameInit()
@@ -77,6 +79,12 @@ class APClientMod
         wolf::logDebug("main.dll is at 0x%llX", wolf::getModuleBase("main.dll"));
         // Initialize game state accessors first
         apgame::initialize();
+
+        // Install hooks (before patchItemParams, so hooks intercept game events)
+        itempatch::initialize();
+
+        // Patch ItemParam array to prevent shop crashes
+        itempatch::patchItemParams();
 
         // Create managers with explicit dependencies
         g_checkMan = std::make_unique<CheckMan>(ArchipelagoSocket::instance());
