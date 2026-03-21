@@ -20,11 +20,16 @@ add_library(apclient-testable STATIC
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/shops.cpp
 
     # Shop data
-    ${CMAKE_SOURCE_DIR}/src/okami-apclient/shopdata.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/shopdata.cpp
 
     # Other testable sources
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/slotconfig.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/itempatch.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/msd.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/blowfish.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/resourcepkg.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/customiconpkg.cpp
 
     # Mock implementations
     mocks/wolf_framework.cpp
@@ -57,6 +62,9 @@ add_executable(apclient-tests
     test_gamestate_monitors.cpp
     test_shops.cpp
     test_version_utils.cpp
+    test_itempatch.cpp
+    test_resourcepkg.cpp
+    test_customiconpkg.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE
@@ -99,19 +107,49 @@ if(NOT WIN32)
     target_compile_definitions(apclient-harness-tests PRIVATE __fastcall=)
 endif()
 
+# When cross-compiling with llvm-mingw, statically link libc++/libunwind so the test
+# EXEs have no dependency on libc++.dll or libunwind.dll
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CROSS_COMPILING_WINDOWS)
+    target_link_libraries(apclient-tests PRIVATE -l:libc++.a -l:libc++abi.a -l:libunwind.a)
+    target_link_libraries(apclient-harness-tests PRIVATE -l:libc++.a -l:libc++abi.a -l:libunwind.a)
+endif()
+
 # Enable testing
 include(CTest)
 
 # Include Catch2's test discovery
 include(Catch)
 
-# When cross-compiling (e.g. Windows EXEs built on Linux), running the executable
-# at build time for POST_BUILD test discovery will fail. Defer to PRE_TEST so the
-# build succeeds; test discovery runs at CTest invocation time instead.
-if(CMAKE_CROSSCOMPILING)
-    set(CATCH_DISCOVERY_MODE DISCOVERY_MODE PRE_TEST)
+# When cross-compiling for Windows, use Wine to run test executables if available.
+# If Wine is not found, skip test discovery entirely (tests still build, just aren't registered with CTest).
+if(CMAKE_CROSSCOMPILING AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    find_program(WINE_EXECUTABLE NAMES wine64 wine)
+    if(WINE_EXECUTABLE)
+        # Wine needs an X display to initialize its prefix, even for console-only executables.
+        if(DEFINED ENV{DISPLAY})
+            # A display is already available; use Wine directly.
+            set(_wine_emulator "${WINE_EXECUTABLE}")
+            message(STATUS "Wine found: ${WINE_EXECUTABLE} (DISPLAY=$ENV{DISPLAY}), test discovery deferred to ctest invocation")
+        else()
+            # No display in environment; wrap with xvfb-run if available, else warn and use directly
+            find_program(XVFB_RUN xvfb-run)
+            if(XVFB_RUN)
+                set(_wine_emulator "${XVFB_RUN};-a;${WINE_EXECUTABLE}")
+                message(STATUS "Wine found: ${WINE_EXECUTABLE} (via xvfb-run), test discovery deferred to ctest invocation")
+            else()
+                set(_wine_emulator "${WINE_EXECUTABLE}")
+                message(WARNING "Wine found: ${WINE_EXECUTABLE} but $DISPLAY is not set and xvfb could not be found, expect some errors.")
+                message(STATUS "test discovery deferred to ctest invocation")
+            endif()
+        endif()
+        set_target_properties(apclient-tests apclient-harness-tests
+            PROPERTIES CROSSCOMPILING_EMULATOR "${_wine_emulator}") # But CMake, WINE Is Not an Emulator!
+        catch_discover_tests(apclient-tests DISCOVERY_MODE PRE_TEST)
+        catch_discover_tests(apclient-harness-tests DISCOVERY_MODE PRE_TEST)
+    else()
+        message(STATUS "Wine not found, skipping CTest discovery for cross-compiled Windows tests")
+    endif()
 else()
-    set(CATCH_DISCOVERY_MODE "")
+    catch_discover_tests(apclient-tests)
+    catch_discover_tests(apclient-harness-tests)
 endif()
-catch_discover_tests(apclient-tests ${CATCH_DISCOVERY_MODE})
-catch_discover_tests(apclient-harness-tests ${CATCH_DISCOVERY_MODE})

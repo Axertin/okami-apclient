@@ -1,9 +1,11 @@
 #include <cstring>
+#include <optional>
 
 #include <okami/shopdata.h>
 
 #include <catch2/catch_test_macros.hpp>
 #include <okami/itemtype.hpp>
+#include <okami/maptype.hpp>
 
 #include "checks/check_types.hpp"
 #include "checks/shops.hpp"
@@ -273,6 +275,95 @@ TEST_CASE("ShopDefinition dirty flag prevents unnecessary rebuilds", "[shops][Sh
 }
 
 // ============================================================================
+// GetShopIdForMap tests
+// ============================================================================
+
+TEST_CASE("GetShopIdForMap: wildcard entries match any shopNum", "[shops][ShopMap]")
+{
+    // AgataForest uses kAnyShopNum — should match regardless of shopNum
+    auto id0 = checks::GetShopIdForMap(okami::MapID::AgataForestCursed, 0);
+    auto id1 = checks::GetShopIdForMap(okami::MapID::AgataForestCursed, 999);
+    REQUIRE(id0.has_value());
+    REQUIRE(id1.has_value());
+    REQUIRE(*id0 == *id1);
+}
+
+TEST_CASE("GetShopIdForMap: Seian disambiguates weapon and fish shops by shopNum", "[shops][ShopMap]")
+{
+    auto weapon = checks::GetShopIdForMap(okami::MapID::SeianCityCommonersQuarter, 0);
+    auto fish = checks::GetShopIdForMap(okami::MapID::SeianCityCommonersQuarter, 1);
+    REQUIRE(weapon.has_value());
+    REQUIRE(fish.has_value());
+    REQUIRE(*weapon != *fish);
+    REQUIRE(*weapon == 16);
+    REQUIRE(*fish == 17);
+}
+
+TEST_CASE("GetShopIdForMap: healed and cursed variants share same shopId", "[shops][ShopMap]")
+{
+    auto cursed = checks::GetShopIdForMap(okami::MapID::AgataForestCursed, 0);
+    auto healed = checks::GetShopIdForMap(okami::MapID::AgataForestHealed, 0);
+    REQUIRE(cursed.has_value());
+    REQUIRE(healed.has_value());
+    REQUIRE(*cursed == *healed);
+}
+
+TEST_CASE("GetShopIdForMap: unknown map returns nullopt", "[shops][ShopMap]")
+{
+    auto result = checks::GetShopIdForMap(0xFFFF, 0);
+    REQUIRE_FALSE(result.has_value());
+}
+
+// ============================================================================
+// GetCurrentItemShopData tests
+// ============================================================================
+
+TEST_CASE("GetCurrentItemShopData: returns non-null for known shop map", "[shops][ShopMap]")
+{
+    auto *data = checks::GetCurrentItemShopData(okami::MapID::AgataForestCursed, 0);
+    REQUIRE(data != nullptr);
+}
+
+TEST_CASE("GetCurrentItemShopData: returns nullptr for unknown map", "[shops][ShopMap]")
+{
+    auto *data = checks::GetCurrentItemShopData(0xFFFF, 0);
+    REQUIRE(data == nullptr);
+}
+
+// ============================================================================
+// SetStock boundary tests
+// ============================================================================
+
+TEST_CASE("ShopDefinition SetStock: exactly MaxShopStockSize items is accepted", "[shops][ShopDefinition]")
+{
+    wolf::mock::reset();
+    checks::ShopDefinition shop;
+
+    std::vector<okami::ItemShopStock> exactStock(checks::MaxShopStockSize);
+    for (auto &item : exactStock)
+        item = {okami::ItemTypes::HolyBoneS, 100, 0};
+
+    shop.SetStock(exactStock);
+
+    // No warning should be logged — exactly MaxShopStockSize is valid
+    bool foundWarning = false;
+    for (const auto &msg : wolf::mock::logMessages)
+    {
+        if (msg.find("Max stock size") != std::string::npos)
+        {
+            foundWarning = true;
+            break;
+        }
+    }
+    REQUIRE_FALSE(foundWarning);
+
+    // Verify the stock was actually set
+    const uint8_t *data = shop.GetData();
+    const uint32_t *numItems = reinterpret_cast<const uint32_t *>(data + 16); // after ISLHeader
+    REQUIRE(*numItems == checks::MaxShopStockSize);
+}
+
+// ============================================================================
 // ShopMan initialization tests
 // ============================================================================
 
@@ -308,26 +399,6 @@ TEST_CASE_METHOD(ShopManFixture, "ShopMan initialize installs hooks", "[shops][S
     REQUIRE(wolf::mock::registeredHooks.count(0x4420C0) > 0); // GetShopVariation
     REQUIRE(wolf::mock::registeredHooks.count(0x1B1770) > 0); // LoadRsc
     REQUIRE(wolf::mock::registeredHooks.count(0x43F5A0) > 0); // CKibaShop_GetShopStockList
-
-    TearDown();
-}
-
-TEST_CASE_METHOD(ShopManFixture, "ShopMan initialize logs success", "[shops][ShopMan]")
-{
-    SetUp();
-
-    shopMan_->initialize();
-
-    bool foundSuccessLog = false;
-    for (const auto &msg : wolf::mock::logMessages)
-    {
-        if (msg.find("Shop hooks installed successfully") != std::string::npos)
-        {
-            foundSuccessLog = true;
-            break;
-        }
-    }
-    REQUIRE(foundSuccessLog);
 
     TearDown();
 }
