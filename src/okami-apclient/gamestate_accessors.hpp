@@ -1,5 +1,9 @@
 #pragma once
 
+#include <array>
+
+#include <okami/itemparam.hpp>
+#include <okami/itemtype.hpp>
 #include <okami/structs.hpp>
 #include <okami/warp.hpp>
 #include <wolf_framework.hpp>
@@ -26,6 +30,9 @@ extern Accessor<okami::TrackerData> trackerData;
 // Warp system accessors
 extern Accessor<okami::WarpData> warpData;
 extern Accessor<uint8_t> mapLoadFlags;
+
+// Item parameter table accessor
+extern Accessor<std::array<okami::ItemParam, okami::ItemTypes::NUM_ITEM_TYPES>> itemParams;
 
 // Initialize all accessors
 // Must be called during mod startup before receiving any items

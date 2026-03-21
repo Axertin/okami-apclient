@@ -48,8 +48,9 @@ class RewardMan
      *
      * @param apItemId The Archipelago item ID to queue
      * @param itemName Display name for the item (for notifications)
+     * @param flags    AP item classification flags (see rewards::APItemFlags)
      */
-    void queueReward(int64_t apItemId, const std::string &itemName);
+    void queueReward(int64_t apItemId, const std::string &itemName, unsigned flags = 0);
 
     /**
      * @brief Process all queued rewards

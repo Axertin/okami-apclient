@@ -5,6 +5,7 @@
 #include <functional>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <okami/filebuffer.h>
@@ -95,6 +96,10 @@ class ShopMan
     using GetKibaShopStockListFn = okami::ItemShopStock *(__fastcall *)(void *, uint32_t *);
     using ItemShopPurchaseFn = void(__fastcall *)(void *);
     using KibaShopPurchaseFn = void(__fastcall *)(void *);
+    using ItemShopSortStockFn = void(__fastcall *)(void *, uint8_t);
+    using IsGrayedOutFn = int(__fastcall *)(void *, int);
+    using IsPurchasedFn = int(__fastcall *)(void *, int);
+    using BuyQtyDialogFn = void(__fastcall *)(void *);
 
     // Hook implementations
     static int64_t __fastcall hookGetShopVariation(void *pUnk, uint32_t shopNum, char **pszShopTextureName);
@@ -102,6 +107,10 @@ class ShopMan
     static okami::ItemShopStock *__fastcall hookCKibaShop_GetShopStockList(void *pKibaShop, uint32_t *numItems);
     static void __fastcall hookCItemShop_PurchaseItem(void *pShop);
     static void __fastcall hookCKibaShop_PurchaseItem(void *pShop);
+    static void __fastcall hookCItemShop_SortStock(void *pShop, uint8_t numItems);
+    static int __fastcall hookIsGrayedOut(void *pShop, int slotIndex);
+    static int __fastcall hookIsPurchased(void *pShop, int slotIndex);
+    static void __fastcall hookBuyQtyDialog(void *pShop);
 
     // Original function pointers
     static GetShopVariationFn originalGetShopVariation_;
@@ -110,6 +119,10 @@ class ShopMan
     static GetKibaShopStockListFn originalCKibaShop_GetShopStockList_;
     static ItemShopPurchaseFn originalCItemShop_PurchaseItem_;
     static KibaShopPurchaseFn originalCKibaShop_PurchaseItem_;
+    static ItemShopSortStockFn originalCItemShop_SortStock_;
+    static IsGrayedOutFn originalIsGrayedOut_;
+    static IsPurchasedFn originalIsPurchased_;
+    static BuyQtyDialogFn originalBuyQtyDialog_;
 
     static ShopMan *activeInstance_;
 
@@ -127,6 +140,9 @@ class ShopMan
 
     // Current shop tracking (set when ISL loads, used by purchase hooks)
     int currentShopId_ = -1;
+
+    // Tracks AP locations that have been purchased this session
+    std::unordered_set<int64_t> purchasedChecks_;
 };
 
 } // namespace checks

@@ -6,6 +6,7 @@
 #include "bitfield.hpp"
 #include "dojotech.hpp"
 #include "fish.hpp"
+#include "itemparam.hpp"
 #include "itemtype.hpp"
 #include "maptype.hpp"
 #include "movelisttome.hpp"
@@ -429,12 +430,4 @@ struct cAmmyModel
     // lots more below but we don't care
 };
 
-struct ItemParam
-{
-    uint16_t maxCount;
-    int16_t value;
-    uint32_t flags;
-    uint8_t category;
-    uint8_t padding[3];
-};
 } // namespace okami

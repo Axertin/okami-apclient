@@ -70,6 +70,43 @@ enum class RewardCategory
 }
 
 /**
+ * @brief Standard Archipelago item flag bits (from NetworkItem::flags)
+ */
+enum class APItemFlags : unsigned
+{
+    Progression = 0x1,
+    NeverExclude = 0x2, // "Useful"
+    Trap = 0x4,
+};
+
+/**
+ * @brief Check if an item's flags mark it as a trap
+ */
+[[nodiscard]] inline constexpr bool isTrap(unsigned flags)
+{
+    return (flags & static_cast<unsigned>(APItemFlags::Trap)) != 0;
+}
+
+/**
+ * @brief Check if an item's flags mark it as progression
+ */
+[[nodiscard]] inline constexpr bool isProgression(unsigned flags)
+{
+    return (flags & static_cast<unsigned>(APItemFlags::Progression)) != 0;
+}
+
+/**
+ * @brief Check if an item belongs to a different player (i.e. it is a foreign item)
+ *
+ * @param itemPlayer The destination player slot stored in the scouted item
+ * @param mySlot     The local player's slot number
+ */
+[[nodiscard]] inline constexpr bool isForeignItem(int itemPlayer, int mySlot)
+{
+    return itemPlayer != mySlot;
+}
+
+/**
  * @brief Error type for reward granting failures
  */
 struct RewardError

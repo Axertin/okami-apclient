@@ -3,8 +3,8 @@
 #include <wolf_framework.hpp>
 
 #include "checkman.h"
-#include "loginwindow.h"
 #include "rewardman.h"
+#include "ui/loginwindow.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -68,9 +68,9 @@ void checkVersionCompatibility(const std::string &supportedVersion)
                          client.major, client.minor, client.patch, supportedVersion.c_str());
         break;
     case version_utils::Compatibility::MajorMismatch:
-        wolf::logWarning("[Socket] Client version %d.%d.%d is incompatible with APWorld (server expects %s). "
-                         "Major version mismatch.",
-                         client.major, client.minor, client.patch, supportedVersion.c_str());
+        wolf::logError("[Socket] Client version %d.%d.%d is incompatible with APWorld (server expects %s). "
+                       "Major version mismatch.",
+                       client.major, client.minor, client.patch, supportedVersion.c_str());
         break;
     }
 }
@@ -424,13 +424,13 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                 if (item.index >= 0)
                 {
                     queueMainThreadTask(
-                        [this, itemId = item.item]()
+                        [this, itemId = item.item, flags = item.flags]()
                         {
                             if (rewardMan_)
                             {
                                 // Get item name on main thread to avoid re-entrancy issues
                                 std::string itemName = getLocalItemName(itemId);
-                                rewardMan_->queueReward(itemId, itemName);
+                                rewardMan_->queueReward(itemId, itemName, flags);
                             }
                         });
                     newItemCount++;
