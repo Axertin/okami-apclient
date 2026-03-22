@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <set>
 #include <vector>
 
 #include <apclient.hpp>
@@ -42,6 +43,7 @@ class ArchipelagoSocket : public ISocket
     int getPlayerSlot() const override;
     const SlotConfig &getSlotConfig() const override;
     bool isSlotConfigReady() const override;
+    bool isValidLocation(int64_t locationId) const override;
 
     /**
      * @brief Set the RewardMan for queueing received items
@@ -94,6 +96,9 @@ class ArchipelagoSocket : public ISocket
     // Slot configuration (parsed from slot_data)
     SlotConfig slotConfig_;
     std::atomic<bool> slotConfigReady_{false};
+
+    // Valid location set (union of missing + checked from Connected packet)
+    std::set<int64_t> validLocations_;
 
     // Helpers
     void queueMainThreadTask(std::function<void()> task);

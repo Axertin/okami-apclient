@@ -10,6 +10,7 @@
 #include <apuuid.hpp>
 #pragma warning(pop)
 
+#include <cinttypes>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -359,6 +360,16 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
             }
             slotConfigReady_.store(true, std::memory_order_release);
 
+            // Build valid location set from Connected packet
+            {
+                auto missing = client_->get_missing_locations();
+                auto checked = client_->get_checked_locations();
+                validLocations_.clear();
+                validLocations_.insert(missing.begin(), missing.end());
+                validLocations_.insert(checked.begin(), checked.end());
+                wolf::logInfo("[Socket] Valid locations: %zu (%zu missing + %zu checked)", validLocations_.size(), missing.size(), checked.size());
+            }
+
             // Check version compatibility
             checkVersionCompatibility(slotConfig_.supportedClientVersion);
         });
@@ -558,6 +569,12 @@ void ArchipelagoSocket::poll()
 
 void ArchipelagoSocket::sendLocation(int64_t locationID)
 {
+    if (!isValidLocation(locationID))
+    {
+        wolf::logWarning("[Socket] Skipping invalid location %" PRId64 " (not in APWorld)", locationID);
+        return;
+    }
+
     try
     {
         withClient([locationID](APClient &client) { client.LocationChecks({locationID}); });
@@ -575,14 +592,28 @@ void ArchipelagoSocket::sendLocations(const std::vector<int64_t> &locationIDs)
         return;
     }
 
+    // Filter out locations that don't exist in the APWorld
+    std::list<int64_t> locList;
+    for (int64_t id : locationIDs)
+    {
+        if (isValidLocation(id))
+        {
+            locList.push_back(id);
+        }
+        else
+        {
+            wolf::logWarning("[Socket] Skipping invalid location %" PRId64 " (not in APWorld)", id);
+        }
+    }
+
+    if (locList.empty())
+    {
+        return;
+    }
+
     try
     {
-        withClient(
-            [&locationIDs](APClient &client)
-            {
-                std::list<int64_t> locList(locationIDs.begin(), locationIDs.end());
-                client.LocationChecks(locList);
-            });
+        withClient([&locList](APClient &client) { client.LocationChecks(locList); });
     }
     catch (const std::exception &e)
     {
@@ -661,9 +692,22 @@ std::string ArchipelagoSocket::getConnectionInfo() const
 
 bool ArchipelagoSocket::scoutLocations(const std::list<int64_t> &locations, int createAsHint)
 {
+    // Filter out invalid locations
+    std::list<int64_t> validLocs;
+    for (int64_t loc : locations)
+    {
+        if (isValidLocation(loc))
+            validLocs.push_back(loc);
+        else
+            wolf::logWarning("[Socket] Skipping scout of invalid location %" PRId64, loc);
+    }
+
+    if (validLocs.empty())
+        return true;
+
     try
     {
-        return withClient([&locations, createAsHint](APClient &client) { return client.LocationScouts(locations, createAsHint); });
+        return withClient([&validLocs, createAsHint](APClient &client) { return client.LocationScouts(validLocs, createAsHint); });
     }
     catch (const std::exception &e)
     {
@@ -685,7 +729,23 @@ std::vector<ScoutedItem> ArchipelagoSocket::scoutLocationsSync(const std::list<i
         return {};
     }
 
-    wolf::logDebug("[Socket] Scouting %zu locations synchronously", locations.size());
+    // Pre-filter invalid locations before setting scoutPending_ to avoid
+    // hanging on a response that will never arrive.
+    std::list<int64_t> validLocs;
+    for (int64_t loc : locations)
+    {
+        if (isValidLocation(loc))
+            validLocs.push_back(loc);
+        else
+            wolf::logWarning("[Socket] Skipping scout of invalid location %" PRId64, loc);
+    }
+
+    if (validLocs.empty())
+    {
+        return {};
+    }
+
+    wolf::logDebug("[Socket] Scouting %zu locations synchronously", validLocs.size());
 
     // Set up pending state
     {
@@ -694,8 +754,8 @@ std::vector<ScoutedItem> ArchipelagoSocket::scoutLocationsSync(const std::list<i
         scoutPending_ = true;
     }
 
-    // Send the scout request
-    if (!scoutLocations(locations, createAsHint))
+    // Send the scout request (validLocs already filtered above)
+    if (!scoutLocations(validLocs, createAsHint))
     {
         std::lock_guard<std::mutex> lock(scoutMutex_);
         scoutPending_ = false;
@@ -765,4 +825,9 @@ const SlotConfig &ArchipelagoSocket::getSlotConfig() const
 bool ArchipelagoSocket::isSlotConfigReady() const
 {
     return slotConfigReady_.load(std::memory_order_acquire);
+}
+
+bool ArchipelagoSocket::isValidLocation(int64_t locationId) const
+{
+    return validLocations_.count(locationId) > 0;
 }

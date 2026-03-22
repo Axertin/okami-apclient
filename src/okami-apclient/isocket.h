@@ -76,4 +76,16 @@ class ISocket
      * @return true if slot_data has been parsed
      */
     virtual bool isSlotConfigReady() const = 0;
+
+    /**
+     * @brief Check if a location ID is valid (exists in the APWorld)
+     *
+     * Valid locations are the union of missing_locations and checked_locations
+     * from the Connected packet. Sending or scouting invalid locations will
+     * crash the AP server.
+     *
+     * @param locationId The location ID to validate
+     * @return true if the location exists in the APWorld
+     */
+    virtual bool isValidLocation(int64_t locationId) const = 0;
 };

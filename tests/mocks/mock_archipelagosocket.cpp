@@ -371,6 +371,12 @@ void MockArchipelagoSocket::setSlotConfigReady(bool ready)
     slotConfigReady_ = ready;
 }
 
+bool MockArchipelagoSocket::isValidLocation(int64_t locationId) const
+{
+    (void)locationId;
+    return true;
+}
+
 // === Compatibility ===
 
 void MockArchipelagoSocket::setConnected(bool connected)
