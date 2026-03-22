@@ -30,6 +30,7 @@ add_library(apclient-testable STATIC
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/blowfish.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/resourcepkg.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/customiconpkg.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/custommodelpkg.cpp
 
     # Mock implementations
     mocks/wolf_framework.cpp
