@@ -11,6 +11,7 @@
 #include <okami/msd.h>
 
 #include <okami/customiconpkg.hpp>
+#include <okami/custommodelpkg.hpp>
 #include <okami/structs.hpp>
 #include <wolf_framework.hpp>
 
@@ -33,6 +34,8 @@ using GetItemIconFn = hx::Texture *(__fastcall *)(okami::cItemShop * pShop, int 
 using LoadCore20MSDFn = void(__fastcall *)(void *pMsgStruct);
 using GetMSDStringFn = const uint16_t *(__fastcall *)(void *pBase, uint16_t index);
 using BuildSlotArrayFn = uint32_t(__fastcall *)(okami::cItemShop *pShop);
+using BuildItemResourceNameFn = void(__fastcall *)(void *, int, uint32_t, char *);
+using LoadItemModelFn = uint32_t(__fastcall *)(void *entity);
 
 constexpr int64_t kItemIconTextureSlots = 300; // Originally 128; expanded to fit all NUM_ITEM_TYPES icons
 
@@ -43,6 +46,8 @@ static GetItemIconFn s_origGetItemIcon = nullptr;
 static LoadCore20MSDFn s_origLoadCore20MSD = nullptr;
 static GetMSDStringFn s_origGetMSDString = nullptr;
 static BuildSlotArrayFn s_origBuildSlotArray = nullptr;
+static BuildItemResourceNameFn s_origBuildItemResourceName = nullptr;
+static LoadItemModelFn s_origLoadItemModel = nullptr;
 
 static void **s_ppCore20MSD = nullptr;
 static okami::MSDManager s_msdManager;
@@ -58,6 +63,7 @@ static std::unordered_map<int16_t, std::vector<uint16_t>> s_customStrings;
 static std::unordered_map<int64_t, int16_t> s_locationIndex;
 static int16_t s_nextCustomIndex = kCustomStringBase;
 static int s_currentShopId = -1;
+static int64_t s_currentContainerLocation = -1;
 static void *s_pCurrentShop = nullptr;
 
 /// Returns the directory containing apclient.dll at runtime.
@@ -179,6 +185,19 @@ static void __fastcall hookLoadCore20MSD(void *pMsgStruct)
 
 const uint16_t *resolveApItemName(uint16_t strId)
 {
+    // Resolve container item names — when a container's floating item is displayed,
+    // s_currentContainerLocation is set to the location being shown.
+    if (s_currentContainerLocation >= 0 && isApDummyStrId(strId))
+    {
+        auto locIt = s_locationIndex.find(s_currentContainerLocation);
+        if (locIt != s_locationIndex.end())
+        {
+            auto strIt = s_customStrings.find(locIt->second);
+            if (strIt != s_customStrings.end())
+                return strIt->second.data();
+        }
+    }
+
     // Resolve per-slot custom AP item names from the current shop context.
     // The shop renderer computes strId from itemType directly (itemType + 0x2000 for
     // the shop list, itemType + 294 for the info panel). We intercept those actual
@@ -228,6 +247,51 @@ static const uint16_t *__fastcall hookGetMSDString(void *pBase, uint16_t index)
     return s_origGetMSDString(pBase, index);
 }
 
+static void __fastcall hookBuildItemResourceName(void *param_1, int item_type, uint32_t item_id, char *output)
+{
+    // If item_id matches an AP dummy type, redirect to chestnut (0x83) to avoid
+    // a crash from loading a non-existent resource file.
+    constexpr uint8_t kDummyIds[] = {
+        static_cast<uint8_t>(okami::ItemTypes::ForeignStandardItem),    // 0x78
+        static_cast<uint8_t>(okami::ItemTypes::ForeignProgressionItem), // 0x82
+        static_cast<uint8_t>(okami::ItemTypes::ForeignTrapItem),        // 0xAF
+        static_cast<uint8_t>(okami::ItemTypes::OkamiStandardItem),      // 0xA2
+        static_cast<uint8_t>(okami::ItemTypes::OkamiProgressionItem),   // 0xA8
+        static_cast<uint8_t>(okami::ItemTypes::OkamiTrapItem),          // 0xAC
+    };
+
+    for (uint8_t dummyId : kDummyIds)
+    {
+        if (static_cast<uint8_t>(item_id) == dummyId)
+        {
+            // Redirect to chestnut model (0x83) to avoid missing resource crash
+            s_origBuildItemResourceName(param_1, item_type, 0x83, output);
+            return;
+        }
+    }
+
+    s_origBuildItemResourceName(param_1, item_type, item_id, output);
+}
+
+/// Hook for FUN_18020e750 (item model loader, called from cItemObj::init).
+/// Swaps entity+0xe80 (resource package pointer) to our custom box model for AP dummy entities.
+static uint32_t __fastcall hookLoadItemModel(void *entity)
+{
+    auto *e = static_cast<uint8_t *>(entity);
+    uint32_t entityType = *reinterpret_cast<uint32_t *>(e + 0xe88);
+
+    if (okami::custommodelpkg::isApDummyEntity(entityType))
+    {
+        void *pkg = okami::custommodelpkg::getPackageForEntity(entityType);
+        if (pkg)
+        {
+            *reinterpret_cast<void **>(e + 0xe80) = pkg;
+            wolf::logDebug("[itempatch] Swapped model package for entity type 0x%04X", entityType);
+        }
+    }
+    return s_origLoadItemModel(entity);
+}
+
 static uint32_t __fastcall hookBuildSlotArray(okami::cItemShop *pShop)
 {
     uint32_t result = s_origBuildSlotArray(pShop);
@@ -251,12 +315,23 @@ void clearShopContext()
     s_pCurrentShop = nullptr;
 }
 
+void setContainerContext(int64_t locationId)
+{
+    s_currentContainerLocation = locationId;
+}
+
+void clearContainerContext()
+{
+    s_currentContainerLocation = -1;
+}
+
 void resetState()
 {
     s_customStrings.clear();
     s_locationIndex.clear();
     s_nextCustomIndex = kCustomStringBase;
     clearShopContext();
+    clearContainerContext();
 }
 
 void registerScoutedItemName(int64_t locationId, const std::string &name)
@@ -326,6 +401,33 @@ void initialize()
     // Resolve ppCore20MSD pointer-to-pointer
     s_ppCore20MSD = reinterpret_cast<void **>(mainBase + 0x9C11B0);
 
+    // Build in-memory colored box model packages for AP dummy items
+    okami::custommodelpkg::initialize();
+
+    // Patch the item flags table so AP dummy items are collectible.
+    // Table at main.dll+0x7ab224: uint32[itemId*3] = flags stored to entity+0x11ac.
+    // Bit 0x01: enables pickup animation setup (sets entity+0x1120=1)
+    // Bit 0x40: enables proximity-based pickup check in FUN_180497bc0
+    {
+        constexpr uintptr_t kItemFlagsTableOffset = 0x7ab224;
+        constexpr uint32_t kCollectableFlags = 0x41; // bit 0 + bit 6
+        constexpr uint8_t kDummyItemIds[] = {
+            static_cast<uint8_t>(okami::ItemTypes::ForeignStandardItem),  static_cast<uint8_t>(okami::ItemTypes::ForeignProgressionItem),
+            static_cast<uint8_t>(okami::ItemTypes::ForeignTrapItem),      static_cast<uint8_t>(okami::ItemTypes::OkamiStandardItem),
+            static_cast<uint8_t>(okami::ItemTypes::OkamiProgressionItem), static_cast<uint8_t>(okami::ItemTypes::OkamiTrapItem),
+        };
+
+        for (uint8_t id : kDummyItemIds)
+        {
+            // Each table entry = 3 × uint32_t (12 bytes); flags is the first uint32.
+            uintptr_t flagsAddr = mainBase + kItemFlagsTableOffset + static_cast<uintptr_t>(id) * 12;
+            if (wolf::writeMemory(flagsAddr, &kCollectableFlags, sizeof(kCollectableFlags)))
+                wolf::logDebug("[itempatch] Patched item flags for ID 0x%02X at 0x%zX", id, flagsAddr);
+            else
+                wolf::logError("[itempatch] Failed to patch item flags for ID 0x%02X", id);
+        }
+    }
+
     if (!wolf::hookFunction("main.dll", 0x1AFC90, reinterpret_cast<void *>(&hookLoadRscPkgAsync), reinterpret_cast<void **>(&s_origLoadRscPkgAsync)))
         wolf::logError("[itempatch] Failed to install LoadRscPkgAsync hook");
 
@@ -340,6 +442,13 @@ void initialize()
 
     if (!wolf::hookFunction("main.dll", 0x43E250, reinterpret_cast<void *>(&hookBuildSlotArray), reinterpret_cast<void **>(&s_origBuildSlotArray)))
         wolf::logError("[itempatch] Failed to install BuildSlotArray hook");
+
+    if (!wolf::hookFunction("main.dll", 0x450b90, reinterpret_cast<void *>(&hookBuildItemResourceName),
+                            reinterpret_cast<void **>(&s_origBuildItemResourceName)))
+        wolf::logError("[itempatch] Failed to install BuildItemResourceName hook");
+
+    if (!wolf::hookFunction("main.dll", 0x20e750, reinterpret_cast<void *>(&hookLoadItemModel), reinterpret_cast<void **>(&s_origLoadItemModel)))
+        wolf::logError("[itempatch] Failed to install LoadItemModel hook");
 
     wolf::logInfo("[itempatch] Hooks installed");
 }

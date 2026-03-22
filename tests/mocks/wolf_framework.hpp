@@ -209,6 +209,15 @@ inline void *getModuleBase(const char *module)
     return mock::mockMemory.data();
 }
 
+// Mock writeMemory - no-op in tests, always succeeds
+inline bool writeMemory(uintptr_t address, const void *buffer, size_t size)
+{
+    (void)address;
+    (void)buffer;
+    (void)size;
+    return true;
+}
+
 // Mock bitfield monitor implementation
 struct MockBitfieldMonitor
 {

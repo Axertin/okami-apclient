@@ -9,7 +9,6 @@
 // ============================================================================
 
 // Compile-time verification that formulas work - no runtime tests needed for arithmetic
-static_assert(checks::getItemCheckId(0) == checks::kItemPickupBase);
 static_assert(checks::getBrushCheckId(0) == checks::kBrushAcquisitionBase);
 static_assert(checks::getShopCheckId(0, 0) == checks::kShopPurchaseBase);
 static_assert(checks::getWorldStateCheckId(0, 0) == checks::kWorldStateBase);
@@ -25,8 +24,7 @@ TEST_CASE("Check category detection at boundaries", "[checkman][check_types]")
     SECTION("Category transitions")
     {
         // Just below each base -> previous category (or Unknown for first)
-        CHECK(checks::getCheckCategory(checks::kItemPickupBase - 1) == checks::CheckCategory::Unknown);
-        CHECK(checks::getCheckCategory(checks::kBrushAcquisitionBase - 1) == checks::CheckCategory::ItemPickup);
+        CHECK(checks::getCheckCategory(checks::kBrushAcquisitionBase - 1) == checks::CheckCategory::Unknown);
         CHECK(checks::getCheckCategory(checks::kShopPurchaseBase - 1) == checks::CheckCategory::BrushAcquisition);
         CHECK(checks::getCheckCategory(checks::kWorldStateBase - 1) == checks::CheckCategory::ShopPurchase);
         CHECK(checks::getCheckCategory(checks::kCollectedObjectBase - 1) == checks::CheckCategory::WorldState);
@@ -36,7 +34,6 @@ TEST_CASE("Check category detection at boundaries", "[checkman][check_types]")
         CHECK(checks::getCheckCategory(checks::kContainerBase - 1) == checks::CheckCategory::GameProgress);
 
         // At each base -> correct category
-        CHECK(checks::getCheckCategory(checks::kItemPickupBase) == checks::CheckCategory::ItemPickup);
         CHECK(checks::getCheckCategory(checks::kBrushAcquisitionBase) == checks::CheckCategory::BrushAcquisition);
         CHECK(checks::getCheckCategory(checks::kShopPurchaseBase) == checks::CheckCategory::ShopPurchase);
         CHECK(checks::getCheckCategory(checks::kWorldStateBase) == checks::CheckCategory::WorldState);
@@ -135,14 +132,6 @@ TEST_CASE("Event handlers send to socket", "[checkman]")
     socket.setConnected(true);
     CheckMan checkMan(socket);
     checkMan.enableSending(true);
-
-    SECTION("onItemPickup sends check")
-    {
-        socket.clearSentLocations();
-        checkMan.onItemPickup(0x42, 1);
-        CHECK(socket.getSentLocationCount() == 1);
-        CHECK(socket.wasLocationSent(checks::getItemCheckId(0x42)));
-    }
 
     SECTION("onBrushAcquired sends check")
     {

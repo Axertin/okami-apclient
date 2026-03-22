@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <functional>
+#include <map>
+#include <unordered_map>
 #include <unordered_set>
 
-// Forward declarations
-class ISocket;
+#include "../isocket.h"
 
 namespace checks
 {
@@ -14,7 +15,6 @@ namespace checks
 constexpr uintptr_t SPAWN_TABLE_POPULATOR_OFFSET = 0x49e570;
 constexpr uintptr_t SPAWN_TABLE_OFFSET = 0xB66800;
 constexpr uintptr_t CURRENT_MAP_ID_OFFSET = 0xB6B240;
-constexpr uint8_t DUMMY_ITEM_ID = 0x83; // Chestnut
 
 /**
  * @brief Handler for container-based checks
@@ -69,8 +69,16 @@ class ContainerMan
      */
     [[nodiscard]] bool isContainerInRando(int64_t locationId) const;
 
+    /**
+     * @brief Check if an item pickup should be blocked (from a randomized container)
+     * @param itemId The item ID being picked up
+     * @return true if the pickup should be blocked
+     */
+    bool shouldBlockItemPickup(int itemId);
+
   private:
     void onSpawnTablePopulate(void *spawnTable);
+    void scoutContainerLocations();
 
     // Hook function (needs to be static for function pointer)
     static void hookSpawnTablePopulator(void *spawnTable);
@@ -79,7 +87,9 @@ class ContainerMan
     CheckCallback checkCallback_;
 
     std::unordered_set<int> trackedContainerIndices_;
+    std::unordered_map<int64_t, ScoutedItem> scoutedItems_;
     uint16_t currentLevelId_ = 0;
+    std::map<uint8_t, int> pendingContainerItems_;
 
     // Hook state
     using SpawnTablePopulatorFn = void (*)(void *);

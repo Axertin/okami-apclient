@@ -91,13 +91,6 @@ class CheckMan
     void poll();
 
     /**
-     * @brief Handle item pickup events
-     * @param itemId The game's internal item ID
-     * @param quantity The quantity picked up
-     */
-    void onItemPickup(int itemId, int quantity);
-
-    /**
      * @brief Handle brush acquisition events
      * @param brushIndex The brush technique index
      */
