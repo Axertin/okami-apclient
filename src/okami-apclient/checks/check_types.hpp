@@ -10,7 +10,6 @@
  * game-specific identifiers.
  *
  * ID Range Scheme:
- * - 100000 + itemId:                    Item pickups
  * - 200000 + brushIndex:                Brush acquisitions
  * - 300000 + shopId*1000 + itemSlot:    Shop purchases
  * - 400000 + mapId*10000 + bitIndex:    World state changes
@@ -24,7 +23,6 @@ namespace checks
 {
 
 // Check ID range bases
-inline constexpr int64_t kItemPickupBase = 100000;
 inline constexpr int64_t kBrushAcquisitionBase = 200000;
 inline constexpr int64_t kShopPurchaseBase = 300000;
 inline constexpr int64_t kWorldStateBase = 400000;
@@ -33,16 +31,6 @@ inline constexpr int64_t kAreaRestoredBase = 600000;
 inline constexpr int64_t kGlobalFlagBase = 700000;
 inline constexpr int64_t kGameProgressBase = 800000;
 inline constexpr int64_t kContainerBase = 900000;
-
-/**
- * @brief Calculate check ID for item pickup
- * @param itemId The game's internal item ID
- * @return Archipelago check ID (100000 + itemId)
- */
-inline constexpr int64_t getItemCheckId(int itemId)
-{
-    return kItemPickupBase + itemId;
-}
 
 /**
  * @brief Calculate check ID for brush acquisition
@@ -134,7 +122,6 @@ inline constexpr int64_t getContainerCheckId(uint16_t levelId, int spawnIdx)
  */
 enum class CheckCategory
 {
-    ItemPickup,
     BrushAcquisition,
     ShopPurchase,
     WorldState,
@@ -167,8 +154,6 @@ inline constexpr CheckCategory getCheckCategory(int64_t checkId)
         return CheckCategory::ShopPurchase;
     if (checkId >= kBrushAcquisitionBase)
         return CheckCategory::BrushAcquisition;
-    if (checkId >= kItemPickupBase)
-        return CheckCategory::ItemPickup;
     return CheckCategory::Unknown;
 }
 

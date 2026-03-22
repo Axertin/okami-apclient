@@ -44,6 +44,16 @@ void CheckMan::initialize()
     containerHandler_ = std::make_unique<checks::ContainerMan>(socket_, callback);
     containerHandler_->initialize();
 
+    // Block the game from granting items when the player picks up randomized container items
+    wolf::onItemPickupBlocking(
+        [this](int itemId, int count) -> bool
+        {
+            (void)count;
+            if (containerHandler_)
+                return containerHandler_->shouldBlockItemPickup(itemId);
+            return false;
+        });
+
     // Set up shop handler
     shopHandler_ = std::make_unique<checks::ShopMan>(socket_, callback);
     shopHandler_->initialize();
@@ -102,19 +112,6 @@ void CheckMan::poll()
 // ========================================
 // Event-based check handlers
 // ========================================
-
-void CheckMan::onItemPickup(int itemId, int quantity)
-{
-    (void)quantity; // Currently unused
-
-    if (!sendingEnabled_)
-    {
-        return;
-    }
-
-    int64_t checkId = checks::getItemCheckId(itemId);
-    sendCheck(checkId);
-}
 
 void CheckMan::onBrushAcquired(int brushIndex)
 {
