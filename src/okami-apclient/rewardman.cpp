@@ -7,7 +7,6 @@
 #include "rewards/brushes.hpp"
 #include "rewards/event_flags.hpp"
 #include "rewards/game_items.hpp"
-#include "ui/notificationwindow.h"
 
 RewardMan::RewardMan(CheckSendingCallback onCheckSendingChange) : onCheckSendingChange_(std::move(onCheckSendingChange))
 {
@@ -53,8 +52,7 @@ bool RewardMan::processQueuedRewards()
         }
         else
         {
-            // Show notification for successfully granted reward
-            notificationwindow::queue("Received: " + reward.itemName);
+            wolf::logDebug("[RewardMan] Granted reward: %s", reward.itemName.c_str());
         }
     }
 

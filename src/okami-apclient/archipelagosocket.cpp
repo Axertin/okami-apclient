@@ -5,6 +5,7 @@
 #include "checkman.h"
 #include "rewardman.h"
 #include "ui/loginwindow.h"
+#include "ui/notificationwindow.h"
 
 #pragma warning(push, 0)
 #include <apuuid.hpp>
@@ -477,6 +478,14 @@ void ArchipelagoSocket::setupHandlers(const std::string &slot, const std::string
                 scoutPending_ = false;
             }
             scoutCondition_.notify_all();
+        });
+
+    client_->set_print_json_handler(
+        [this](const APClient::PrintJSONArgs &args)
+        {
+            std::string text = client_->render_json(args.data);
+            if (!text.empty())
+                notificationwindow::queue(text);
         });
 
     client_->set_location_checked_handler(
