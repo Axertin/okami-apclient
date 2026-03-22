@@ -43,6 +43,13 @@ void setShopPointer(void *pShop);
 /// to prevent stale lookups in hookGetMSDString.
 void clearShopContext();
 
+/// Set the current container location context so that resolveApItemName can
+/// return the scouted item name while the container's floating item is displayed.
+void setContainerContext(int64_t locationId);
+
+/// Clear the container location context after the pickup is processed.
+void clearContainerContext();
+
 /// Reset all dynamic state (custom strings, location index, shop context).
 /// For use in tests to prevent cross-test pollution.
 void resetState();

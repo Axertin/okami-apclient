@@ -1,10 +1,15 @@
 #include <catch2/catch_test_macros.hpp>
+#include <okami/itemtype.hpp>
 
 #include "checks/check_types.hpp"
 #include "checks/containers.hpp"
 #include "mock_archipelagosocket.h"
 #include "mock_spawntable.h"
+#include "rewards/reward_types.hpp"
 #include "wolf_framework.hpp"
+
+// Expected fallback dummy item ID when no scout data is available (Chestnut)
+constexpr uint8_t EXPECTED_DUMMY_ITEM_ID = 0x83;
 
 // ============================================================================
 // Container ID encoding constraints
@@ -103,7 +108,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook replaces container items with dummy"
     triggerSpawnTableHook(&table);
 
     // Verify item was replaced with dummy
-    REQUIRE(table.entries[0].spawn_data->item_id == checks::DUMMY_ITEM_ID);
+    REQUIRE(table.entries[0].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
 
     TearDown();
 }
@@ -128,7 +133,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook only modifies containers (spawn_type
     triggerSpawnTableHook(&table);
 
     // Container should be replaced
-    REQUIRE(table.entries[0].spawn_data->item_id == checks::DUMMY_ITEM_ID);
+    REQUIRE(table.entries[0].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
     // Non-container should be untouched
     REQUIRE(table.entries[1].spawn_data->item_id == 0x99);
 
@@ -148,9 +153,9 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook processes multiple containers", "[co
     triggerSpawnTableHook(&table);
 
     // All containers should be replaced
-    REQUIRE(table.entries[0].spawn_data->item_id == checks::DUMMY_ITEM_ID);
-    REQUIRE(table.entries[5].spawn_data->item_id == checks::DUMMY_ITEM_ID);
-    REQUIRE(table.entries[12].spawn_data->item_id == checks::DUMMY_ITEM_ID);
+    REQUIRE(table.entries[0].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
+    REQUIRE(table.entries[5].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
+    REQUIRE(table.entries[12].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
 
     TearDown();
 }
@@ -223,7 +228,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook clears tracking on level change", "[
 
     containerMan_->initialize();
     triggerSpawnTableHook(&table1);
-    REQUIRE(table1.entries[0].spawn_data->item_id == checks::DUMMY_ITEM_ID);
+    REQUIRE(table1.entries[0].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
 
     // Second level - new spawn table
     tableBuilder_.reset();
@@ -232,7 +237,7 @@ TEST_CASE_METHOD(ContainerManFixture, "Hook clears tracking on level change", "[
     okami::SpawnTable &table2 = tableBuilder_.build();
 
     triggerSpawnTableHook(&table2);
-    REQUIRE(table2.entries[3].spawn_data->item_id == checks::DUMMY_ITEM_ID);
+    REQUIRE(table2.entries[3].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
 
     TearDown();
 }
@@ -399,6 +404,195 @@ TEST_CASE_METHOD(ContainerManFixture, "poll handles multiple container pickups",
     containerMan_->poll();
     REQUIRE(receivedCheckIds_.size() == 3);
     REQUIRE(receivedCheckIds_[2] == checks::getContainerCheckId(0x0006, 12));
+
+    TearDown();
+}
+
+// ============================================================================
+// AP dummy type selection tests (scouted item classification)
+// ============================================================================
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses native game item for displayable native items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Item 0x05 = Sun Fragment, a direct game item; native (player == mySlot)
+    ScoutedItem scouted{.item = 0x05, .location = locationId, .player = 1, .flags = 0};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    // Native direct game item: use actual game item ID
+    REQUIRE(table.entries[0].spawn_data->item_id == 0x05);
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses OkamiProgressionItem for native progression items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Item 0x100 = brush technique, non-game item; native; Progression flag
+    ScoutedItem scouted{.item = 0x100, .location = locationId, .player = 1, .flags = 0x1};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::OkamiProgressionItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses OkamiTrapItem for native trap items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Non-game item; native; Trap flag
+    ScoutedItem scouted{.item = 0x100, .location = locationId, .player = 1, .flags = 0x4};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::OkamiTrapItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses OkamiStandardItem for native standard non-game items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Non-game item; native; no flags (standard)
+    ScoutedItem scouted{.item = 0x100, .location = locationId, .player = 1, .flags = 0x0};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::OkamiStandardItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses ForeignProgressionItem for foreign progression items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Foreign item (player 2 != mySlot 1); Progression flag
+    ScoutedItem scouted{.item = 0x50, .location = locationId, .player = 2, .flags = 0x1};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::ForeignProgressionItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses ForeignTrapItem for foreign trap items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Foreign item; Trap flag
+    ScoutedItem scouted{.item = 0x50, .location = locationId, .player = 2, .flags = 0x4};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::ForeignTrapItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook uses ForeignStandardItem for foreign standard items", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Foreign item; no flags (standard)
+    ScoutedItem scouted{.item = 0x50, .location = locationId, .player = 2, .flags = 0x0};
+    socket_.setScoutResponse({locationId}, {scouted});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    REQUIRE(table.entries[0].spawn_data->item_id == static_cast<uint8_t>(okami::ItemTypes::ForeignStandardItem));
+
+    TearDown();
+}
+
+TEST_CASE_METHOD(ContainerManFixture, "Hook falls back to chestnut when scouting fails", "[containers][hooks][scout]")
+{
+    SetUp();
+    setConnectedWithContainerRando(true);
+    socket_.setPlayerSlot(1);
+    setCurrentMapId(0x0006);
+
+    tableBuilder_.addContainer(0, 0x42);
+    okami::SpawnTable &table = tableBuilder_.build();
+
+    int64_t locationId = checks::getContainerCheckId(0x0006, 0);
+    // Configure a timeout for this location so scouting returns empty
+    socket_.setScoutTimeout({locationId});
+
+    containerMan_->initialize();
+    triggerSpawnTableHook(&table);
+
+    // Fallback: chestnut dummy
+    REQUIRE(table.entries[0].spawn_data->item_id == EXPECTED_DUMMY_ITEM_ID);
 
     TearDown();
 }
