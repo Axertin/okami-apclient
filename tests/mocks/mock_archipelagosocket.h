@@ -83,6 +83,7 @@ class MockArchipelagoSocket : public ISocket
     int getPlayerSlot() const override;
     const SlotConfig &getSlotConfig() const override;
     bool isSlotConfigReady() const override;
+    bool isValidLocation(int64_t locationId) const override;
 
     // === Connection Configuration ===
 
