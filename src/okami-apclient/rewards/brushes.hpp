@@ -19,7 +19,7 @@ namespace rewards::brushes
 /**
  * @brief Extract brush index from AP item ID
  *
- * @param apItemId The Archipelago item ID (must be 0x100-0x115)
+ * @param apItemId The Archipelago item ID (must be 0x100-0x11E)
  * @return The brush technique index
  */
 [[nodiscard]] constexpr int getBrushIndex(int64_t apItemId)
@@ -35,7 +35,7 @@ namespace rewards::brushes
  */
 [[nodiscard]] constexpr bool isProgressive(int64_t apItemId)
 {
-    return apItemId == 0x102 || apItemId == 0x103;
+    return apItemId == 0x10C || apItemId == 0x119;
 }
 
 /**

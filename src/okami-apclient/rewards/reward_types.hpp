@@ -14,7 +14,7 @@ namespace rewards
 // Range constants for AP item ID classification
 inline constexpr int64_t kGameItemMax = 0xFF;
 inline constexpr int64_t kBrushBase = 0x100;
-inline constexpr int64_t kBrushEnd = 0x115;
+inline constexpr int64_t kBrushEnd = 0x11E;
 inline constexpr int64_t kProgressiveWeaponBase = 0x300;
 inline constexpr int64_t kProgressiveWeaponEnd = 0x302;
 inline constexpr int64_t kEventFlagBase = 0x303;

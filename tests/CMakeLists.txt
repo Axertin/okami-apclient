@@ -15,6 +15,7 @@ add_library(apclient-testable STATIC
 
     # Check system
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checkman.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/brushes.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/containers.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/gamestate_monitors.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checks/shops.cpp

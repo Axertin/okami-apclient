@@ -132,44 +132,44 @@ TEST_CASE_METHOD(RewardManFixture, "Grant ProgressiveBrushReward progression", "
 {
     SetUp();
 
-    int brushIdx = rewards::brushes::getBrushIndex(0x102); // Power Slash = 2
+    int brushIdx = rewards::brushes::getBrushIndex(0x10C); // Power Slash = bit 12
 
     SECTION("First grant gives base brush")
     {
         CHECK_FALSE(isBrushUnlocked(brushIdx));
-        auto result = rewardMan_->grantReward(0x102);
+        auto result = rewardMan_->grantReward(0x10C);
         REQUIRE(result.has_value());
         CHECK(isBrushUnlocked(brushIdx));
     }
 
     SECTION("Second grant gives first upgrade")
     {
-        (void)rewardMan_->grantReward(0x102);
+        (void)rewardMan_->grantReward(0x10C);
         CHECK_FALSE(isBrushUpgradeUnlocked(0));
 
-        auto result = rewardMan_->grantReward(0x102);
+        auto result = rewardMan_->grantReward(0x10C);
         REQUIRE(result.has_value());
         CHECK(isBrushUpgradeUnlocked(0));
     }
 
     SECTION("Third grant gives second upgrade")
     {
-        (void)rewardMan_->grantReward(0x102);
-        (void)rewardMan_->grantReward(0x102);
+        (void)rewardMan_->grantReward(0x10C);
+        (void)rewardMan_->grantReward(0x10C);
         CHECK_FALSE(isBrushUpgradeUnlocked(10));
 
-        auto result = rewardMan_->grantReward(0x102);
+        auto result = rewardMan_->grantReward(0x10C);
         REQUIRE(result.has_value());
         CHECK(isBrushUpgradeUnlocked(10));
     }
 
     SECTION("Grant at max level is no-op")
     {
-        (void)rewardMan_->grantReward(0x102);
-        (void)rewardMan_->grantReward(0x102);
-        (void)rewardMan_->grantReward(0x102);
+        (void)rewardMan_->grantReward(0x10C);
+        (void)rewardMan_->grantReward(0x10C);
+        (void)rewardMan_->grantReward(0x10C);
 
-        auto result = rewardMan_->grantReward(0x102);
+        auto result = rewardMan_->grantReward(0x10C);
         REQUIRE(result.has_value());
     }
 

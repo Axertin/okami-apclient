@@ -13,12 +13,12 @@ namespace
 {
 
 // Progressive brush upgrade bit indices (in brushUpgrades bitfield)
-// Power Slash: base brush_index = 2
+// Power Slash: base brush_index = 12 (BrushOverlay::power_slash)
 // - Power Slash 2: bit 0
 // - Power Slash 3: bit 10
 constexpr std::array<uint32_t, 2> kPowerSlashUpgrades = {0, 10};
 
-// Cherry Bomb: base brush_index = 3
+// Cherry Bomb: base brush_index = 25 (BrushOverlay::cherry_bomb)
 // - Cherry Bomb 2: bit 6
 // - Cherry Bomb 3: bit 11
 constexpr std::array<uint32_t, 2> kCherryBombUpgrades = {6, 11};
@@ -71,11 +71,11 @@ std::expected<void, RewardError> grant(int64_t apItemId)
 {
     int brushIndex = getBrushIndex(apItemId);
 
-    if (apItemId == 0x102)
+    if (apItemId == 0x10C) // Power Slash (bit 12)
     {
         return grantProgressiveBrush(brushIndex, kPowerSlashUpgrades);
     }
-    if (apItemId == 0x103)
+    if (apItemId == 0x119) // Cherry Bomb (bit 25)
     {
         return grantProgressiveBrush(brushIndex, kCherryBombUpgrades);
     }

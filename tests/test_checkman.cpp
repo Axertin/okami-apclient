@@ -59,29 +59,29 @@ TEST_CASE("Duplicate tracking", "[checkman]")
     SECTION("Second identical send is blocked")
     {
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(1);
-        checkMan.onBrushAcquired(1); // Same brush again
+        checkMan.onShopPurchase(1, 0, 0);
+        checkMan.onShopPurchase(1, 0, 0); // Same shop slot again
         CHECK(socket.getSentLocationCount() == 1);
     }
 
     SECTION("Reset clears cache, allows resend")
     {
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(1);
+        checkMan.onShopPurchase(1, 0, 0);
         CHECK(socket.getSentLocationCount() == 1);
 
         checkMan.reset();
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(1);
+        checkMan.onShopPurchase(1, 0, 0);
         CHECK(socket.getSentLocationCount() == 1);
     }
 
     SECTION("Different checks tracked separately")
     {
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(1);
-        checkMan.onBrushAcquired(2);
-        checkMan.onBrushAcquired(3);
+        checkMan.onShopPurchase(1, 0, 0);
+        checkMan.onShopPurchase(1, 1, 0);
+        checkMan.onShopPurchase(1, 2, 0);
         CHECK(socket.getSentLocationCount() == 3);
     }
 }
@@ -100,7 +100,7 @@ TEST_CASE("Connection requirements", "[checkman]")
     {
         socket.setConnected(false);
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(10);
+        checkMan.onShopPurchase(1, 0, 0);
         CHECK(socket.getSentLocationCount() == 0);
     }
 
@@ -108,7 +108,7 @@ TEST_CASE("Connection requirements", "[checkman]")
     {
         socket.setConnected(true);
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(10);
+        checkMan.onShopPurchase(1, 0, 0);
         CHECK(socket.getSentLocationCount() == 1);
     }
 
@@ -117,7 +117,7 @@ TEST_CASE("Connection requirements", "[checkman]")
         socket.setConnected(true);
         checkMan.enableSending(false);
         socket.clearSentLocations();
-        checkMan.onBrushAcquired(10);
+        checkMan.onShopPurchase(1, 0, 0);
         CHECK(socket.getSentLocationCount() == 0);
     }
 }
@@ -132,14 +132,6 @@ TEST_CASE("Event handlers send to socket", "[checkman]")
     socket.setConnected(true);
     CheckMan checkMan(socket);
     checkMan.enableSending(true);
-
-    SECTION("onBrushAcquired sends check")
-    {
-        socket.clearSentLocations();
-        checkMan.onBrushAcquired(5);
-        CHECK(socket.getSentLocationCount() == 1);
-        CHECK(socket.wasLocationSent(checks::getBrushCheckId(5)));
-    }
 
     SECTION("onShopPurchase sends check")
     {
