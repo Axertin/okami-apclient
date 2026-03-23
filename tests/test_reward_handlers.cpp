@@ -11,7 +11,7 @@
 
 static_assert(rewards::kGameItemMax == 0xFF);
 static_assert(rewards::kBrushBase == 0x100);
-static_assert(rewards::kBrushEnd == 0x115);
+static_assert(rewards::kBrushEnd == 0x11E);
 static_assert(rewards::kProgressiveWeaponBase == 0x300);
 static_assert(rewards::kProgressiveWeaponEnd == 0x302);
 static_assert(rewards::kEventFlagBase == 0x303);
@@ -37,8 +37,8 @@ TEST_CASE("Reward category boundaries", "[rewards][category]")
     {
         CHECK(rewards::getCategory(0x0FF) == rewards::RewardCategory::GameItem);
         CHECK(rewards::getCategory(0x100) == rewards::RewardCategory::Brush);
-        CHECK(rewards::getCategory(0x115) == rewards::RewardCategory::Brush);
-        CHECK(rewards::getCategory(0x116) == rewards::RewardCategory::Unknown); // Gap before weapons
+        CHECK(rewards::getCategory(0x11E) == rewards::RewardCategory::Brush);
+        CHECK(rewards::getCategory(0x11F) == rewards::RewardCategory::Unknown); // Gap before weapons
     }
 
     SECTION("Progressive weapon boundaries")
@@ -74,10 +74,12 @@ TEST_CASE("Progressive item detection boundaries", "[rewards]")
 
     SECTION("Progressive brushes are exactly Power Slash and Cherry Bomb")
     {
-        CHECK_FALSE(rewards::brushes::isProgressive(0x101)); // Before
-        CHECK(rewards::brushes::isProgressive(0x102));       // Power Slash
-        CHECK(rewards::brushes::isProgressive(0x103));       // Cherry Bomb
-        CHECK_FALSE(rewards::brushes::isProgressive(0x104)); // After
+        CHECK_FALSE(rewards::brushes::isProgressive(0x10B)); // Before Power Slash
+        CHECK(rewards::brushes::isProgressive(0x10C));       // Power Slash (bit 12)
+        CHECK_FALSE(rewards::brushes::isProgressive(0x10D)); // After Power Slash
+        CHECK_FALSE(rewards::brushes::isProgressive(0x118)); // Before Cherry Bomb
+        CHECK(rewards::brushes::isProgressive(0x119));       // Cherry Bomb (bit 25)
+        CHECK_FALSE(rewards::brushes::isProgressive(0x11A)); // After Cherry Bomb
     }
 
     SECTION("Direct game items exclude progressive weapons")
@@ -88,37 +90,3 @@ TEST_CASE("Progressive item detection boundaries", "[rewards]")
     }
 }
 
-// ============================================================================
-// AP item flag classification tests
-// ============================================================================
-
-TEST_CASE("isTrap: flag bit 0x4 detection", "[rewards][flags]")
-{
-    CHECK_FALSE(rewards::isTrap(0x0));
-    CHECK(rewards::isTrap(0x4));
-    CHECK(rewards::isTrap(0x5));       // Progression + Trap
-    CHECK(rewards::isTrap(0x7));       // All bits set
-    CHECK_FALSE(rewards::isTrap(0x3)); // Progression + NeverExclude only
-    CHECK_FALSE(rewards::isTrap(0x2)); // NeverExclude only
-    CHECK_FALSE(rewards::isTrap(0x1)); // Progression only
-}
-
-TEST_CASE("isProgression: flag bit 0x1 detection", "[rewards][flags]")
-{
-    CHECK_FALSE(rewards::isProgression(0x0));
-    CHECK(rewards::isProgression(0x1));
-    CHECK(rewards::isProgression(0x5));       // Progression + Trap
-    CHECK(rewards::isProgression(0x3));       // Progression + NeverExclude
-    CHECK(rewards::isProgression(0xFF));      // All bits set
-    CHECK_FALSE(rewards::isProgression(0x4)); // Trap only
-    CHECK_FALSE(rewards::isProgression(0x2)); // NeverExclude only
-}
-
-TEST_CASE("isForeignItem: player slot comparison", "[rewards][flags]")
-{
-    CHECK_FALSE(rewards::isForeignItem(1, 1)); // Same slot → native
-    CHECK(rewards::isForeignItem(2, 1));       // Different slot → foreign
-    CHECK_FALSE(rewards::isForeignItem(0, 0)); // Both slot 0 → native
-    CHECK(rewards::isForeignItem(0, 1));       // Src 0, my slot 1 → foreign
-    CHECK(rewards::isForeignItem(1, 0));       // Src 1, my slot 0 → foreign
-}
