@@ -15,6 +15,7 @@ class ISocket;
 
 namespace checks
 {
+class BrushMan;
 class ContainerMan;
 class ShopMan;
 } // namespace checks
@@ -91,12 +92,6 @@ class CheckMan
     void poll();
 
     /**
-     * @brief Handle brush acquisition events
-     * @param brushIndex The brush technique index
-     */
-    void onBrushAcquired(int brushIndex);
-
-    /**
      * @brief Handle shop purchase events
      * @param shopId The shop ID
      * @param itemSlot The slot in the shop
@@ -169,6 +164,9 @@ class CheckMan
 
     // Container handler (owns hook and tracking)
     std::unique_ptr<checks::ContainerMan> containerHandler_;
+
+    // Brush handler (owns bitfield monitors)
+    std::unique_ptr<checks::BrushMan> brushHandler_;
 
     // Shop handler (owns hooks and shop definitions)
     std::unique_ptr<checks::ShopMan> shopHandler_;

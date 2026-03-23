@@ -2,6 +2,7 @@
 set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/archipelagosocket.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checkman.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/checks/brushes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/containers.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/gamestate_monitors.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/checks/shops.cpp

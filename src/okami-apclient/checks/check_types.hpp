@@ -22,6 +22,21 @@
 namespace checks
 {
 
+/**
+ * @brief Convert WOLF monitor bit index to game BitField bit index
+ *
+ * The WOLF bitfield monitor uses LSB-0 ordering (bit 0 = least significant bit),
+ * but the game's BitField struct uses MSB-0 ordering (bit 0 = most significant bit,
+ * via mask 0x80000000 >> (index % 32)). This converts between the two conventions
+ * within each 32-bit word.
+ */
+inline constexpr unsigned int monitorToGameBitIndex(unsigned int monitorBitIndex)
+{
+    unsigned int word = monitorBitIndex / 32;
+    unsigned int bitInWord = monitorBitIndex % 32;
+    return word * 32 + (31 - bitInWord);
+}
+
 // Check ID range bases
 inline constexpr int64_t kBrushAcquisitionBase = 200000;
 inline constexpr int64_t kShopPurchaseBase = 300000;

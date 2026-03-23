@@ -2,6 +2,7 @@
 
 #include <cinttypes>
 
+#include "checks/brushes.hpp"
 #include "checks/containers.hpp"
 #include "checks/gamestate_monitors.hpp"
 #include "checks/shops.hpp"
@@ -33,12 +34,16 @@ void CheckMan::initialize()
     // Create callback for all monitors
     auto callback = [this](int64_t checkId) { sendCheck(checkId); };
 
-    // Set up bitfield monitors via factory functions
-    gameProgressMonitor_ = checks::createGameProgressMonitor(callback);
-    globalFlagsMonitor_ = checks::createGlobalFlagsMonitor(callback);
-    worldStateMonitors_ = checks::createWorldStateMonitors(callback);
-    collectedObjectMonitors_ = checks::createCollectedObjectMonitors(callback);
-    areasRestoredMonitors_ = checks::createAreaRestoredMonitors(callback);
+    // Gamestate bitfield monitors (gameProgress, globalFlags, worldState,
+    // collectedObjects, areasRestored) are disabled for now — they fire
+    // frequently and aren't consumed by the APWorld yet.
+
+    // Set up brush handler only when RandomizeBrushes is enabled.
+    if (socket_.isSlotConfigReady() && socket_.getSlotConfig().randomizeBrushes)
+    {
+        brushHandler_ = std::make_unique<checks::BrushMan>(callback);
+        brushHandler_->initialize();
+    }
 
     // Set up container handler
     containerHandler_ = std::make_unique<checks::ContainerMan>(socket_, callback);
@@ -70,6 +75,10 @@ void CheckMan::reset()
     {
         containerHandler_->reset();
     }
+    if (brushHandler_)
+    {
+        brushHandler_->reset();
+    }
     if (shopHandler_)
     {
         shopHandler_->reset();
@@ -86,6 +95,7 @@ void CheckMan::shutdown()
     }
 
     destroyMonitors();
+    brushHandler_.reset();
     containerHandler_.reset();
     shopHandler_.reset();
     initialized_ = false;
@@ -112,17 +122,6 @@ void CheckMan::poll()
 // ========================================
 // Event-based check handlers
 // ========================================
-
-void CheckMan::onBrushAcquired(int brushIndex)
-{
-    if (!sendingEnabled_)
-    {
-        return;
-    }
-
-    int64_t checkId = checks::getBrushCheckId(brushIndex);
-    sendCheck(checkId);
-}
 
 void CheckMan::onShopPurchase(int shopId, int itemSlot, int itemId)
 {
