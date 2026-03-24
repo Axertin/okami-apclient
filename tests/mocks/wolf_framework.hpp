@@ -200,13 +200,11 @@ template <typename T, typename U> inline bool hookFunction(const char *module, u
     return true;
 }
 
-// Mock module base - return pointer to mockMemory so offset reads work
-inline void *getModuleBase(const char *module)
+// Mock module base - return address of mockMemory so module + offset reads work
+inline uintptr_t getModuleBase(const char *module)
 {
     (void)module;
-    // Return pointer to start of mockMemory so module + offset reads work
-    // Ensure mockMemory has enough space for typical offset ranges
-    return mock::mockMemory.data();
+    return reinterpret_cast<uintptr_t>(mock::mockMemory.data());
 }
 
 // Mock writeMemory - no-op in tests, always succeeds

@@ -43,6 +43,12 @@ constexpr uintptr_t mapData = 0xB322B0; // std::array<MapState, MapTypes::NUM_MA
 /// Dialog/interaction bits for all maps
 constexpr uintptr_t dialogBits = 0xB36CF0; // std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>
 
+/// Custom textures (free-draw textures, e.g. Moon Cave mask)
+constexpr uintptr_t customTextures = 0xB21820; // CustomTextures
+
+/// Area name string ID (written into save slot header)
+constexpr uintptr_t areaNameStrId = 0x79BEB4; // uint32_t
+
 //==============================================================================
 // GAME STATE & UI
 //==============================================================================
