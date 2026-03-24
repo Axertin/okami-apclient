@@ -7,6 +7,7 @@
 #include "gamestate_accessors.hpp"
 #include "itempatch.hpp"
 #include "rewardman.h"
+#include "saveman.h"
 #include "ui/loginwindow.h"
 #include "ui/notificationwindow.h"
 #include "ui/warpwindow.h"
@@ -22,6 +23,7 @@
 // Global manager instances
 static std::unique_ptr<RewardMan> g_rewardMan;
 static std::unique_ptr<CheckMan> g_checkMan;
+static std::unique_ptr<SaveMan> g_saveMan;
 
 // GUI window name for wolf registration
 static const char *g_guiWindowName = "APClient GUI";
@@ -86,6 +88,11 @@ class APClientMod
         // Patch ItemParam array to prevent shop crashes
         itempatch::patchItemParams();
 
+        // Create save manager and install save/load hooks
+        g_saveMan = std::make_unique<SaveMan>(ArchipelagoSocket::instance());
+        g_saveMan->initialize();
+        g_saveMan->installHooks();
+
         // Create managers with explicit dependencies
         g_checkMan = std::make_unique<CheckMan>(ArchipelagoSocket::instance());
 
@@ -106,10 +113,36 @@ class APClientMod
         // Initialize UI
         initializeGui();
         loginwindow::initialize(ArchipelagoSocket::instance());
+        loginwindow::setSaveMan(g_saveMan.get());
         warpwindow::initialize();
 
         // Initialize check manager (sets up monitors and container hooks)
         g_checkMan->initialize();
+
+        // Wire auto-save: queue save after each check is sent
+        g_checkMan->setOnCheckSentCallback([]() {
+            if (g_saveMan)
+                g_saveMan->queueAutoSave();
+        });
+
+        // AP mode lifecycle: activate on play start (if connected).
+        // If a pending AP load was flagged by hookMcLoadCtor, restore game state now
+        // (after the game has finished loading the vanilla save into memory).
+        wolf::onPlayStart([]() {
+            if (g_saveMan && ArchipelagoSocket::instance().isConnected())
+            {
+                g_saveMan->setApModeActive(true);
+                if (g_saveMan->isPendingLoad())
+                {
+                    g_saveMan->loadGameState();
+                    g_saveMan->setPendingLoad(false);
+                }
+            }
+        });
+        wolf::onReturnToMenu([]() {
+            if (g_saveMan)
+                g_saveMan->setApModeActive(false);
+        });
 
         // Game tick handler
         wolf::onGameTick(
@@ -119,6 +152,8 @@ class APClientMod
                 ArchipelagoSocket::instance().poll();
                 g_rewardMan->processQueuedRewards();
                 g_checkMan->poll();
+                if (g_saveMan)
+                    g_saveMan->processAutoSave();
             });
     }
 
@@ -130,6 +165,7 @@ class APClientMod
         }
         g_checkMan.reset();
         g_rewardMan.reset();
+        g_saveMan.reset();
         warpwindow::shutdown();
         notificationwindow::shutdown();
         loginwindow::shutdown();
