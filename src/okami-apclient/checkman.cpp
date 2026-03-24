@@ -220,6 +220,9 @@ void CheckMan::sendCheck(int64_t checkId)
     markCheckSent(checkId);
 
     wolf::logInfo("[CheckMan] Sent check: %" PRId64 " (total: %zu)", checkId, sentChecks_.size());
+
+    if (onCheckSentCallback_)
+        onCheckSentCallback_();
 }
 
 bool CheckMan::hasCheckBeenSent(int64_t checkId) const
@@ -276,6 +279,11 @@ void CheckMan::destroyMonitors()
         wolf::destroyBitfieldMonitor(gameProgressMonitor_);
         gameProgressMonitor_ = nullptr;
     }
+}
+
+void CheckMan::setOnCheckSentCallback(std::function<void()> callback)
+{
+    onCheckSentCallback_ = std::move(callback);
 }
 
 bool CheckMan::isContainerInRando(int64_t locationId) const

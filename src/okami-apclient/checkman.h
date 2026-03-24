@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <memory>
 #include <unordered_set>
@@ -124,6 +125,12 @@ class CheckMan
      */
     [[nodiscard]] bool isContainerInRando(int64_t locationId) const;
 
+    /**
+     * @brief Set callback to be invoked after a check is sent
+     * @param callback Function to call (e.g., SaveMan::queueAutoSave)
+     */
+    void setOnCheckSentCallback(std::function<void()> callback);
+
   private:
     /**
      * @brief Send a check to the server
@@ -170,6 +177,9 @@ class CheckMan
 
     // Shop handler (owns hooks and shop definitions)
     std::unique_ptr<checks::ShopMan> shopHandler_;
+
+    // Callback invoked after each check is sent (for auto-save)
+    std::function<void()> onCheckSentCallback_;
 
     // Initialization state
     bool initialized_ = false;
