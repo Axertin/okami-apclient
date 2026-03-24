@@ -9,6 +9,7 @@
 #include <wolf_framework.hpp>
 
 #include "../isocket.h"
+#include "../saveman.h"
 #include "version.h"
 
 #ifdef _WIN32
@@ -18,7 +19,11 @@
 // Static state
 static std::string WindowName = "Archipelago Client " + std::string(version::string);
 static ISocket *g_socket = nullptr;
+static SaveMan *g_saveMan = nullptr;
 static bool g_visible = true;
+
+// AP save control state (reset on disconnect)
+static bool g_saveChoiceMade = false;
 
 // Connection form data (kept as char arrays for ImGui)
 static char g_server[128] = "archipelago.gg:38281";
@@ -52,6 +57,12 @@ void initialize(ISocket &socket)
 void shutdown()
 {
     g_socket = nullptr;
+    g_saveMan = nullptr;
+}
+
+void setSaveMan(SaveMan *saveMan)
+{
+    g_saveMan = saveMan;
 }
 
 bool isVisible()
@@ -163,6 +174,58 @@ static void renderConnectionForm()
         if (ImGui::Button("Disconnect"))
         {
             g_socket->disconnect();
+            g_saveChoiceMade = false;
+        }
+
+        // AP save controls (only relevant on title screen, not during gameplay)
+        if (g_saveMan && !g_saveMan->isApModeActive())
+        {
+            ImGui::Separator();
+
+            if (g_saveMan->hasSaveFile())
+            {
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "AP save found for this slot.");
+
+                // Snapshot so BeginDisabled/EndDisabled stay paired within this frame
+                bool choiceMade = g_saveChoiceMade;
+
+                if (choiceMade)
+                {
+                    ImGui::BeginDisabled();
+                }
+
+                if (ImGui::Button("Continue AP Game"))
+                {
+                    g_saveMan->setPendingLoad(true);
+                    g_saveChoiceMade = true;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("New AP Game"))
+                {
+                    g_saveMan->deleteSave();
+                    g_saveChoiceMade = true;
+                }
+
+                if (choiceMade)
+                {
+                    ImGui::EndDisabled();
+
+                    if (g_saveMan->isPendingLoad())
+                    {
+                        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f),
+                                           "Select Load Game from the title screen.");
+                    }
+                    else
+                    {
+                        ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f),
+                                           "Select New Game from the title screen.");
+                    }
+                }
+            }
+            else
+            {
+                ImGui::Text("Start a new game to begin.");
+            }
         }
     }
 #endif

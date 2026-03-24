@@ -5,6 +5,7 @@
 #endif
 
 class ISocket;
+class SaveMan;
 
 namespace loginwindow
 {
@@ -43,6 +44,13 @@ void setVisible(bool visible);
  * @brief Toggle login window visibility
  */
 void toggle();
+
+/**
+ * @brief Set the SaveMan instance for AP save controls
+ *
+ * When set and connected, the login window shows Continue/New Game buttons.
+ */
+void setSaveMan(SaveMan *saveMan);
 
 /**
  * @brief Get server connection string
