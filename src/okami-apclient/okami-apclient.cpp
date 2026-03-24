@@ -28,7 +28,7 @@ static std::unique_ptr<SaveMan> g_saveMan;
 // GUI window name for wolf registration
 static const char *g_guiWindowName = "APClient GUI";
 
-// Main GUI render function - calls all internal windows
+// Main GUI render function
 static void renderGui(int outerWidth, int outerHeight, [[maybe_unused]] float uiScale)
 {
 #ifdef _WIN32

@@ -113,6 +113,14 @@ bool CheckMan::isSendingEnabled() const
 
 void CheckMan::poll()
 {
+    // Lazily create brush handler once slot config arrives (connection happens after init)
+    if (!brushHandler_ && socket_.isSlotConfigReady() && socket_.getSlotConfig().randomizeBrushes)
+    {
+        auto callback = [this](int64_t checkId) { sendCheck(checkId); };
+        brushHandler_ = std::make_unique<checks::BrushMan>(callback);
+        brushHandler_->initialize();
+    }
+
     if (containerHandler_)
     {
         containerHandler_->poll();
