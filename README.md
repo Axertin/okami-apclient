@@ -1,6 +1,6 @@
 # Okami-apclient
 
-A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipelago.gg) support and integration, to be used in tandem with the [Okami APWorld](https://github.com/Ragmoa/Archipelago/tree/test_logic).
+A mod for the Steam release of Ōkami HD that adds [Archipelago](https://archipelago.gg) support and integration, to be used in tandem with the [Okami APWorld](https://github.com/Ragmoa/Archipelago/).
 This mod requires the [WOLF](https://github.com/Axertin/wolf) framework to function.
 
 This project follows [Semantic Versioning 2.0.0](https://semver.org/):
