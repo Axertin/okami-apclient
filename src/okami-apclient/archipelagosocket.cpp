@@ -505,6 +505,11 @@ void ArchipelagoSocket::disconnect()
     slotConfigReady_.store(false, std::memory_order_release);
     lastProcessedItemIndex_ = -1;
 
+    // Forget tracked sent checks so a reconnect (possibly to a different multiworld)
+    // doesn't inherit stale state that would merge into the new session's sync.
+    if (checkMan_)
+        checkMan_->clearSentChecks();
+
     std::lock_guard<std::mutex> lock(clientMutex_);
     if (client_)
     {

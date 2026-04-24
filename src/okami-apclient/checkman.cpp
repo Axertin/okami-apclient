@@ -140,6 +140,14 @@ void CheckMan::onShopPurchase(int shopId, int itemSlot, int itemId)
 // Server synchronization
 // ========================================
 
+void CheckMan::clearSentChecks()
+{
+    const size_t prior = sentChecks_.size();
+    sentChecks_.clear();
+    if (prior > 0)
+        wolf::logInfo("[CheckMan] Cleared %zu tracked sent check(s) on disconnect", prior);
+}
+
 void CheckMan::syncWithServer(const std::list<int64_t> &serverCheckedLocations)
 {
     // Add server-confirmed checks to local cache
@@ -208,18 +216,27 @@ void CheckMan::sendCheck(int64_t checkId)
 {
     if (!sendingEnabled_ || !socket_.isConnected())
     {
+        wolf::logDebug("[CheckMan] Skipped check %" PRId64 " (sending=%d, connected=%d)",
+                       checkId, sendingEnabled_ ? 1 : 0,
+                       socket_.isConnected() ? 1 : 0);
         return;
     }
 
     if (hasCheckBeenSent(checkId))
     {
-        return; // Already sent
+        wolf::logDebug("[CheckMan] Skipped check %" PRId64 " (already sent in this session "
+                       "or synced from server)",
+                       checkId);
+        return;
     }
 
     socket_.sendLocation(checkId);
     markCheckSent(checkId);
 
     wolf::logInfo("[CheckMan] Sent check: %" PRId64 " (total: %zu)", checkId, sentChecks_.size());
+
+    if (onCheckSentCallback_)
+        onCheckSentCallback_();
 }
 
 bool CheckMan::hasCheckBeenSent(int64_t checkId) const
@@ -276,6 +293,11 @@ void CheckMan::destroyMonitors()
         wolf::destroyBitfieldMonitor(gameProgressMonitor_);
         gameProgressMonitor_ = nullptr;
     }
+}
+
+void CheckMan::setOnCheckSentCallback(std::function<void()> callback)
+{
+    onCheckSentCallback_ = std::move(callback);
 }
 
 bool CheckMan::isContainerInRando(int64_t locationId) const
