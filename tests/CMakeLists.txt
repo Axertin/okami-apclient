@@ -23,6 +23,9 @@ add_library(apclient-testable STATIC
     # Shop data
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/data/shopdata.cpp
 
+    # Save system
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/saveman.cpp
+
     # Other testable sources
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/gamestate_accessors.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/slotconfig.cpp
@@ -67,12 +70,17 @@ add_executable(apclient-tests
     test_itempatch.cpp
     test_resourcepkg.cpp
     test_customiconpkg.cpp
+    test_saveman.cpp
 )
 
 target_include_directories(apclient-tests PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks
     ${CMAKE_SOURCE_DIR}/src/okami-apclient
     ${CMAKE_SOURCE_DIR}/include
+)
+
+target_compile_definitions(apclient-tests PRIVATE
+    TEST_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
 )
 
 target_link_libraries(apclient-tests PRIVATE
