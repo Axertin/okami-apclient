@@ -9,6 +9,7 @@
 #include <wolf_framework.hpp>
 
 #include "../isocket.h"
+#include "../saveman.h"
 #include "version.h"
 
 #ifdef _WIN32
@@ -18,6 +19,7 @@
 // Static state
 static std::string WindowName = "Archipelago Client " + std::string(version::string);
 static ISocket *g_socket = nullptr;
+static SaveMan *g_saveMan = nullptr;
 static bool g_visible = true;
 
 // Connection form data (kept as char arrays for ImGui)
@@ -52,6 +54,12 @@ void initialize(ISocket &socket)
 void shutdown()
 {
     g_socket = nullptr;
+    g_saveMan = nullptr;
+}
+
+void setSaveMan(SaveMan *saveMan)
+{
+    g_saveMan = saveMan;
 }
 
 bool isVisible()
@@ -163,6 +171,17 @@ static void renderConnectionForm()
         if (ImGui::Button("Disconnect"))
         {
             g_socket->disconnect();
+        }
+
+        // Status indicator only; all load/new-game selection happens in the
+        // game's own title-screen UI now that the Steam redirect is in place.
+        if (g_saveMan && !g_saveMan->isApModeActive())
+        {
+            ImGui::Separator();
+            if (g_saveMan->hasSaveFile())
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "AP save found - pick Continue on the title screen.");
+            else
+                ImGui::Text("No AP save yet - start a new game on the title screen.");
         }
     }
 #endif

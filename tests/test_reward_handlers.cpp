@@ -89,4 +89,3 @@ TEST_CASE("Progressive item detection boundaries", "[rewards]")
         CHECK_FALSE(rewards::game_items::isDirectGameItem(0x300)); // Progressive weapon
     }
 }
-

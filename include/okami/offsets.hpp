@@ -43,12 +43,31 @@ constexpr uintptr_t mapData = 0xB322B0; // std::array<MapState, MapTypes::NUM_MA
 /// Dialog/interaction bits for all maps
 constexpr uintptr_t dialogBits = 0xB36CF0; // std::array<BitField<512>, MapTypes::NUM_MAP_TYPES>
 
+/// Custom textures (free-draw textures, e.g. Moon Cave mask)
+constexpr uintptr_t customTextures = 0xB21820; // CustomTextures
+
+/// Area name string ID (written into save slot header)
+constexpr uintptr_t areaNameStrId = 0x79BEB4; // uint32_t
+
 //==============================================================================
 // GAME STATE & UI
 //==============================================================================
 
 /// Global game state flags
 constexpr uintptr_t globalGameStateFlags = 0xB6B2AC; // BitField<86>
+
+/// Save/title/boot flags. bit 6=loadActive, bit 8=bootComplete,
+/// bit 15=autoLoad, bit 19=gameHasBeenPlayed, bit 26=triggerTitleScreen.
+/// Source: docs/research/title-menu-system.md.
+constexpr uintptr_t saveStateFlags = 0xB6ACC4; // uint32_t
+
+/// System-level flags. bit 22=saveOpActive, bit 30=renderingEnabled.
+/// Source: docs/research/title-menu-system.md.
+constexpr uintptr_t systemFlags = 0xB6B2B0; // uint32_t
+
+/// Area-load pipeline flags. Mask 0x6001000 set while a map load is in flight.
+/// Source: docs/research/title-menu-system.md.
+constexpr uintptr_t areaLoadFlags = 0xB6B2A0; // uint32_t
 
 /// Camera field of view
 constexpr uintptr_t cameraFOV = 0xB663B0; // float
@@ -132,9 +151,6 @@ constexpr uintptr_t itemParams = 0x7AB220; // std::array<ItemParam, ItemTypes::N
 //==============================================================================
 // ADDITIONAL OFFSETS
 //==============================================================================
-
-/// Map ID references (additional)
-constexpr uintptr_t exteriorMapIDCopy = 0xB6B248; // uint16_t (lastMapId reference)
 
 } // namespace main
 } // namespace okami

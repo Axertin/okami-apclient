@@ -130,7 +130,7 @@ std::string MockArchipelagoSocket::getConnectionInfo() const
 {
     if (state_ == ConnectionState::Connected)
     {
-        return server_ + " (slot: " + slot_ + ")";
+        return slot_ + "_testseed";
     }
     return "";
 }

@@ -19,6 +19,7 @@ set(okami-apclient_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/brushes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/event_flags.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/rewards/game_items.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/saveman.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/slotconfig.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ui/loginwindow.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ui/notificationwindow.cpp

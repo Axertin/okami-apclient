@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <memory>
 #include <unordered_set>
@@ -106,6 +107,13 @@ class CheckMan
     void syncWithServer(const std::list<int64_t> &serverCheckedLocations);
 
     /**
+     * @brief Forget every check tracked locally. Called from the socket layer on
+     * disconnect so a subsequent connection (potentially to a different server or
+     * multiworld) doesn't merge stale sent state into the new session's sync.
+     */
+    void clearSentChecks();
+
+    /**
      * @brief Resend all tracked checks to the server
      *
      * Used during resync after desync detection.
@@ -123,6 +131,12 @@ class CheckMan
      * @return true if randomized
      */
     [[nodiscard]] bool isContainerInRando(int64_t locationId) const;
+
+    /**
+     * @brief Set callback to be invoked after a check is sent
+     * @param callback Function to call (e.g., SaveMan::queueAutoSave)
+     */
+    void setOnCheckSentCallback(std::function<void()> callback);
 
   private:
     /**
@@ -170,6 +184,9 @@ class CheckMan
 
     // Shop handler (owns hooks and shop definitions)
     std::unique_ptr<checks::ShopMan> shopHandler_;
+
+    // Callback invoked after each check is sent (for auto-save)
+    std::function<void()> onCheckSentCallback_;
 
     // Initialization state
     bool initialized_ = false;
