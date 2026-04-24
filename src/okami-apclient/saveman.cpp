@@ -6,7 +6,6 @@
 #include <fstream>
 #include <memory>
 
-
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -14,12 +13,12 @@
 #include <windows.h>
 #endif
 
+#include <okami/maps.hpp>
+#include <okami/offsets.hpp>
 #include <wolf_framework.hpp>
 
 #include "isocket.h"
 #include "ui/notificationwindow.h"
-#include <okami/maps.hpp>
-#include <okami/offsets.hpp>
 
 static std::string initSaveDir()
 {
@@ -49,32 +48,30 @@ static const std::string SAVE_DIR = initSaveDir();
 namespace
 {
 // Memory region addresses (offsets relative to main.dll)
-constexpr uintptr_t kCharacterStats = okami::main::characterStats;   // 0xB4DF90
-constexpr uintptr_t kTrackerData = okami::main::trackerData;         // 0xB21780
-constexpr uintptr_t kCollectionData = okami::main::collectionData;   // 0xB205D0
-constexpr uintptr_t kMapData = okami::main::mapData;                 // 0xB322B0
-constexpr uintptr_t kDialogBits = okami::main::dialogBits;           // 0xB36CF0
-constexpr uintptr_t kCustomTextures = okami::main::customTextures;   // 0xB21820
+constexpr uintptr_t kCharacterStats = okami::main::characterStats; // 0xB4DF90
+constexpr uintptr_t kTrackerData = okami::main::trackerData;       // 0xB21780
+constexpr uintptr_t kCollectionData = okami::main::collectionData; // 0xB205D0
+constexpr uintptr_t kMapData = okami::main::mapData;               // 0xB322B0
+constexpr uintptr_t kDialogBits = okami::main::dialogBits;         // 0xB36CF0
+constexpr uintptr_t kCustomTextures = okami::main::customTextures; // 0xB21820
 
 constexpr uint64_t kChecksumSeed = 0x9be6fa3b72afda1d;
 constexpr uint32_t kHeaderMagic = 0x40400000;
 
 // Hook offsets (relative to main.dll base)
-constexpr uintptr_t kMcSaveCtorOffset = 0x1c3de0;     // FUN_1801c3de0: cMcSave constructor
-constexpr uintptr_t kSaveGateOffset = 0x1c37d0;       // FUN_1801c37d0: cMcSave gate (vtable[1])
-                                                        //   returns 1 -> show save UI, 0 -> skip to cleanup
+constexpr uintptr_t kMcSaveCtorOffset = 0x1c3de0;        // FUN_1801c3de0: cMcSave constructor
+constexpr uintptr_t kSaveGateOffset = 0x1c37d0;          // FUN_1801c37d0: cMcSave gate (vtable[1])
+                                                         //   returns 1 -> show save UI, 0 -> skip to cleanup
 constexpr uintptr_t kOkamiWriteKickoffOffset = 0x14e100; // FUN_18014e100: m2::SteamSaveWrite kickoff
-                                                          //   calls ISteamRemoteStorage::FileWriteAsync
-                                                          //   directly.
+                                                         //   calls ISteamRemoteStorage::FileWriteAsync
+                                                         //   directly.
 constexpr uintptr_t kOkamiPureReadOffset = 0x14f580;     // FUN_18014f580: Called by
-                                                          //   m2::SaveDataManager with (dir, filename,
-                                                          //   offset, userBuffer, &size)
+                                                         //   m2::SaveDataManager with (dir, filename,
+                                                         //   offset, userBuffer, &size)
 } // namespace
 
-static_assert(sizeof(okami::SaveSlot) == 0x172A0,
-              "SaveSlot size mismatch — expected 0x172A0 bytes");
-static_assert(sizeof(okami::SaveFile) == 30 * sizeof(okami::SaveSlot),
-              "SaveFile size mismatch — expected 30x SaveSlot");
+static_assert(sizeof(okami::SaveSlot) == 0x172A0, "SaveSlot size mismatch — expected 0x172A0 bytes");
+static_assert(sizeof(okami::SaveFile) == 30 * sizeof(okami::SaveSlot), "SaveFile size mismatch — expected 30x SaveSlot");
 
 // =============================================================================
 // Hook infrastructure
@@ -88,14 +85,10 @@ using CtorFn = void(__fastcall *)(void *pContext);
 using GateFn = unsigned char(__fastcall *)(void *pMcSave);
 // FUN_18014e100: the 5th param is a pointer to a std::_Func_impl-like holder whose
 // [7]th qword (offset 0x38) points to the lambda object to be moved/destroyed.
-using OkamiWriteKickoffFn = void *(__fastcall *)(void *pTracking, const char *pchFile,
-                                                 const void *pvData, uint32_t cubData,
-                                                 uintptr_t *pLambdaHolder);
+using OkamiWriteKickoffFn = void *(__fastcall *)(void *pTracking, const char *pchFile, const void *pvData, uint32_t cubData, uintptr_t *pLambdaHolder);
 // FUN_18014f580: pure-read wrapper. Returns status code, *pActualSize set on success.
 // pDir and pFilename are hx::String* (C-string ptr at +0x08 of the struct).
-using OkamiPureReadFn = uint32_t(__fastcall *)(const void *pDir, const void *pFilename,
-                                               uint32_t offset, void *pUserBuffer,
-                                               uint32_t *pActualSize);
+using OkamiPureReadFn = uint32_t(__fastcall *)(const void *pDir, const void *pFilename, uint32_t offset, void *pUserBuffer, uint32_t *pActualSize);
 // Original function pointers (populated by hookFunction)
 static CtorFn s_origMcSaveCtor = nullptr;
 static GateFn s_origSaveGate = nullptr;
@@ -104,8 +97,8 @@ static OkamiPureReadFn s_origOkamiPureRead = nullptr;
 
 // ISteamRemoteStorage function typedefs (x64 __fastcall)
 // Vtable indices from Steamworks SDK ISteamRemoteStorage
-using SteamFileExistsFn = bool(__fastcall *)(void *, const char *);                                // [13]
-using SteamGetFileSizeFn = int32_t(__fastcall *)(void *, const char *);                            // [15]
+using SteamFileExistsFn = bool(__fastcall *)(void *, const char *);     // [13]
+using SteamGetFileSizeFn = int32_t(__fastcall *)(void *, const char *); // [15]
 
 // Original function pointers (populated by installSteamRedirect)
 static SteamFileExistsFn s_origSteamFileExists = nullptr;
@@ -118,8 +111,10 @@ static std::mutex g_redirectMutex;
 // Game passes filenames as "./Steam/OKAMI", "OKAMI", or "Steam/OKAMI" depending on method.
 static bool isOkamiFile(const char *pchFile)
 {
-    if (!pchFile) return false;
-    if (std::strcmp(pchFile, "OKAMI") == 0) return true;
+    if (!pchFile)
+        return false;
+    if (std::strcmp(pchFile, "OKAMI") == 0)
+        return true;
     size_t len = std::strlen(pchFile);
     return len >= 6 && std::strcmp(pchFile + len - 6, "/OKAMI") == 0;
 }
@@ -201,9 +196,7 @@ static int32_t __fastcall hookSteamGetFileSize(void *pThis, const char *pchFile)
 //   3. Zero the tracking struct so the caller's cleanup guards
 //      (`if (local_170 != 0)`, `if (local_188 != null)`) all skip.
 //   4. Destroy the source lambda in-place exactly like the original tail did.
-static void *__fastcall hookOkamiWriteKickoff(void *pTracking, const char *pchFile,
-                                              const void *pvData, uint32_t cubData,
-                                              uintptr_t *pLambdaHolder)
+static void *__fastcall hookOkamiWriteKickoff(void *pTracking, const char *pchFile, const void *pvData, uint32_t cubData, uintptr_t *pLambdaHolder)
 {
     if (isOkamiFile(pchFile))
     {
@@ -232,13 +225,11 @@ static void *__fastcall hookOkamiWriteKickoff(void *pTracking, const char *pchFi
             }
             else if (writeOkamiPayloadAtomic(target, pvData, static_cast<size_t>(cubData)))
             {
-                wolf::logInfo("[SaveMan] OKAMI write kickoff -> %s (%u bytes), Steam bypassed",
-                              target.c_str(), cubData);
+                wolf::logInfo("[SaveMan] OKAMI write kickoff -> %s (%u bytes), Steam bypassed", target.c_str(), cubData);
             }
             else
             {
-                wolf::logError("[SaveMan] OKAMI write kickoff: writeOkamiPayloadAtomic failed (%s, %u bytes)",
-                               target.c_str(), cubData);
+                wolf::logError("[SaveMan] OKAMI write kickoff: writeOkamiPayloadAtomic failed (%s, %u bytes)", target.c_str(), cubData);
             }
 
             // Zero the ~0x70-byte tracking struct
@@ -257,8 +248,7 @@ static void *__fastcall hookOkamiWriteKickoff(void *pTracking, const char *pchFi
                     auto *vtable = reinterpret_cast<uintptr_t *>(*self);
                     using DtorFn = void(__fastcall *)(void *, bool);
                     auto dtor = reinterpret_cast<DtorFn>(vtable[4]); // vtable[0x20] / 8
-                    dtor(self, reinterpret_cast<uintptr_t>(self) !=
-                                   reinterpret_cast<uintptr_t>(pLambdaHolder));
+                    dtor(self, reinterpret_cast<uintptr_t>(self) != reinterpret_cast<uintptr_t>(pLambdaHolder));
                     pLambdaHolder[7] = 0;
                 }
             }
@@ -292,14 +282,11 @@ static const char *hxStringCStr(const void *hxStr)
 {
     if (hxStr == nullptr)
         return "";
-    const char *s = *reinterpret_cast<const char *const *>(
-        static_cast<const uint8_t *>(hxStr) + 8);
+    const char *s = *reinterpret_cast<const char *const *>(static_cast<const uint8_t *>(hxStr) + 8);
     return s ? s : "";
 }
 
-static uint32_t __fastcall hookOkamiPureRead(const void *pDir, const void *pFilename,
-                                             uint32_t offset, void *pUserBuffer,
-                                             uint32_t *pActualSize)
+static uint32_t __fastcall hookOkamiPureRead(const void *pDir, const void *pFilename, uint32_t offset, void *pUserBuffer, uint32_t *pActualSize)
 {
     const char *filename = hxStringCStr(pFilename);
 
@@ -316,8 +303,7 @@ static uint32_t __fastcall hookOkamiPureRead(const void *pDir, const void *pFile
             std::error_code ec;
             if (!std::filesystem::exists(target, ec))
             {
-                wolf::logWarning("[SaveMan] OKAMI pure-read: %s missing: returning error",
-                                 target.c_str());
+                wolf::logWarning("[SaveMan] OKAMI pure-read: %s missing: returning error", target.c_str());
                 if (pActualSize != nullptr)
                     *pActualSize = 0;
                 return 0x8002b40b;
@@ -346,8 +332,7 @@ static uint32_t __fastcall hookOkamiPureRead(const void *pDir, const void *pFile
             if (pActualSize != nullptr)
                 *pActualSize = bytesRead;
 
-            wolf::logInfo("[SaveMan] OKAMI pure-read -> %s (offset=%u, %u/%u bytes, Steam bypassed)",
-                          target.c_str(), offset, bytesRead, requested);
+            wolf::logInfo("[SaveMan] OKAMI pure-read -> %s (offset=%u, %u/%u bytes, Steam bypassed)", target.c_str(), offset, bytesRead, requested);
             return 0; // success
         }
 
@@ -403,8 +388,7 @@ static void __fastcall hookMcSaveCtor(void *pContext)
         else
         {
             notificationwindow::queue("AP progress saved", 3.0f);
-            wolf::logInfo("[SaveMan] AP save (save-mirror): game state saved to %s",
-                          g_saveMan->getSavePath().c_str());
+            wolf::logInfo("[SaveMan] AP save (save-mirror): game state saved to %s", g_saveMan->getSavePath().c_str());
         }
     }
     else
@@ -468,8 +452,8 @@ bool SaveMan::saveGameState()
     snapshotToSlot(slot);
     slot.checksum = computeChecksum(slot);
 
-    wolf::logDebug("[SaveMan] Slot header: magic=0x%08X, +04=0x%08X, checksum=0x%llX, time=0x%llX",
-                   slot.header, slot.areaNameStrId, slot.checksum, slot.timeRTC);
+    wolf::logDebug("[SaveMan] Slot header: magic=0x%08X, +04=0x%08X, checksum=0x%llX, time=0x%llX", slot.header, slot.areaNameStrId, slot.checksum,
+                   slot.timeRTC);
 
     if (!writeSlotToFile(slot))
     {
@@ -512,8 +496,7 @@ bool SaveMan::loadGameState()
     uint64_t expected = computeChecksum(slot);
     if (slot.checksum != expected)
     {
-        wolf::logWarning("[SaveMan] Checksum mismatch (file=0x%llX, computed=0x%llX) — loading anyway",
-                         slot.checksum, expected);
+        wolf::logWarning("[SaveMan] Checksum mismatch (file=0x%llX, computed=0x%llX) — loading anyway", slot.checksum, expected);
     }
 
     restoreFromSlot(slot);
@@ -641,8 +624,7 @@ bool SaveMan::isSafeToSave() const
 
     // Title screen — no gameplay state to snapshot.
     uint16_t mapId = *reinterpret_cast<const uint16_t *>(moduleBase_ + okami::main::exteriorMapID);
-    if (mapId == static_cast<uint16_t>(MapID::TitleScreen) ||
-        mapId == static_cast<uint16_t>(MapID::TitleScreenDemoCutscene))
+    if (mapId == static_cast<uint16_t>(MapID::TitleScreen) || mapId == static_cast<uint16_t>(MapID::TitleScreenDemoCutscene))
         return false;
 
     // Save operation already in flight — bit 22 of systemFlags is the cMcSys
@@ -694,8 +676,7 @@ void SaveMan::snapshotToSlot(okami::SaveSlot &slot)
     // areaNameID at +0x04: title-screen location label (0x00–0x35 valid).
     // Look up from the live exterior map ID — 0x79BEB4 is only populated
     // inside the game's own save routine and reads 0xFFFFFFFF otherwise.
-    uint16_t mapId = *reinterpret_cast<const uint16_t *>(
-        moduleBase_ + okami::main::exteriorMapID);
+    uint16_t mapId = *reinterpret_cast<const uint16_t *>(moduleBase_ + okami::main::exteriorMapID);
     slot.areaNameStrId = okami::getAreaNameID(mapId);
 
     // RTC timestamp (Windows FILETIME format for compatibility)
@@ -707,8 +688,7 @@ void SaveMan::snapshotToSlot(okami::SaveSlot &slot)
     slot.timeRTC = static_cast<uint64_t>(us * 10) + 116444736000000000ULL;
 
     // Copy the 6 game state regions
-    std::memcpy(&slot.character, reinterpret_cast<const void *>(characterStatsAddr_),
-                sizeof(okami::CharacterStats));
+    std::memcpy(&slot.character, reinterpret_cast<const void *>(characterStatsAddr_), sizeof(okami::CharacterStats));
 
     // CharacterStats.x/y/z (position) and u/v/w (rotation) are flagged "set from
     // elsewhere" in structs.hpp. The game populates them in FUN_18043b040 right
@@ -719,8 +699,7 @@ void SaveMan::snapshotToSlot(okami::SaveSlot &slot)
     // are stale — leaving the player at the map's default spawn on reload (often
     // origin, outside geometry). Patch them in from the live sources here.
     {
-        uintptr_t ammy = *reinterpret_cast<const uintptr_t *>(
-            moduleBase_ + okami::main::ammyModel);
+        uintptr_t ammy = *reinterpret_cast<const uintptr_t *>(moduleBase_ + okami::main::ammyModel);
         if (ammy != 0)
         {
             const auto *posPtr = *reinterpret_cast<const float *const *>(ammy + 0xA8);
@@ -737,11 +716,9 @@ void SaveMan::snapshotToSlot(okami::SaveSlot &slot)
         }
     }
 
-    std::memcpy(&slot.tracked, reinterpret_cast<const void *>(trackerDataAddr_),
-                sizeof(okami::TrackerData));
+    std::memcpy(&slot.tracked, reinterpret_cast<const void *>(trackerDataAddr_), sizeof(okami::TrackerData));
 
-    std::memcpy(&slot.collection, reinterpret_cast<const void *>(collectionDataAddr_),
-                sizeof(okami::CollectionData));
+    std::memcpy(&slot.collection, reinterpret_cast<const void *>(collectionDataAddr_), sizeof(okami::CollectionData));
 
     // CollectionData carries map-identity fields (currentMapId at +0x02,
     // lastMapId at +0x04) that the comment in structs.hpp flags as
@@ -753,40 +730,30 @@ void SaveMan::snapshotToSlot(okami::SaveSlot &slot)
     // reload spawns in the wrong room. Patch them from the live sources.
     {
         slot.collection.currentMapId = mapId; // already read from exteriorMapID
-        slot.collection.lastMapId = *reinterpret_cast<const uint16_t *>(
-            moduleBase_ + okami::main::exteriorMapIDCopy);
+        slot.collection.lastMapId = *reinterpret_cast<const uint16_t *>(moduleBase_ + okami::main::exteriorMapIDCopy);
     }
 
-    std::memcpy(slot.MapData, reinterpret_cast<const void *>(mapDataAddr_),
-                sizeof(slot.MapData));
+    std::memcpy(slot.MapData, reinterpret_cast<const void *>(mapDataAddr_), sizeof(slot.MapData));
 
-    std::memcpy(slot.DialogBits, reinterpret_cast<const void *>(dialogBitsAddr_),
-                sizeof(slot.DialogBits));
+    std::memcpy(slot.DialogBits, reinterpret_cast<const void *>(dialogBitsAddr_), sizeof(slot.DialogBits));
 
-    std::memcpy(&slot.customTextures, reinterpret_cast<const void *>(customTexturesAddr_),
-                sizeof(okami::CustomTextures));
+    std::memcpy(&slot.customTextures, reinterpret_cast<const void *>(customTexturesAddr_), sizeof(okami::CustomTextures));
 }
 
 void SaveMan::restoreFromSlot(const okami::SaveSlot &slot)
 {
     // Write the 6 game state regions back to game memory
-    std::memcpy(reinterpret_cast<void *>(characterStatsAddr_), &slot.character,
-                sizeof(okami::CharacterStats));
+    std::memcpy(reinterpret_cast<void *>(characterStatsAddr_), &slot.character, sizeof(okami::CharacterStats));
 
-    std::memcpy(reinterpret_cast<void *>(trackerDataAddr_), &slot.tracked,
-                sizeof(okami::TrackerData));
+    std::memcpy(reinterpret_cast<void *>(trackerDataAddr_), &slot.tracked, sizeof(okami::TrackerData));
 
-    std::memcpy(reinterpret_cast<void *>(collectionDataAddr_), &slot.collection,
-                sizeof(okami::CollectionData));
+    std::memcpy(reinterpret_cast<void *>(collectionDataAddr_), &slot.collection, sizeof(okami::CollectionData));
 
-    std::memcpy(reinterpret_cast<void *>(mapDataAddr_), slot.MapData,
-                sizeof(slot.MapData));
+    std::memcpy(reinterpret_cast<void *>(mapDataAddr_), slot.MapData, sizeof(slot.MapData));
 
-    std::memcpy(reinterpret_cast<void *>(dialogBitsAddr_), slot.DialogBits,
-                sizeof(slot.DialogBits));
+    std::memcpy(reinterpret_cast<void *>(dialogBitsAddr_), slot.DialogBits, sizeof(slot.DialogBits));
 
-    std::memcpy(reinterpret_cast<void *>(customTexturesAddr_), &slot.customTextures,
-                sizeof(okami::CustomTextures));
+    std::memcpy(reinterpret_cast<void *>(customTexturesAddr_), &slot.customTextures, sizeof(okami::CustomTextures));
 }
 
 // =============================================================================
@@ -870,8 +837,7 @@ bool SaveMan::writeSlotToFile(const okami::SaveSlot &slot)
         std::filesystem::rename(tmpPath, path, ec);
         if (ec)
         {
-            wolf::logError("[SaveMan] Failed to rename %s -> %s: %s",
-                           tmpPath.c_str(), path.c_str(), ec.message().c_str());
+            wolf::logError("[SaveMan] Failed to rename %s -> %s: %s", tmpPath.c_str(), path.c_str(), ec.message().c_str());
             std::filesystem::remove(tmpPath);
             return false;
         }
@@ -896,8 +862,7 @@ bool SaveMan::readSlotFromFile(okami::SaveSlot &slot) const
         auto fileSize = std::filesystem::file_size(path);
         if (fileSize != sizeof(okami::SaveFile))
         {
-            wolf::logError("[SaveMan] Invalid save file size: %zu (expected %zu)",
-                           static_cast<size_t>(fileSize), sizeof(okami::SaveFile));
+            wolf::logError("[SaveMan] Invalid save file size: %zu (expected %zu)", static_cast<size_t>(fileSize), sizeof(okami::SaveFile));
             return false;
         }
 
@@ -936,35 +901,26 @@ void SaveMan::installHooks()
     int installed = 0;
     constexpr int kTotalHooks = 4;
 
-    if (wolf::hookFunction("main.dll", kMcSaveCtorOffset,
-                           reinterpret_cast<void *>(&hookMcSaveCtor),
-                           reinterpret_cast<void **>(&s_origMcSaveCtor)))
+    if (wolf::hookFunction("main.dll", kMcSaveCtorOffset, reinterpret_cast<void *>(&hookMcSaveCtor), reinterpret_cast<void **>(&s_origMcSaveCtor)))
         ++installed;
     else
         wolf::logError("[SaveMan] FAILED: McSave ctor hook at 0x%zX", kMcSaveCtorOffset);
 
-    if (wolf::hookFunction("main.dll", kSaveGateOffset,
-                           reinterpret_cast<void *>(&hookSaveGate),
-                           reinterpret_cast<void **>(&s_origSaveGate)))
+    if (wolf::hookFunction("main.dll", kSaveGateOffset, reinterpret_cast<void *>(&hookSaveGate), reinterpret_cast<void **>(&s_origSaveGate)))
         ++installed;
     else
         wolf::logError("[SaveMan] FAILED: SaveGate hook at 0x%zX", kSaveGateOffset);
 
-    if (wolf::hookFunction("main.dll", kOkamiWriteKickoffOffset,
-                           reinterpret_cast<void *>(&hookOkamiWriteKickoff),
+    if (wolf::hookFunction("main.dll", kOkamiWriteKickoffOffset, reinterpret_cast<void *>(&hookOkamiWriteKickoff),
                            reinterpret_cast<void **>(&s_origOkamiWriteKickoff)))
         ++installed;
     else
-        wolf::logError("[SaveMan] FAILED: OKAMI write kickoff hook at 0x%zX",
-                       kOkamiWriteKickoffOffset);
+        wolf::logError("[SaveMan] FAILED: OKAMI write kickoff hook at 0x%zX", kOkamiWriteKickoffOffset);
 
-    if (wolf::hookFunction("main.dll", kOkamiPureReadOffset,
-                           reinterpret_cast<void *>(&hookOkamiPureRead),
-                           reinterpret_cast<void **>(&s_origOkamiPureRead)))
+    if (wolf::hookFunction("main.dll", kOkamiPureReadOffset, reinterpret_cast<void *>(&hookOkamiPureRead), reinterpret_cast<void **>(&s_origOkamiPureRead)))
         ++installed;
     else
-        wolf::logError("[SaveMan] FAILED: OKAMI pure-read hook at 0x%zX",
-                       kOkamiPureReadOffset);
+        wolf::logError("[SaveMan] FAILED: OKAMI pure-read hook at 0x%zX", kOkamiPureReadOffset);
 
     wolf::logInfo("[SaveMan] Hooks installed: %d/%d", installed, kTotalHooks);
 
@@ -1038,7 +994,8 @@ void SaveMan::installSteamRedirect()
     int steamInstalled = 0;
     constexpr int kTotalSteamHooks = 2;
 
-    auto patchVtable = [&](int idx, const char *name, void *hookFn, void **origPtr) {
+    auto patchVtable = [&](int idx, const char *name, void *hookFn, void **origPtr)
+    {
         *origPtr = vtable[idx];
         if (VirtualProtect(&vtable[idx], sizeof(void *), PAGE_EXECUTE_READWRITE, &oldProtect))
         {
@@ -1054,11 +1011,9 @@ void SaveMan::installSteamRedirect()
         }
     };
 
-    patchVtable(13, "FileExists",
-                reinterpret_cast<void *>(static_cast<SteamFileExistsFn>(&hookSteamFileExists)),
+    patchVtable(13, "FileExists", reinterpret_cast<void *>(static_cast<SteamFileExistsFn>(&hookSteamFileExists)),
                 reinterpret_cast<void **>(&s_origSteamFileExists));
-    patchVtable(15, "GetFileSize",
-                reinterpret_cast<void *>(static_cast<SteamGetFileSizeFn>(&hookSteamGetFileSize)),
+    patchVtable(15, "GetFileSize", reinterpret_cast<void *>(static_cast<SteamGetFileSizeFn>(&hookSteamGetFileSize)),
                 reinterpret_cast<void **>(&s_origSteamGetFileSize));
 
     wolf::logInfo("[SaveMan] Steam vtable patches: %d/%d installed", steamInstalled, kTotalSteamHooks);
@@ -1104,12 +1059,6 @@ void SaveMan::logState(const char *context) const
     }
     wolf::logInfo("[SaveMan] state(%s): apMode=%d connected=%d initialized=%d "
                   "path='%s' exists=%d size=%llu redirect='%s'",
-                  context ? context : "",
-                  static_cast<int>(apModeActive_.load()),
-                  static_cast<int>(isConnected()),
-                  static_cast<int>(initialized_),
-                  path.c_str(),
-                  fileExists ? 1 : 0,
-                  static_cast<unsigned long long>(fileSize),
-                  redirectPath.c_str());
+                  context ? context : "", static_cast<int>(apModeActive_.load()), static_cast<int>(isConnected()), static_cast<int>(initialized_), path.c_str(),
+                  fileExists ? 1 : 0, static_cast<unsigned long long>(fileSize), redirectPath.c_str());
 }

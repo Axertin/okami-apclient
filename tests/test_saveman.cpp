@@ -1,6 +1,3 @@
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_approx.hpp>
-
 #include <chrono>
 #include <cstring>
 #include <filesystem>
@@ -8,13 +5,15 @@
 #include <thread>
 #include <vector>
 
-#include "mock_archipelagosocket.h"
-#include "saveman.h"
-#include "wolf_framework.hpp"
-
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <okami/maps.hpp>
 #include <okami/offsets.hpp>
 #include <okami/savefile.hpp>
+
+#include "mock_archipelagosocket.h"
+#include "saveman.h"
+#include "wolf_framework.hpp"
 
 // Highest memory offset used by SaveMan: systemFlags at 0xB6B2B0 + sizeof(uint32_t).
 // Reserve enough mock memory to cover all game state regions and flag globals.
@@ -57,10 +56,8 @@ struct GameFlagWriter
     uint16_t *mapId;
 
     explicit GameFlagWriter(uintptr_t base)
-        : saveFlags(reinterpret_cast<uint32_t *>(base + okami::main::saveStateFlags)),
-          sysFlags(reinterpret_cast<uint32_t *>(base + okami::main::systemFlags)),
-          areaFlags(reinterpret_cast<uint32_t *>(base + okami::main::areaLoadFlags)),
-          mapId(reinterpret_cast<uint16_t *>(base + okami::main::exteriorMapID))
+        : saveFlags(reinterpret_cast<uint32_t *>(base + okami::main::saveStateFlags)), sysFlags(reinterpret_cast<uint32_t *>(base + okami::main::systemFlags)),
+          areaFlags(reinterpret_cast<uint32_t *>(base + okami::main::areaLoadFlags)), mapId(reinterpret_cast<uint16_t *>(base + okami::main::exteriorMapID))
     {
     }
 
@@ -409,7 +406,7 @@ TEST_CASE("Snapshot captures live player position from Amaterasu object", "[save
     // Stage an Amaterasu object inside the mock region, and a separate position
     // vec3 it points to. Both addresses stay within kMockMemorySize (0xB80000).
     const uintptr_t ammyAddr = base + 0xB70000; // ammy struct — has rotation inline at +0xB0
-    const uintptr_t posAddr  = base + 0xB78000; // vec3 that ammy+0xA8 points to
+    const uintptr_t posAddr = base + 0xB78000;  // vec3 that ammy+0xA8 points to
 
     // Live position (x,y,z) — what the player is actually standing at
     auto *pos = reinterpret_cast<float *>(posAddr);
@@ -442,9 +439,11 @@ TEST_CASE("Snapshot captures live player position from Amaterasu object", "[save
     REQUIRE(sm->saveGameState());
 
     okami::SaveSlot slot;
-    std::ifstream f(sm->getSavePath(), std::ios::binary);
-    REQUIRE(f.is_open());
-    f.read(reinterpret_cast<char *>(&slot), sizeof(slot));
+    {
+        std::ifstream f(sm->getSavePath(), std::ios::binary);
+        REQUIRE(f.is_open());
+        f.read(reinterpret_cast<char *>(&slot), sizeof(slot));
+    }
 
     CHECK(slot.character.x == Catch::Approx(-51.0f));
     CHECK(slot.character.y == Catch::Approx(10.0f));
@@ -486,9 +485,11 @@ TEST_CASE("Snapshot overrides stale CollectionData map IDs with live values", "[
     REQUIRE(sm->saveGameState());
 
     okami::SaveSlot slot;
-    std::ifstream f(sm->getSavePath(), std::ios::binary);
-    REQUIRE(f.is_open());
-    f.read(reinterpret_cast<char *>(&slot), sizeof(slot));
+    {
+        std::ifstream f(sm->getSavePath(), std::ios::binary);
+        REQUIRE(f.is_open());
+        f.read(reinterpret_cast<char *>(&slot), sizeof(slot));
+    }
 
     CHECK(slot.collection.currentMapId == 0x0122); // from exteriorMapID
     CHECK(slot.collection.lastMapId == 0x0121);    // from exteriorMapIDCopy
@@ -612,13 +613,15 @@ TEST_CASE("deleteSave removes file", "[saveman][fileio]")
 // =============================================================================
 
 /// Read the golden vanilla save fixture into a SaveFile.
-static okami::SaveFile readFixtureSaveFile()
+/// Heap-allocated because SaveFile is ~2.8 MB; the Windows default
+/// thread stack is 1 MB.
+static std::unique_ptr<okami::SaveFile> readFixtureSaveFile()
 {
-    okami::SaveFile file;
+    auto file = std::make_unique<okami::SaveFile>();
     std::string path = std::string(TEST_FIXTURES_DIR) + "/vanilla_save.bin";
     std::ifstream f(path, std::ios::binary);
     REQUIRE(f.is_open());
-    f.read(reinterpret_cast<char *>(&file), sizeof(file));
+    f.read(reinterpret_cast<char *>(file.get()), sizeof(*file));
     REQUIRE(f.good());
     return file;
 }
@@ -626,18 +629,18 @@ static okami::SaveFile readFixtureSaveFile()
 TEST_CASE("Golden save: checksum matches game-computed value", "[saveman][golden]")
 {
     auto file = readFixtureSaveFile();
-    uint64_t computed = SaveMan::computeChecksum(file.slots[0]);
-    CHECK(computed == file.slots[0].checksum);
+    uint64_t computed = SaveMan::computeChecksum(file->slots[0]);
+    CHECK(computed == file->slots[0].checksum);
 }
 
 TEST_CASE("Golden save: slot 0 header is valid", "[saveman][golden]")
 {
     auto file = readFixtureSaveFile();
-    CHECK(file.slots[0].header == 0x40400000);
-    CHECK(file.slots[0].areaNameStrId == 0x0F);
-    CHECK(file.slots[0].areaNameStrId < 0x36);
-    CHECK(file.slots[0].checksum != 0);
-    CHECK(file.slots[0].timeRTC != 0);
+    CHECK(file->slots[0].header == 0x40400000);
+    CHECK(file->slots[0].areaNameStrId == 0x0F);
+    CHECK(file->slots[0].areaNameStrId < 0x36);
+    CHECK(file->slots[0].checksum != 0);
+    CHECK(file->slots[0].timeRTC != 0);
 }
 
 TEST_CASE("Golden save: slots 1-29 are empty", "[saveman][golden]")
@@ -646,15 +649,15 @@ TEST_CASE("Golden save: slots 1-29 are empty", "[saveman][golden]")
     for (int i = 1; i < 30; ++i)
     {
         INFO("slot " << i);
-        CHECK(file.slots[i].header == 0);
-        CHECK(file.slots[i].areaNameStrId == 0xFFFFFFFF);
+        CHECK(file->slots[i].header == 0);
+        CHECK(file->slots[i].areaNameStrId == 0xFFFFFFFF);
     }
 }
 
 TEST_CASE("Golden save: struct fields match known values", "[saveman][golden]")
 {
     auto file = readFixtureSaveFile();
-    const auto &slot = file.slots[0];
+    const auto &slot = file->slots[0];
 
     CHECK(slot.character.currentHealth == 900);
     CHECK(slot.character.maxHealth == 900);
@@ -670,7 +673,7 @@ TEST_CASE("Golden save: struct fields match known values", "[saveman][golden]")
 TEST_CASE("Golden save: areaNameID is consistent with currentMapId", "[saveman][golden]")
 {
     auto file = readFixtureSaveFile();
-    const auto &slot = file.slots[0];
+    const auto &slot = file->slots[0];
 
     uint32_t lookupResult = okami::getAreaNameID(slot.collection.currentMapId);
     CHECK(lookupResult == slot.areaNameStrId);
@@ -705,38 +708,33 @@ TEST_CASE("writeSlotToFile preserves slots 1-29", "[saveman][golden]")
     std::string savePath = sm->getSavePath();
     REQUIRE(!savePath.empty());
     std::filesystem::create_directories(std::filesystem::path(savePath).parent_path());
-    std::filesystem::copy_file(fixturePath, savePath,
-                               std::filesystem::copy_options::overwrite_existing);
+    std::filesystem::copy_file(fixturePath, savePath, std::filesystem::copy_options::overwrite_existing);
 
-    // Read original slots 1-29 for comparison
-    okami::SaveFile originalFile;
+    auto originalFile = std::make_unique<okami::SaveFile>();
     {
         std::ifstream f(fixturePath, std::ios::binary);
         REQUIRE(f.is_open());
-        f.read(reinterpret_cast<char *>(&originalFile), sizeof(originalFile));
+        f.read(reinterpret_cast<char *>(originalFile.get()), sizeof(*originalFile));
         REQUIRE(f.good());
     }
 
-    // Write modified slot 0 via SaveMan (snapshots from mock memory)
     uintptr_t base = wolf::getModuleBase("main.dll");
     auto *charStats = reinterpret_cast<okami::CharacterStats *>(base + okami::main::characterStats);
     charStats->currentHealth = 999;
     REQUIRE(sm->saveGameState());
 
-    // Read written file and verify slots 1-29 are unchanged
-    okami::SaveFile writtenFile;
+    auto writtenFile = std::make_unique<okami::SaveFile>();
     {
         std::ifstream f(savePath, std::ios::binary);
         REQUIRE(f.is_open());
-        f.read(reinterpret_cast<char *>(&writtenFile), sizeof(writtenFile));
+        f.read(reinterpret_cast<char *>(writtenFile.get()), sizeof(*writtenFile));
         REQUIRE(f.good());
     }
 
     for (int i = 1; i < 30; ++i)
     {
         INFO("slot " << i);
-        CHECK(std::memcmp(&writtenFile.slots[i], &originalFile.slots[i],
-                           sizeof(okami::SaveSlot)) == 0);
+        CHECK(std::memcmp(&writtenFile->slots[i], &originalFile->slots[i], sizeof(okami::SaveSlot)) == 0);
     }
 
     cleanupSaveFile(*sm);
@@ -950,22 +948,21 @@ TEST_CASE("Cold-start save produces game-compatible empty slots", "[saveman][gol
     // Save with no existing file — cold-start path
     REQUIRE(sm->saveGameState());
 
-    // Read the written file and verify slots 1-29 match game's empty-slot format
-    okami::SaveFile writtenFile;
+    auto writtenFile = std::make_unique<okami::SaveFile>();
     {
         std::ifstream f(sm->getSavePath(), std::ios::binary);
         REQUIRE(f.is_open());
-        f.read(reinterpret_cast<char *>(&writtenFile), sizeof(writtenFile));
+        f.read(reinterpret_cast<char *>(writtenFile.get()), sizeof(*writtenFile));
         REQUIRE(f.good());
     }
 
     for (int i = 1; i < 30; ++i)
     {
         INFO("slot " << i);
-        CHECK(writtenFile.slots[i].header == 0);
-        CHECK(writtenFile.slots[i].areaNameStrId == 0xFFFFFFFF);
-        CHECK(writtenFile.slots[i].checksum == 0);
-        CHECK(writtenFile.slots[i].timeRTC == 0);
+        CHECK(writtenFile->slots[i].header == 0);
+        CHECK(writtenFile->slots[i].areaNameStrId == 0xFFFFFFFF);
+        CHECK(writtenFile->slots[i].checksum == 0);
+        CHECK(writtenFile->slots[i].timeRTC == 0);
     }
 
     cleanupSaveFile(*sm);

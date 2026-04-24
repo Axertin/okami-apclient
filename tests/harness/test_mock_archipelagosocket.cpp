@@ -338,14 +338,14 @@ TEST_CASE("MockArchipelagoSocket UUID and connection info", "[mock_socket]")
 
     CHECK(socket.getUUID() == "custom-uuid-abc");
 
-    // Connection info empty when not connected
     CHECK(socket.getConnectionInfo().empty());
 
     socket.connect("archipelago.gg:38281", "Ammy", "");
     socket.poll();
 
-    CHECK(socket.getConnectionInfo().find("archipelago.gg:38281") != std::string::npos);
     CHECK(socket.getConnectionInfo().find("Ammy") != std::string::npos);
+    CHECK(socket.getConnectionInfo().find(':') == std::string::npos);
+    CHECK(socket.getConnectionInfo().find('/') == std::string::npos);
 }
 
 TEST_CASE("MockArchipelagoSocket reset clears all state", "[mock_socket]")

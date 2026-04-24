@@ -1,5 +1,7 @@
 #include <memory>
 
+#include <okami/maps.hpp>
+#include <okami/offsets.hpp>
 #include <wolf_framework.hpp>
 
 #include "archipelagosocket.h"
@@ -12,9 +14,6 @@
 #include "ui/notificationwindow.h"
 #include "ui/warpwindow.h"
 #include "version.h"
-
-#include <okami/maps.hpp>
-#include <okami/offsets.hpp>
 
 #ifdef _WIN32
 #include <d3d11.h>
@@ -123,25 +122,31 @@ class APClientMod
         g_checkMan->initialize();
 
         // Wire auto-save: queue save after each check is sent
-        g_checkMan->setOnCheckSentCallback([]() {
-            if (g_saveMan)
-                g_saveMan->queueAutoSave();
-        });
+        g_checkMan->setOnCheckSentCallback(
+            []()
+            {
+                if (g_saveMan)
+                    g_saveMan->queueAutoSave();
+            });
 
         // AP mode lifecycle: activate on play start (if connected). The Steam
         // redirect and the FUN_18014f580 / FUN_18014e100 hooks handle data
         // injection; we just track "we're in an AP gameplay session".
-        wolf::onPlayStart([]() {
-            if (g_saveMan && ArchipelagoSocket::instance().isConnected())
-                g_saveMan->setApModeActive(true);
-        });
-        wolf::onReturnToMenu([]() {
-            if (g_saveMan)
+        wolf::onPlayStart(
+            []()
             {
-                g_saveMan->deactivateRedirect();
-                g_saveMan->setApModeActive(false);
-            }
-        });
+                if (g_saveMan && ArchipelagoSocket::instance().isConnected())
+                    g_saveMan->setApModeActive(true);
+            });
+        wolf::onReturnToMenu(
+            []()
+            {
+                if (g_saveMan)
+                {
+                    g_saveMan->deactivateRedirect();
+                    g_saveMan->setApModeActive(false);
+                }
+            });
 
         // Game tick handler
         wolf::onGameTick(
@@ -165,10 +170,8 @@ class APClientMod
                         uintptr_t base = wolf::getModuleBase("main.dll");
                         if (base != 0)
                         {
-                            auto mapId = *reinterpret_cast<const uint16_t *>(
-                                base + okami::main::exteriorMapID);
-                            if (mapId == static_cast<uint16_t>(MapID::TitleScreen) ||
-                                mapId == static_cast<uint16_t>(MapID::TitleScreenDemoCutscene))
+                            auto mapId = *reinterpret_cast<const uint16_t *>(base + okami::main::exteriorMapID);
+                            if (mapId == static_cast<uint16_t>(MapID::TitleScreen) || mapId == static_cast<uint16_t>(MapID::TitleScreenDemoCutscene))
                             {
                                 wolf::logWarning("[APClient] Steam redirect activated while on title screen "
                                                  "(mapId=0x%X). The title menu was already populated with "

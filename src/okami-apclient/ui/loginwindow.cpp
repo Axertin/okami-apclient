@@ -179,8 +179,7 @@ static void renderConnectionForm()
         {
             ImGui::Separator();
             if (g_saveMan->hasSaveFile())
-                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f),
-                                   "AP save found - pick Continue on the title screen.");
+                ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "AP save found - pick Continue on the title screen.");
             else
                 ImGui::Text("No AP save yet - start a new game on the title screen.");
         }

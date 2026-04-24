@@ -224,9 +224,7 @@ void CheckMan::sendCheck(int64_t checkId)
 {
     if (!sendingEnabled_ || !socket_.isConnected())
     {
-        wolf::logDebug("[CheckMan] Skipped check %" PRId64 " (sending=%d, connected=%d)",
-                       checkId, sendingEnabled_ ? 1 : 0,
-                       socket_.isConnected() ? 1 : 0);
+        wolf::logDebug("[CheckMan] Skipped check %" PRId64 " (sending=%d, connected=%d)", checkId, sendingEnabled_ ? 1 : 0, socket_.isConnected() ? 1 : 0);
         return;
     }
 
