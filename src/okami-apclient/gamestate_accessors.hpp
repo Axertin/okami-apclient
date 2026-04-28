@@ -20,6 +20,11 @@ template <typename T> using Accessor = wolf::MemoryAccessor<T>;
 // These are initialized at runtime with proper memory addresses
 extern BitFieldAccessor<64> usableBrushTechniques;
 extern BitFieldAccessor<64> obtainedBrushTechniques;
+// BrushData source: WorldStateData copies above are propagated from these bits,
+// so any external grant must mirror the write here too or it will be wiped on
+// the next sync.
+extern BitFieldAccessor<64> usableBrushesSource;
+extern BitFieldAccessor<64> obtainedBrushesSource;
 extern BitFieldAccessor<32> keyItemsAcquired;
 extern BitFieldAccessor<32> goldDustsAcquired;
 extern BitFieldAccessor<32> brushUpgrades;

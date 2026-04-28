@@ -113,6 +113,12 @@ template <typename T> class MemoryAccessor
         return ptr_;
     }
 
+    // Match the real wolf MemoryAccessor signature for byte-level access.
+    T *get_ptr() const
+    {
+        return ptr_;
+    }
+
     bool is_bound() const noexcept
     {
         return ptr_ != nullptr;
@@ -181,6 +187,30 @@ inline bool onItemPickupBlocking(std::function<bool(int, int)> callback)
     // No-op in tests
     return true;
 }
+
+// Mock brush edit hook. The real wolf::onBrushEdit registers a callback for
+// `oEditBrushes` (game's brush bit setter). Tests fire it via triggerBrushEdit.
+namespace mock
+{
+extern std::vector<std::function<bool(int, int)>> brushEditCallbacks;
+}
+
+inline bool onBrushEdit(std::function<bool(int, int)> callback)
+{
+    mock::brushEditCallbacks.push_back(std::move(callback));
+    return true;
+}
+
+namespace mock
+{
+inline bool triggerBrushEdit(int bitIndex, int operation)
+{
+    bool blocked = false;
+    for (auto &cb : brushEditCallbacks)
+        blocked |= cb(bitIndex, operation);
+    return blocked;
+}
+} // namespace mock
 
 // ResourceProvider type used by interceptResource
 using ResourceProvider = std::function<const char *(const char *originalPath)>;
@@ -282,6 +312,13 @@ inline void destroyBitfieldMonitor(BitfieldMonitorHandle handle)
 {
     auto &monitors = mock::bitfieldMonitors;
     monitors.erase(std::remove_if(monitors.begin(), monitors.end(), [handle](const auto &m) { return m.get() == handle; }), monitors.end());
+}
+
+inline bool resetBitfieldMonitor(BitfieldMonitorHandle /*handle*/)
+{
+    // Mock: real impl rebases the monitor's diff baseline to current memory.
+    // Test harness drives diffs via triggerBitfieldChange directly, so this is a no-op.
+    return true;
 }
 
 } // namespace wolf

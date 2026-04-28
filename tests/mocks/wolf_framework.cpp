@@ -13,6 +13,7 @@ std::vector<std::function<void()>> playStartCallbacks;
 std::vector<std::function<void()>> returnToMenuCallbacks;
 std::unordered_map<uintptr_t, void *> registeredHooks;
 std::vector<std::unique_ptr<MockBitfieldMonitor>> bitfieldMonitors;
+std::vector<std::function<bool(int, int)>> brushEditCallbacks;
 
 void reset()
 {
@@ -23,6 +24,7 @@ void reset()
     returnToMenuCallbacks.clear();
     registeredHooks.clear();
     bitfieldMonitors.clear();
+    brushEditCallbacks.clear();
 }
 
 void triggerPlayStart()
