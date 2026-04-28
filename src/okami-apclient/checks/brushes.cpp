@@ -1,18 +1,53 @@
 #include "brushes.hpp"
 
-#include <okami/offsets.hpp>
+#include <atomic>
+
+#include <wolf_framework.hpp>
 
 #include "../gamestate_accessors.hpp"
 #include "check_types.hpp"
 
-// NOTE: A more precise approach may be to hook FUN_180208e90 (RVA 0x208e90),
-// the constellation animation init function. It is called once when the brush god
-// cutscene begins, reads the brush type from entity+0xe35, and sets entity+0xe36 = 1
-// (init flag).
-// Polling is used for now as it is simpler and requires less RE work.
-
 namespace checks
 {
+
+namespace
+{
+
+// Operation codes for oEditBrushes (main.dll +0x17C270):
+//   default (0)  -> SET both usable and obtained
+//   1            -> clear usable
+//   2            -> clear both
+//   3            -> clear obtained
+constexpr int kBrushOpClearUsable = 1;
+constexpr int kBrushOpClearBoth = 2;
+constexpr int kBrushOpClearObtained = 3;
+
+bool isClearOp(int operation)
+{
+    return operation == kBrushOpClearUsable || operation == kBrushOpClearBoth || operation == kBrushOpClearObtained;
+}
+
+// wolf::onBrushEdit has no unregister API and captures into a runtime-owned
+// callback list. We register exactly one dispatcher lambda per process that
+// delegates to whichever BrushMan instance is currently active. The atomic
+// pointer prevents a destroyed instance from dangling: shutdown() clears it
+// and the dispatcher safely no-ops.
+std::atomic<BrushMan *> g_activeHandler{nullptr};
+bool g_dispatcherInstalled = false;
+
+bool dispatchBrushEdit(int bitIndex, int operation, BrushMan::CheckCallback &checkCallback)
+{
+    if (isClearOp(operation))
+        return false;
+
+    checkCallback(getBrushCheckId(bitIndex));
+    wolf::logDebug("[BrushMan] Brush set blocked, sent check %lld for brush idx %d", getBrushCheckId(bitIndex), bitIndex);
+    // Block the original SET so the brush isn't unlocked from this event —
+    // the AP item flow grants the actual reward.
+    return true;
+}
+
+} // namespace
 
 BrushMan::BrushMan(CheckCallback checkCallback) : checkCallback_(std::move(checkCallback))
 {
@@ -28,53 +63,23 @@ void BrushMan::initialize()
     if (initialized_)
         return;
 
-    // Bind source (BrushData) accessors for clearing bits the game sets natively
-    usableBrushSource_ = wolf::MemoryAccessor<okami::BitField<32>>("main.dll", okami::main::usableBrushes);
-    obtainedBrushSource_ = wolf::MemoryAccessor<okami::BitField<32>>("main.dll", okami::main::obtainedBrushes);
+    g_activeHandler.store(this);
 
-    constexpr size_t byteCount = (32 + 7) / 8; // 32 bits = 4 bytes
-
-    usableBrushesMonitor_ = wolf::createBitfieldMonitor(
-        "main.dll", okami::main::usableBrushes, byteCount,
-        [this](unsigned int monitorBit, bool oldValue, bool newValue)
-        {
-            if (!oldValue && newValue)
+    if (!g_dispatcherInstalled)
+    {
+        wolf::onBrushEdit(
+            [](int bitIndex, int operation) -> bool
             {
-                unsigned int gameBit = monitorToGameBitIndex(monitorBit);
-                checkCallback_(getBrushCheckId(static_cast<int>(gameBit)));
-                clearBrushBit(monitorBit);
-                wolf::logDebug("[BrushMan] Detected and sent check %lld for brush idx %d (usable)", getBrushCheckId(static_cast<int>(gameBit)), gameBit);
-            }
-        },
-        "UsableBrushes monitor");
-
-    obtainedBrushesMonitor_ = wolf::createBitfieldMonitor(
-        "main.dll", okami::main::obtainedBrushes, byteCount,
-        [this](unsigned int monitorBit, bool oldValue, bool newValue)
-        {
-            if (!oldValue && newValue)
-            {
-                unsigned int gameBit = monitorToGameBitIndex(monitorBit);
-                checkCallback_(getBrushCheckId(static_cast<int>(gameBit)));
-                clearBrushBit(monitorBit);
-                wolf::logDebug("[BrushMan] Detected and sent check %lld for brush idx %d (obtained)", getBrushCheckId(static_cast<int>(gameBit)), gameBit);
-            }
-        },
-        "ObtainedBrushes monitor");
+                BrushMan *h = g_activeHandler.load();
+                if (!h)
+                    return false;
+                return dispatchBrushEdit(bitIndex, operation, h->checkCallback_);
+            });
+        g_dispatcherInstalled = true;
+    }
 
     initialized_ = true;
-    wolf::logInfo("[BrushMan] Brush monitors initialized");
-}
-
-void BrushMan::clearBrushBit(unsigned int bitIndex)
-{
-    // Clear at BrushData source (what the monitors watch)
-    usableBrushSource_->Clear(bitIndex);
-    obtainedBrushSource_->Clear(bitIndex);
-
-    // Clear at WorldStateData copy (what the game engine reads)
-    apgame::usableBrushTechniques->Clear(bitIndex);
-    apgame::obtainedBrushTechniques->Clear(bitIndex);
+    wolf::logInfo("[BrushMan] Brush edit hook installed");
 }
 
 void BrushMan::shutdown()
@@ -82,18 +87,8 @@ void BrushMan::shutdown()
     if (!initialized_)
         return;
 
-    if (usableBrushesMonitor_)
-    {
-        wolf::destroyBitfieldMonitor(usableBrushesMonitor_);
-        usableBrushesMonitor_ = nullptr;
-    }
-
-    if (obtainedBrushesMonitor_)
-    {
-        wolf::destroyBitfieldMonitor(obtainedBrushesMonitor_);
-        obtainedBrushesMonitor_ = nullptr;
-    }
-
+    BrushMan *expected = this;
+    g_activeHandler.compare_exchange_strong(expected, nullptr);
     initialized_ = false;
 }
 
@@ -101,5 +96,29 @@ void BrushMan::reset()
 {
     shutdown();
 }
+
+void BrushMan::tick()
+{
+    if (!initialized_)
+        return;
+
+    // The grant-time clear in rewards/brushes.cpp fires once when an item is
+    // received — but on a fresh playthrough the game sets this bit during the
+    // post-grant intro cutscene transition, leaving the UI permanently locked
+    // until the bit is cleared again. Clearing it every tick is sub-microsecond
+    // and reliably keeps the gate down.
+    apgame::worldStateData->mapStateBits[0].Clear(10);
+}
+
+namespace detail
+{
+
+void resetBrushHookRegistrationForTests()
+{
+    g_activeHandler.store(nullptr);
+    g_dispatcherInstalled = false;
+}
+
+} // namespace detail
 
 } // namespace checks

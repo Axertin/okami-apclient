@@ -34,14 +34,24 @@ class RewardManFixture
         wolf::mock::reset();
     }
 
+    // Brush bits are written/read by the game with LSB-first byte semantics
+    // (mask = 1 << (idx % 8) within bytes[idx / 8]) — different from BitField's
+    // MSB-first within-32-bit-word convention. Production code writes via byte
+    // helpers; tests must read the same way.
+    static bool readGameBit(const void *base, int bitIndex)
+    {
+        const auto *bytes = reinterpret_cast<const volatile uint8_t *>(base);
+        return (bytes[bitIndex / 8] & static_cast<uint8_t>(1u << (bitIndex % 8))) != 0;
+    }
+
     bool isBrushUnlocked(int brushIndex)
     {
-        return apgame::usableBrushTechniques->IsSet(brushIndex) && apgame::obtainedBrushTechniques->IsSet(brushIndex);
+        return readGameBit(apgame::usableBrushTechniques.get_ptr(), brushIndex) && readGameBit(apgame::obtainedBrushTechniques.get_ptr(), brushIndex);
     }
 
     bool isBrushUpgradeUnlocked(int upgradeIndex)
     {
-        return apgame::brushUpgrades->IsSet(upgradeIndex);
+        return readGameBit(apgame::brushUpgrades.get_ptr(), upgradeIndex);
     }
 
     bool isKeyItemAcquired(int bit)

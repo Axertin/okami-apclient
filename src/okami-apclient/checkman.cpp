@@ -121,6 +121,11 @@ void CheckMan::poll()
         brushHandler_->initialize();
     }
 
+    if (brushHandler_)
+    {
+        brushHandler_->tick();
+    }
+
     if (containerHandler_)
     {
         containerHandler_->poll();

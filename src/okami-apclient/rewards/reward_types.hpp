@@ -26,7 +26,7 @@ inline constexpr int64_t kEventFlagEnd = 0x308;
 enum class RewardCategory
 {
     GameItem,  // 0x00-0xFF: direct game items, 0x300-0x302: progressive weapons
-    Brush,     // 0x100-0x115: brush techniques (some progressive)
+    Brush,     // 0x100-0x11E: brush techniques (some progressive)
     EventFlag, // 0x303-0x308: event flags to set
     Unknown    // Unrecognized AP item ID
 };

@@ -1,11 +1,15 @@
 #include "gamestate_accessors.hpp"
 
+#include <okami/offsets.hpp>
+
 namespace apgame
 {
 
 // Define storage for accessors
 BitFieldAccessor<64> usableBrushTechniques;
 BitFieldAccessor<64> obtainedBrushTechniques;
+BitFieldAccessor<64> usableBrushesSource;
+BitFieldAccessor<64> obtainedBrushesSource;
 BitFieldAccessor<32> keyItemsAcquired;
 BitFieldAccessor<32> goldDustsAcquired;
 BitFieldAccessor<32> brushUpgrades;
@@ -37,6 +41,11 @@ void initialize()
     // Brush techniques from WorldStateData
     usableBrushTechniques = BitFieldAccessor<64>("main.dll", worldStateDataAddr + offsetof(okami::WorldStateData, usableBrushTechniques));
     obtainedBrushTechniques = BitFieldAccessor<64>("main.dll", worldStateDataAddr + offsetof(okami::WorldStateData, obtainedBrushTechniques));
+
+    // BrushData source: the WorldStateData copies above are propagated from these
+    // bits during the game's sync. Granting must mirror writes here.
+    usableBrushesSource = BitFieldAccessor<64>("main.dll", okami::main::usableBrushes);
+    obtainedBrushesSource = BitFieldAccessor<64>("main.dll", okami::main::obtainedBrushes);
 
     // Key items from WorldStateData
     keyItemsAcquired = BitFieldAccessor<32>("main.dll", worldStateDataAddr + offsetof(okami::WorldStateData, keyItemsAcquired));

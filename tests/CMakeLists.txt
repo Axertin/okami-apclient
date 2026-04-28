@@ -62,6 +62,7 @@ target_link_libraries(apclient-testable PUBLIC nlohmann_json::nlohmann_json)
 add_executable(apclient-tests
     test_reward_handlers.cpp
     test_rewardman.cpp
+    test_brush_regression.cpp
     test_checkman.cpp
     test_containers.cpp
     test_gamestate_monitors.cpp
