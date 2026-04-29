@@ -38,12 +38,13 @@ void CheckMan::initialize()
     // collectedObjects, areasRestored) are disabled for now — they fire
     // frequently and aren't consumed by the APWorld yet.
 
-    // Set up brush handler only when RandomizeBrushes is enabled.
-    if (socket_.isSlotConfigReady() && socket_.getSlotConfig().randomizeBrushes)
-    {
-        brushHandler_ = std::make_unique<checks::BrushMan>(callback);
-        brushHandler_->initialize();
-    }
+    // Always create BrushMan here — initialize() registers a wolf callback,
+    // which takes g_CallbackMutex. Doing this from poll() would deadlock
+    // because the game-tick dispatcher holds that same mutex across user
+    // callbacks. The hook stays inactive (no-op) until setActive(true).
+    brushHandler_ = std::make_unique<checks::BrushMan>(callback);
+    brushHandler_->initialize();
+    syncBrushActiveState();
 
     // Set up container handler
     containerHandler_ = std::make_unique<checks::ContainerMan>(socket_, callback);
@@ -104,6 +105,7 @@ void CheckMan::shutdown()
 void CheckMan::enableSending(bool enabled)
 {
     sendingEnabled_ = enabled;
+    syncBrushActiveState();
 }
 
 bool CheckMan::isSendingEnabled() const
@@ -111,15 +113,21 @@ bool CheckMan::isSendingEnabled() const
     return sendingEnabled_;
 }
 
+void CheckMan::syncBrushActiveState()
+{
+    if (!brushHandler_)
+        return;
+    const bool slotReady = socket_.isSlotConfigReady() && socket_.getSlotConfig().randomizeBrushes;
+    const bool active = sendingEnabled_ && socket_.isConnected() && slotReady;
+    brushHandler_->setActive(active);
+}
+
 void CheckMan::poll()
 {
-    // Lazily create brush handler once slot config arrives (connection happens after init)
-    if (!brushHandler_ && socket_.isSlotConfigReady() && socket_.getSlotConfig().randomizeBrushes)
-    {
-        auto callback = [this](int64_t checkId) { sendCheck(checkId); };
-        brushHandler_ = std::make_unique<checks::BrushMan>(callback);
-        brushHandler_->initialize();
-    }
+    // Re-evaluate brush active state every tick. Slot config arrival is
+    // asynchronous (post-connect) and we have no event for it; this is the
+    // cheap, no-callback way to pick it up.
+    syncBrushActiveState();
 
     if (brushHandler_)
     {

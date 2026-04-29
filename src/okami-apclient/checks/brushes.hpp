@@ -2,27 +2,21 @@
 
 #include <cstdint>
 #include <functional>
+#include <mutex>
+#include <vector>
 
 namespace checks
 {
 
 /**
- * @brief Watches the game's native brush-bit-edit function and turns SETs into
- * AP location checks.
+ * @brief Hook-based brush-acquisition detection.
  *
- * The implementation hooks `oEditBrushes` (main.dll +0x17C270) via wolf's
- * `onBrushEdit` callback. The hook receives `(bitIndex, operation)` directly
- * in the game's BrushOverlay convention (LSB-first within byte). Operation 0
- * (default) is a SET of both usable & obtained; ops 1/2/3 are clears we ignore.
+ * Hooks main.dll +0x17C270 via wolf::onBrushEdit. The hook runs inside wolf's
+ * g_CallbackMutex, so we do as little as possible there: bounds-check,
+ * transition-check, queue, return. checkCallback runs from tick() on the
+ * game tick.
  *
- * For SETs, BrushMan fires a check and blocks the original write so the brush
- * isn't unlocked from the dojo — the player receives whatever AP randomized to
- * that location instead.
- *
- * This replaces the prior memory-polling design, which had to fight a
- * BrushData->WorldStateData sync and required muting during reward grants.
- * Grants write memory directly without going through `oEditBrushes`, so no
- * coordination is needed.
+ * Blocking is gated by setActive(true). Inactive = diagnostic no-op.
  */
 class BrushMan
 {
@@ -41,25 +35,28 @@ class BrushMan
     void shutdown();
     void reset();
 
-    // Per-tick housekeeping. Currently clears the "Celestial Brush Locked"
-    // map-state bit so the in-game brush UI stays usable: the game sets it
-    // during scene transitions (e.g. entering River of the Heavens for the
-    // Sakuya cutscene), but in AP mode the player gets brushes via AP items,
-    // so this gate is wrong.
+    // Enable/disable block-and-send. Safe from any thread.
+    void setActive(bool active);
+
+    // Drains queued checks; clears Celestial Brush Lock UI gate. Called from
+    // CheckMan::poll().
     void tick();
 
   private:
     CheckCallback checkCallback_;
     bool initialized_ = false;
+
+    std::mutex pendingMutex_;
+    std::vector<int64_t> pendingChecks_;
+
+    friend bool dispatchBrushEdit(int bitIndex, int operation, BrushMan &handler);
 };
 
 namespace detail
 {
 
-// Test-only: clear the cached "dispatcher lambda already registered with wolf"
-// flag. Production registers exactly once per process; tests call this after
-// wolf::mock::reset() (which wipes wolf's callback list) so the next
-// BrushMan::initialize() re-registers a fresh dispatcher.
+// Test-only: reset the static "dispatcher lambda registered" flag after
+// wolf::mock::reset() so initialize() re-registers a fresh dispatcher.
 void resetBrushHookRegistrationForTests();
 
 } // namespace detail

@@ -20,11 +20,10 @@
 //     must NOT fire and must NOT block. The hook receives bitIndex in the
 //     game's natural BrushOverlay convention (no further conversion needed).
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <cstdint>
 #include <memory>
 
+#include <catch2/catch_test_macros.hpp>
 #include <okami/brushes.hpp>
 #include <okami/offsets.hpp>
 #include <okami/structs.hpp>
@@ -316,9 +315,12 @@ class BrushManFixture
     {
         wolf::mock::reset();
         checks::detail::resetBrushHookRegistrationForTests();
+        wolf::mock::reserveMemory(0xC00000 + 1024);
+        apgame::initialize();
         sentChecks_.clear();
         brushMan_ = std::make_unique<checks::BrushMan>([this](int64_t id) { sentChecks_.push_back(id); });
         brushMan_->initialize();
+        brushMan_->setActive(true);
     }
 
     void tearDown()
@@ -334,10 +336,14 @@ TEST_CASE_METHOD(BrushManFixture, "BrushMan: SET op (operation==0) fires check a
 {
     setUp();
 
-    // Power Slash bit 12, set operation.
+    // Power Slash bit 12, set operation. Bit is currently unset.
     bool blocked = wolf::mock::triggerBrushEdit(12, 0);
-
     CHECK(blocked);
+
+    // Hook only queues; tick() drains.
+    CHECK(sentChecks_.empty());
+    brushMan_->tick();
+
     REQUIRE(sentChecks_.size() == 1);
     CHECK(sentChecks_[0] == checks::getBrushCheckId(12));
     CHECK(sentChecks_[0] == 200012);
@@ -378,11 +384,52 @@ TEST_CASE_METHOD(BrushManFixture, "BrushMan: bitIndex passed through unchanged i
     wolf::mock::triggerBrushEdit(1, 0);
     wolf::mock::triggerBrushEdit(22, 0);
     wolf::mock::triggerBrushEdit(30, 0);
+    brushMan_->tick();
 
     REQUIRE(sentChecks_.size() == 3);
     CHECK(sentChecks_[0] == 200001);
     CHECK(sentChecks_[1] == 200022);
     CHECK(sentChecks_[2] == 200030);
+
+    tearDown();
+}
+
+TEST_CASE_METHOD(BrushManFixture, "BrushMan: inactive hook never blocks or queues", "[brush][regression][brushman][gating]")
+{
+    setUp();
+    brushMan_->setActive(false);
+
+    CHECK_FALSE(wolf::mock::triggerBrushEdit(12, 0));
+    brushMan_->tick();
+    CHECK(sentChecks_.empty());
+
+    tearDown();
+}
+
+TEST_CASE_METHOD(BrushManFixture, "BrushMan: already-obtained bit falls through", "[brush][regression][brushman][gating]")
+{
+    setUp();
+
+    // Pre-set the obtained bit at the source (bit 12 = byte 1 mask 0x10).
+    auto *src = wolf::mock::mockMemory.data() + okami::main::obtainedBrushes;
+    src[1] |= 0x10;
+
+    CHECK_FALSE(wolf::mock::triggerBrushEdit(12, 0));
+    brushMan_->tick();
+    CHECK(sentChecks_.empty());
+
+    tearDown();
+}
+
+TEST_CASE_METHOD(BrushManFixture, "BrushMan: out-of-range bitIndex falls through", "[brush][regression][brushman][gating]")
+{
+    setUp();
+
+    CHECK_FALSE(wolf::mock::triggerBrushEdit(-1, 0));
+    CHECK_FALSE(wolf::mock::triggerBrushEdit(32, 0));
+    CHECK_FALSE(wolf::mock::triggerBrushEdit(99999, 0));
+    brushMan_->tick();
+    CHECK(sentChecks_.empty());
 
     tearDown();
 }
@@ -408,7 +455,9 @@ TEST_CASE_METHOD(BrushManFixture, "BrushMan: re-initialize after shutdown re-att
     REQUIRE_FALSE(wolf::mock::triggerBrushEdit(12, 0));
 
     brushMan_->initialize();
+    brushMan_->setActive(true);
     REQUIRE(wolf::mock::triggerBrushEdit(12, 0));
+    brushMan_->tick();
     REQUIRE(sentChecks_.size() == 1);
 
     tearDown();
@@ -418,12 +467,16 @@ TEST_CASE("BrushMan: destroyed instance does not dangle", "[brush][regression][b
 {
     wolf::mock::reset();
     checks::detail::resetBrushHookRegistrationForTests();
+    wolf::mock::reserveMemory(0xC00000 + 1024);
+    apgame::initialize();
 
     int callCount = 0;
     {
         checks::BrushMan tmp([&](int64_t) { ++callCount; });
         tmp.initialize();
+        tmp.setActive(true);
         REQUIRE(wolf::mock::triggerBrushEdit(12, 0));
+        tmp.tick();
         REQUIRE(callCount == 1);
     }
     // tmp is destroyed; the callback in wolf must safely no-op now.
@@ -437,17 +490,22 @@ TEST_CASE("BrushMan: replacing the active instance routes to the latest", "[brus
 {
     wolf::mock::reset();
     checks::detail::resetBrushHookRegistrationForTests();
+    wolf::mock::reserveMemory(0xC00000 + 1024);
+    apgame::initialize();
 
     int firstCount = 0;
     int secondCount = 0;
 
     auto first = std::make_unique<checks::BrushMan>([&](int64_t) { ++firstCount; });
     first->initialize();
+    first->setActive(true);
 
     auto second = std::make_unique<checks::BrushMan>([&](int64_t) { ++secondCount; });
     second->initialize(); // claims g_activeHandler from `first`
+    second->setActive(true);
 
     wolf::mock::triggerBrushEdit(12, 0);
+    second->tick();
 
     CHECK(firstCount == 0);
     CHECK(secondCount == 1);

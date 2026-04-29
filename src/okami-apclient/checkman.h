@@ -160,6 +160,10 @@ class CheckMan
      */
     void destroyMonitors();
 
+    // Recomputes whether BrushMan should block-and-send and pushes that to
+    // the handler. Cheap (atomic exchange); safe to call every tick.
+    void syncBrushActiveState();
+
     // Socket reference for sending checks
     ISocket &socket_;
 
