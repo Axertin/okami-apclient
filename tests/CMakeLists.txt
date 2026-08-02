@@ -12,6 +12,7 @@ add_library(apclient-testable STATIC
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/brushes.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/event_flags.cpp
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/game_items.cpp
+    ${CMAKE_SOURCE_DIR}/src/okami-apclient/rewards/traps.cpp
 
     # Check system
     ${CMAKE_SOURCE_DIR}/src/okami-apclient/checkman.cpp

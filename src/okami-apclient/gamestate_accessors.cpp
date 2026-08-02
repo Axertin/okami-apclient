@@ -6,6 +6,7 @@ namespace apgame
 {
 
 // Define storage for accessors
+Accessor<okami::CharacterStats> characterStats;
 BitFieldAccessor<64> usableBrushTechniques;
 BitFieldAccessor<64> obtainedBrushTechniques;
 BitFieldAccessor<64> usableBrushesSource;
@@ -23,6 +24,9 @@ Accessor<std::array<okami::ItemParam, okami::ItemTypes::NUM_ITEM_TYPES>> itemPar
 
 void initialize()
 {
+    // CharacterStats is at 0xB4DF90
+    characterStats = Accessor<okami::CharacterStats>("main.dll", okami::main::characterStats);
+
     // CollectionData is at 0xB205D0
     constexpr uintptr_t collectionDataAddr = 0xB205D0;
     collectionData = Accessor<okami::CollectionData>("main.dll", collectionDataAddr);

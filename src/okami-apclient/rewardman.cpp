@@ -7,6 +7,7 @@
 #include "rewards/brushes.hpp"
 #include "rewards/event_flags.hpp"
 #include "rewards/game_items.hpp"
+#include "rewards/traps.hpp"
 
 RewardMan::RewardMan(CheckSendingCallback onCheckSendingChange) : onCheckSendingChange_(std::move(onCheckSendingChange))
 {
@@ -95,6 +96,9 @@ std::expected<void, rewards::RewardError> RewardMan::grantReward(int64_t apItemI
         break;
     case rewards::RewardCategory::EventFlag:
         result = rewards::event_flags::grant(apItemId);
+        break;
+    case rewards::RewardCategory::Trap:
+        result = rewards::traps::grant(apItemId);
         break;
     case rewards::RewardCategory::Unknown:
         wolf::logDebug("[RewardMan] Skipping unrecognized AP item 0x%" PRIX64, apItemId);

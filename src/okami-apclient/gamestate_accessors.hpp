@@ -18,6 +18,7 @@ template <typename T> using Accessor = wolf::MemoryAccessor<T>;
 
 // Game state accessors
 // These are initialized at runtime with proper memory addresses
+extern Accessor<okami::CharacterStats> characterStats;
 extern BitFieldAccessor<64> usableBrushTechniques;
 extern BitFieldAccessor<64> obtainedBrushTechniques;
 // BrushData source: WorldStateData copies above are propagated from these bits,

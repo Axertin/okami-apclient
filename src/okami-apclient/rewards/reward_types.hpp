@@ -19,6 +19,8 @@ inline constexpr int64_t kProgressiveWeaponBase = 0x300;
 inline constexpr int64_t kProgressiveWeaponEnd = 0x302;
 inline constexpr int64_t kEventFlagBase = 0x303;
 inline constexpr int64_t kEventFlagEnd = 0x308;
+inline constexpr int64_t kTrapBase = 0x400;
+inline constexpr int64_t kTrapEnd = 0x4FF;
 
 /**
  * @brief Categories of rewards based on AP item ID ranges
@@ -28,6 +30,7 @@ enum class RewardCategory
     GameItem,  // 0x00-0xFF: direct game items, 0x300-0x302: progressive weapons
     Brush,     // 0x100-0x11E: brush techniques (some progressive)
     EventFlag, // 0x303-0x308: event flags to set
+    Trap,      // 0x400-0x4FF: trap effects
     Unknown    // Unrecognized AP item ID
 };
 
@@ -54,6 +57,10 @@ enum class RewardCategory
     if (apItemId >= kEventFlagBase && apItemId <= kEventFlagEnd)
     {
         return RewardCategory::EventFlag;
+    }
+    if (apItemId >= kTrapBase && apItemId <= kTrapEnd)
+    {
+        return RewardCategory::Trap;
     }
     return RewardCategory::Unknown;
 }

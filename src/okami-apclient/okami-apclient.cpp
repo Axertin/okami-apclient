@@ -11,6 +11,7 @@
 #include "gamestate_accessors.hpp"
 #include "itempatch.hpp"
 #include "rewardman.h"
+#include "rewards/traps.hpp"
 #include "saveman.h"
 #include "ui/loginwindow.h"
 #include "ui/notificationwindow.h"
