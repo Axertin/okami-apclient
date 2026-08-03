@@ -224,6 +224,32 @@ Confirmed offsets and dispatch order for the Sakuya descent + Water Lily grant +
 
 The bypass installed by `src/okami-apclient/eventfix/kamiki_village.cpp` replaces `FUN_1804c64a0` with a stub that calls `clearCutsceneModeBits()`, `grantBrush(BrushOverlay::water_lily)`, and `transitionStageSubState(0xe)`. The natural chain's per-map state writes (e.g. `KamikiVillage` worldStateBits 11 / 149 / 163) are set elsewhere (trigger volumes, post-bloom scripts); the bypass does not interact with them.
 
+## Hana Valley Guardian Sapling Dialog
+After starting the sequence in Hana Valley's guardian sapling, there's a dialog that prevents you from leaving the area. It's handled by FUN_1804d35d0:
+```cpp
+  if ((((DAT_180b6b2ac >> 0x1e & 1) == 0) &&
+      ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) >> 0xd & 1) != 0)) &&
+     ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) & 2) == 0)) {
+    cVar2 = FUN_1803f3380(PTR_DAT_1807a8cb0,0x11,0,1); // WILD GUESS: This checks the text that's left to display? 
+    if (cVar2 == '\0') {// If none, the state is cleared.
+      clear_world_state_bit(0x40032); // => FUN_1801707c0 
+      return;
+    }
+    // Checks if we're in the guardian sapling sequence
+    if ((*(uint *)(WORLD_STATE_POINTER + 0x3e0) & 0x2000) == 0) {
+      set_world_state_bit(0x40032); => //=> FUN_180170830, set the flag for issun's dialog
+      puVar1 = PTR_DAT_1807a8cb0;
+      uVar3 = FUN_1803ef3c0(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d9490,0xffffffff); // Callback scheduler
+      FUN_1803f3170(puVar1,uVar3);
+      return;
+    }
+  }
+  return;
+}
+```
+
+
+
 ## Stage architecture (one level above TICK)
 
 The CoN TICK has zero static call sites in main.dll. Its only xref is its `.pdata` exception-unwind entry. Despite that, scripts and TICKs in this engine are *not* loaded from external files: there is no separate script bytecode language. Scripts are compiled C++ callbacks baked into main.dll, scheduled by ID via `FUN_1803f35f0(ctx, script_id, ...)` and similar. So the TICK gets installed at runtime through some indirection that we haven't fully traced statically (likely a stage-id -> function-pointer table populated during stage init), but the answer lives somewhere inside main.dll, not in an on-disk script file. The on-disk room files (`data_pc/stN/rXXX.bin`) carry SCA trigger volumes, MSD strings, and per-room asset data, not callback pointers. That said, the *parallel* machinery (the stage descriptor object the TICK eventually drives) is fully visible in the binary.
