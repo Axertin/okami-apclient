@@ -224,6 +224,80 @@ Confirmed offsets and dispatch order for the Sakuya descent + Water Lily grant +
 
 The bypass installed by `src/okami-apclient/eventfix/kamiki_village.cpp` replaces `FUN_1804c64a0` with a stub that calls `clearCutsceneModeBits()`, `grantBrush(BrushOverlay::water_lily)`, and `transitionStageSubState(0xe)`. The natural chain's per-map state writes (e.g. `KamikiVillage` worldStateBits 11 / 149 / 163) are set elsewhere (trigger volumes, post-bloom scripts); the bypass does not interact with them.
 
+## Hana Valley Guardian Sapling Dialog
+After starting the sequence in Hana Valley's guardian sapling, there's a dialog that prevents you from leaving the area. It's handled by FUN_1804d35d0:
+```cpp
+  if ((((DAT_180b6b2ac >> 0x1e & 1) == 0) &&
+      ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) >> 0xd & 1) != 0)) &&
+     ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) & 2) == 0)) {
+    cVar2 = FUN_1803f3380(PTR_DAT_1807a8cb0,0x11,0,1); // WILD GUESS: This checks the text that's left to display? 
+    if (cVar2 == '\0') {// If none, the state is cleared.
+      clear_world_state_bit(0x40032); // => FUN_1801707c0 
+      return;
+    }
+    // Checks if we're in the guardian sapling sequence
+    if ((*(uint *)(WORLD_STATE_POINTER + 0x3e0) & 0x2000) == 0) {
+      set_world_state_bit(0x40032); => //=> FUN_180170830, set the flag for issun's dialog
+      puVar1 = PTR_DAT_1807a8cb0;
+      uVar3 = FUN_1803ef3c0(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d9490,0xffffffff); // Callback scheduler
+      FUN_1803f3170(puVar1,uVar3);
+      return;
+    }
+  }
+  return;
+}
+```
+We simply replace with with an empty function to never prevent the player from leaving the area.
+
+
+## Hana Valley Bloom Tutorial
+The handler for sunrise usage in the sapling room is FUN_184D2410:
+```cpp
+  wk::math::cVec::cVec(local_48);
+  wk::math::cVec::cVec(local_38);
+  wk::math::cVec::cVec(local_28);
+  wk::math::cVec::cVec(local_18);
+  if ((((*(byte *)(WORLD_STATE_POINTER + 0x3dc) & 2) == 0) &&
+      (iVar3 = FUN_1801690c0(&DAT_1808909c0,local_58,0xffffffff,0), iVar3 == 2)) &&
+     (iVar3 = FUN_180169ec0(&DAT_1808909c0), iVar3 == 1)) {
+    DAT_180b6b2ac = DAT_180b6b2ac | 0x40000000;
+    LOCK();
+    UNLOCK();
+    wk::math::cVec::cVec(local_68,(cVec *)&DAT_180b66390);
+    if ((1.0 < local_64) || (local_64 < -1.0)) {
+      if ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) & 0x100) != 0) {
+        set_world_state_bit(0x40031); // Flag 49, this is the branch if you use sunrise without having the crystal in placxe
+        puVar1 = PTR_DAT_1807a8cb0;
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d9490,0xffffffff);
+        register_callback(puVar1,uVar4);
+        return;
+      }
+    }
+    else {
+      if ((*(byte *)(WORLD_STATE_POINTER + 0x3dc) & 0x20) != 0) {
+        set_world_state_bit(0x4001e); // Flag 30, this is the branch if you do have the crystal in place and use sunrise
+        puVar1 = PTR_DAT_1807a8cb0;
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804D60E0,
+                                  0xffffffff); // Schedule Callback to the curtscences
+        register_callback(puVar1,uVar4);
+        return;
+      }
+      cVar2 = FUN_1803f3380(PTR_DAT_1807a8cb0,5,0);
+      puVar1 = PTR_DAT_1807a8cb0;
+      if (cVar2 != '\0') {
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d53f0,0xffffffff);
+        register_callback(puVar1,uVar4);
+        return;
+      }
+    }
+    FUN_18014a360(1);
+  }
+```
+
+Our replace first link in approach would have use replace FUN_1804D60E0 with a stub; But this cutscene chain loads in the unbloomed guardian tree. This load doesn't get persisted anywhere while it hasn't been bloomed, meaning reloading the map will remove it forerver, preventing the player form accessing Healed Hana Valley.(*This is likely why the above handler was added to prevent the player from exiting the map.*)
+
+Even is we had a stub that would load in the tree, we'd need the player to have bloom when doing this chain of events to unlock healed Hana Valley, otherwise they'd be locked off it forever. 
+
 ## Stage architecture (one level above TICK)
 
 The CoN TICK has zero static call sites in main.dll. Its only xref is its `.pdata` exception-unwind entry. Despite that, scripts and TICKs in this engine are *not* loaded from external files: there is no separate script bytecode language. Scripts are compiled C++ callbacks baked into main.dll, scheduled by ID via `FUN_1803f35f0(ctx, script_id, ...)` and similar. So the TICK gets installed at runtime through some indirection that we haven't fully traced statically (likely a stage-id -> function-pointer table populated during stage init), but the answer lives somewhere inside main.dll, not in an on-disk script file. The on-disk room files (`data_pc/stN/rXXX.bin`) carry SCA trigger volumes, MSD strings, and per-room asset data, not callback pointers. That said, the *parallel* machinery (the stage descriptor object the TICK eventually drives) is fully visible in the binary.
