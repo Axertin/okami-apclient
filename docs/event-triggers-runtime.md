@@ -247,8 +247,56 @@ After starting the sequence in Hana Valley's guardian sapling, there's a dialog 
   return;
 }
 ```
+We simply replace with with an empty function to never prevent the player from leaving the area.
 
 
+## Hana Valley Bloom Tutorial
+The handler for sunrise usage in the sapling room is FUN_184D2410:
+```cpp
+  wk::math::cVec::cVec(local_48);
+  wk::math::cVec::cVec(local_38);
+  wk::math::cVec::cVec(local_28);
+  wk::math::cVec::cVec(local_18);
+  if ((((*(byte *)(WORLD_STATE_POINTER + 0x3dc) & 2) == 0) &&
+      (iVar3 = FUN_1801690c0(&DAT_1808909c0,local_58,0xffffffff,0), iVar3 == 2)) &&
+     (iVar3 = FUN_180169ec0(&DAT_1808909c0), iVar3 == 1)) {
+    DAT_180b6b2ac = DAT_180b6b2ac | 0x40000000;
+    LOCK();
+    UNLOCK();
+    wk::math::cVec::cVec(local_68,(cVec *)&DAT_180b66390);
+    if ((1.0 < local_64) || (local_64 < -1.0)) {
+      if ((*(uint *)(WORLD_STATE_POINTER + 0x3dc) & 0x100) != 0) {
+        set_world_state_bit(0x40031); // Flag 49, this is the branch if you use sunrise without having the crystal in placxe
+        puVar1 = PTR_DAT_1807a8cb0;
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d9490,0xffffffff);
+        register_callback(puVar1,uVar4);
+        return;
+      }
+    }
+    else {
+      if ((*(byte *)(WORLD_STATE_POINTER + 0x3dc) & 0x20) != 0) {
+        set_world_state_bit(0x4001e); // Flag 30, this is the branch if you do have the crystal in place and use sunrise
+        puVar1 = PTR_DAT_1807a8cb0;
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804D60E0,
+                                  0xffffffff); // Schedule Callback to the curtscences
+        register_callback(puVar1,uVar4);
+        return;
+      }
+      cVar2 = FUN_1803f3380(PTR_DAT_1807a8cb0,5,0);
+      puVar1 = PTR_DAT_1807a8cb0;
+      if (cVar2 != '\0') {
+        uVar4 = schedule_callback(PTR_DAT_1807a8cb0 + 0x20,FUN_1804d53f0,0xffffffff);
+        register_callback(puVar1,uVar4);
+        return;
+      }
+    }
+    FUN_18014a360(1);
+  }
+```
+
+Our replace first link in approach would have use replace FUN_1804D60E0 with a stub; But this cutscene chain loads in the unbloomed guardian tree. This load doesn't get persisted anywhere while it hasn't been bloomed, meaning reloading the map will remove it forerver, preventing the player form accessing Healed Hana Valley.(*This is likely why the above handler was added to prevent the player from exiting the map.*)
+
+Even is we had a stub that would load in the tree, we'd need the player to have bloom when doing this chain of events to unlock healed Hana Valley, otherwise they'd be locked off it forever. 
 
 ## Stage architecture (one level above TICK)
 

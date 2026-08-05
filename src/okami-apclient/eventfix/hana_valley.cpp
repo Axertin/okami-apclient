@@ -11,19 +11,31 @@ namespace eventfix::hana_valley
 namespace
 {
 
-// FUN_1804d35d0: this is the handler that prevents you from leaving the area. 
+// FUN_1804d35d0: this is the handler that prevents you from leaving the area.
 // Just remove it so you can leave.
-// Note 1: A bit too extreme, it gets triggered every tick in Hana Valley and tries to get you out of every cutscene in the area
 
 void __fastcall stubIssunBypass()
 {
-    eventfix::clearCutsceneModeBits();
-    wolf::logInfo("[eventfix] Let player leave Guardian sapling area");
+    return;
 }
 
+// FUN_1804D60E0: function shceduled after using sunrise with the Crystal ball in place
+// Hit a deadend with this one. see docs
+
+/*
+void __fastcall stubBloomTutorial()
+{
+    wolf::logDebug("[Eventfix] Bypass bloom tutorial- Bloom Granted");
+    eventfix::clearCutsceneModeBits();
+    eventfix::setStateBit(0x4001F);
+    eventfix::setStateBit(0x40024);
+    eventfix::grantBrush(okami::BrushOverlay::bloom);
+    return;
+}*/
 
 constexpr EventBypass kBypasses[] = {
     {"Hana Valley Guarding Sapling Exit", 0x4D35D0, stubIssunBypass},
+    //{"Hana Valley Bloom Tutorial", 0x04D60E0, stubBloomTutorial}
 };
 
 } // namespace

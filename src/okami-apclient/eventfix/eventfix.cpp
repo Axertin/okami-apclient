@@ -6,8 +6,8 @@
 
 #include "cave_of_nagi.hpp"
 #include "common.hpp"
-#include "kamiki_village.hpp"
 #include "hana_valley.hpp"
+#include "kamiki_village.hpp"
 #include "registry.hpp"
 
 namespace eventfix
