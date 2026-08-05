@@ -7,7 +7,7 @@
 namespace eventfix::hana_valley
 {
 
-// Bypass records for Hana Valley where Issun prevents you from leaving during. See
+// Bypass records for Hana Valley where Issun prevents you from leaving during Guardian Sapling sequence. See
 // docs/event-triggers-runtime.md for the runtime model and chain.
 std::span<const EventBypass> getBypasses();
 
