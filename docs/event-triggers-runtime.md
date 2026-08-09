@@ -224,6 +224,27 @@ Confirmed offsets and dispatch order for the Sakuya descent + Water Lily grant +
 
 The bypass installed by `src/okami-apclient/eventfix/kamiki_village.cpp` replaces `FUN_1804c64a0` with a stub that calls `clearCutsceneModeBits()`, `grantBrush(BrushOverlay::water_lily)`, and `transitionStageSubState(0xe)`. The natural chain's per-map state writes (e.g. `KamikiVillage` worldStateBits 11 / 149 / 163) are set elsewhere (trigger volumes, post-bloom scripts); the bypass does not interact with them.
 
+## Gale Shrine galestorm tutorial bypass
+
+The handler for the tutorial is FUN_1804E9CC0,
+
+```cpp
+  if (((DAT_180b6b2ac >> 0x1e & 1) == 0) && ((*(uint *)(WORLD_STATE_POINTER + 0x45c) & 0x100) == 0))
+  {
+    cVar2 = FUN_1803f3380(PTR_DAT_1807a8cb0,5,0,1);
+    if (cVar2 != '\0') {
+      set_world_state_bit(0x80017); //set flag "stuck in platform"
+      puVar1 = PTR_DAT_1807a8cb0;
+      enter_cutsence_mode(PTR_DAT_1807a8cb0);
+      uVar3 = schedule_callback(puVar1 + 0x20,FUN_1804ec0c0,0xffffffff);
+      register_callback(puVar1,uVar3);
+      return;
+    }
+  }
+```
+We replace the FUN_1804ec0c0 with a stub that exits cutscene mode, grants the galestorm check to the player, and sets some flags to mark the tutorial as complete. The door stays closed, but it doesn't have collision as you're never supposed to be able to move while it's closed, so you can just cross it.
+
+
 ## Stage architecture (one level above TICK)
 
 The CoN TICK has zero static call sites in main.dll. Its only xref is its `.pdata` exception-unwind entry. Despite that, scripts and TICKs in this engine are *not* loaded from external files: there is no separate script bytecode language. Scripts are compiled C++ callbacks baked into main.dll, scheduled by ID via `FUN_1803f35f0(ctx, script_id, ...)` and similar. So the TICK gets installed at runtime through some indirection that we haven't fully traced statically (likely a stage-id -> function-pointer table populated during stage init), but the answer lives somewhere inside main.dll, not in an on-disk script file. The on-disk room files (`data_pc/stN/rXXX.bin`) carry SCA trigger volumes, MSD strings, and per-room asset data, not callback pointers. That said, the *parallel* machinery (the stage descriptor object the TICK eventually drives) is fully visible in the binary.
