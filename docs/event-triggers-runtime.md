@@ -245,7 +245,6 @@ The handler for the tutorial is FUN_1804E9CC0,
 We replace the FUN_1804ec0c0 with a stub that exits cutscene mode, grants the galestorm check to the player, and sets some flags to mark the tutorial as complete. The door stays closed, but it doesn't have collision as you're never supposed to be able to move while it's closed, so you can just cross it.
 
 
-
 ## Stage architecture (one level above TICK)
 
 The CoN TICK has zero static call sites in main.dll. Its only xref is its `.pdata` exception-unwind entry. Despite that, scripts and TICKs in this engine are *not* loaded from external files: there is no separate script bytecode language. Scripts are compiled C++ callbacks baked into main.dll, scheduled by ID via `FUN_1803f35f0(ctx, script_id, ...)` and similar. So the TICK gets installed at runtime through some indirection that we haven't fully traced statically (likely a stage-id -> function-pointer table populated during stage init), but the answer lives somewhere inside main.dll, not in an on-disk script file. The on-disk room files (`data_pc/stN/rXXX.bin`) carry SCA trigger volumes, MSD strings, and per-room asset data, not callback pointers. That said, the *parallel* machinery (the stage descriptor object the TICK eventually drives) is fully visible in the binary.
