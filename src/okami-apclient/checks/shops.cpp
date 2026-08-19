@@ -136,10 +136,10 @@ void ShopDefinition::SetSellValues(const okami::SellValueArray &replacementSellV
 }
 
 // ============================================================================
-// Data-driven shop registry (21 item shops + 3 demon fang shops)
+// Data-driven shop registry (22 item shops + 3 demon fang shops)
 // ============================================================================
 
-constexpr int NUM_ITEM_SHOPS = 21;
+constexpr int NUM_ITEM_SHOPS = 22;
 
 static std::array<ShopDefinition, NUM_ITEM_SHOPS> itemShops;
 static std::vector<okami::ItemShopStock> AgataFangShop;
@@ -183,6 +183,7 @@ static constexpr auto kShopMap = std::to_array<ShopMapEntry>({
     {okami::MapID::TakaPassCursed, 19, kAnyShopNum},
     {okami::MapID::TakaPassHealed, 19, kAnyShopNum},
     {okami::MapID::WawkuShrine, 20, kAnyShopNum},
+    {okami::MapID::Wepkeer, 21, kAnyShopNum},
 });
 
 std::optional<int> GetShopIdForMap(uint16_t mapId, uint32_t shopNum)
