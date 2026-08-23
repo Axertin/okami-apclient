@@ -528,44 +528,48 @@ void ArchipelagoSocket::poll()
         return;
     }
 
+    // Hold clientMutex_ for the whole poll path. Do NOT call withClient() here and
+    // then lock clientMutex_ again on timeout — std::mutex is not recursive, so that
+    // double-lock deadlocked the game thread when the AP server was unreachable (#152).
+    std::unique_lock<std::mutex> lock(clientMutex_);
+    if (!client_)
+    {
+        return;
+    }
+
     try
     {
-        withClient(
-            [this](APClient &client)
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = now - lastPollTime_;
+        auto interval = connected_.load() ? POLL_INTERVAL_CONNECTED : POLL_INTERVAL_CONNECTING;
+
+        // Check for connection timeout (server down / wrong host / no response)
+        if (!connected_.load())
+        {
+            auto connectionElapsed = now - connectionStartTime_;
+            if (connectionElapsed >= CONNECTION_TIMEOUT)
             {
-                auto now = std::chrono::steady_clock::now();
-                auto elapsed = now - lastPollTime_;
-                auto interval = connected_.load() ? POLL_INTERVAL_CONNECTED : POLL_INTERVAL_CONNECTING;
+                wolf::logError("[Socket] Connection timed out");
+                connected_.store(false);
+                client_.reset();
+                lock.unlock();
+                queueMainThreadTask([this]() { setStatus("Unable to connect to server"); });
+                return;
+            }
+        }
 
-                // Check for connection timeout
-                if (!connected_.load())
-                {
-                    auto connectionElapsed = now - connectionStartTime_;
-                    if (connectionElapsed >= CONNECTION_TIMEOUT)
-                    {
-                        wolf::logError("[Socket] Connection timed out");
-                        connected_.store(false);
-                        queueMainThreadTask([this]() { setStatus("Connection timed out"); });
-                        // Clean up and return - don't throw
-                        {
-                            std::lock_guard<std::mutex> lock(clientMutex_);
-                            client_.reset();
-                        }
-                        return;
-                    }
-                }
-
-                if (elapsed >= interval)
-                {
-                    client.poll();
-                    lastPollTime_ = now;
-                }
-            });
+        if (elapsed >= interval)
+        {
+            client_->poll();
+            lastPollTime_ = now;
+        }
     }
     catch (const std::exception &e)
     {
         bool wasConnected = connected_.load();
         connected_.store(false);
+        client_.reset();
+        lock.unlock();
 
         // Only log if we thought we were connected
         if (wasConnected)
@@ -573,11 +577,11 @@ void ArchipelagoSocket::poll()
             wolf::logError("[Socket] Poll failed while connected: %s", e.what());
             queueMainThreadTask([this, error = std::string(e.what())]() { setStatus("Connection lost: " + error); });
         }
-
-        // Clean up failed connection
+        else
         {
-            std::lock_guard<std::mutex> lock(clientMutex_);
-            client_.reset();
+            queueMainThreadTask([this, error = std::string(e.what())]() {
+                setStatus("Unable to connect to server: " + error);
+            });
         }
     }
 }
