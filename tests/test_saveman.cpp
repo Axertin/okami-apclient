@@ -973,7 +973,7 @@ TEST_CASE("Cold-start save produces game-compatible empty slots", "[saveman][gol
 // Slot Name clean
 // =============================================================================
 
-TEST_CASE("Cold-start save produces game-compatible empty slots", "[saveman][name-clean]")
+TEST_CASE("cleanSavePath repalced only reserved characters", "[saveman][name-clean]")
 {
     wolf::mock::reset();
     wolf::mock::reserveMemory(kMockMemorySize);
