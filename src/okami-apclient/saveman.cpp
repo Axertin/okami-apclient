@@ -658,10 +658,19 @@ std::string SaveMan::getSavePath() const
 
     // Save key format: slot_seed (same as ArchipelagoSocket::getConnectionInfo)
     std::string saveKey = socket_.getConnectionInfo();
+    saveKey = cleanSavePath(saveKey);
     if (saveKey.empty())
         return {};
 
     return (std::filesystem::path(SAVE_DIR) / (saveKey + ".OKAMI")).string();
+}
+
+std::string SaveMan::cleanSavePath(std::string path) const
+{
+    char r; // replacement
+    std::map<char, char> rs = {{':', '_'}, {'\\', '_'}, {'/', '_'}, {'*', '_'}, {'?', '_'}, {'"', '_'}, {'<', '_'}, {'>', '_'}, {'|', '_'}};
+    std::replace_if(path.begin(), path.end(), [&](char c) { return r = rs[c]; }, r);
+    return path;
 }
 
 // =============================================================================

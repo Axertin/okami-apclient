@@ -968,3 +968,21 @@ TEST_CASE("Cold-start save produces game-compatible empty slots", "[saveman][gol
     cleanupSaveFile(*sm);
     wolf::mock::reset();
 }
+
+// =============================================================================
+// Slot Name clean
+// =============================================================================
+
+TEST_CASE("Cold-start save produces game-compatible empty slots", "[saveman][name-clean]")
+{
+    wolf::mock::reset();
+    wolf::mock::reserveMemory(kMockMemorySize);
+
+    mock::MockArchipelagoSocket socket;
+    auto sm = makeSaveMan(socket);
+
+    std::string slotName = ":A?m\\a\"t*e<r>a|s/u";
+    slotName = sm->cleanSavePath(slotName);
+    CHECK(slotName == "_A_m_a_t_e_r_a_s_u");
+    wolf::mock::reset();
+}

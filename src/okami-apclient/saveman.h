@@ -66,6 +66,9 @@ class SaveMan
     /// Get the full path to the current AP save file
     std::string getSavePath() const;
 
+    // Removes invalid characters form savePath to avoid failures when crating saves
+    std::string cleanSavePath(std::string path) const;
+
     // === Hooks ===
 
     /// Install hooks on the game's save/load functions.
